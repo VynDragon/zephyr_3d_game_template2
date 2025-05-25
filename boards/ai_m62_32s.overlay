@@ -1,0 +1,61 @@
+
+&clk_wifipll {
+	overclock;
+};
+
+&clk_bclk {
+	divider = <4>;
+};
+
+&clk_root {
+	pll-select = <1>;
+};
+
+&clk_flash {
+		clocks = <&clk_bclk>;
+		// clock-invert;
+		read-delay = <1>;
+		divider = <1>;
+		//rx-clock-invert;
+};
+
+#include <dt-bindings/pinctrl/bl616x-pinctrl.h>
+#include <zephyr/dt-bindings/i2c/i2c.h>
+
+&pinctrl {
+	i2c0_default: i2c0_default {
+		group1 {
+			pinmux = <GPIO14_I2C0_SCL>, <GPIO15_I2C0_SDA>;
+			drive-strength = <2>;
+			input-schmitt-enable;
+		};
+	};
+};
+
+&i2c0 {
+	ssd1327: ssd1327@3c {
+		compatible = "solomon,ssd1327fb";
+		reg = <0x3c>;
+		width = <128>;
+		height = <96>;
+		prechargep = <0xf>;
+		remap-value = <0x53>;
+		oscillator-freq = <0x92>;
+		display-offset = <0x20>;
+		start-line = <0>;
+		multiplex-ratio = <0x05f>;
+		phase-length = <0x1f>;
+		status="okay";
+	};
+	status = "okay";
+
+	pinctrl-0 = <&i2c0_default>;
+	pinctrl-names = "default";
+	clock-frequency = <I2C_BITRATE_FAST_PLUS>;
+};
+
+/ {
+	chosen {
+		zephyr,display = &ssd1327;
+	};
+};
