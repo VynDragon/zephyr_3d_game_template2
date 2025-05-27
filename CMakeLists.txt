@@ -10,6 +10,6 @@ zephyr_syscall_include_directories(include)
 zephyr_include_directories(include)
 zephyr_include_directories(lib)
 
-#zephyr_code_relocate(FILES
-#src/main.c
-#LOCATION RAM NOKEEP)
+zephyr_code_relocate(FILES
+src/main.c
+LOCATION RAM NOKEEP)

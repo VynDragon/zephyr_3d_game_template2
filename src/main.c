@@ -31,9 +31,9 @@ LOG_MODULE_REGISTER(main);
 
 #include "building.h"
 
-#include "plane.h"
-
 #define TEXTURE_WH 32
+
+#define FPS_TIMEPOINT(fps) sys_timepoint_calc(K_MSEC(1000 / fps))
 
 // intended for 48k dtcm
 #if DT_HAS_CHOSEN(zephyr_dtcm)
@@ -53,7 +53,8 @@ void clearScreen()
 }
 
 
-S3L_Model3D models[1];
+S3L_Model3D models[25];
+S3L_Scene scene;
 
 inline void zephyr_putpixel(S3L_PixelInfo *p)
 {
@@ -83,55 +84,42 @@ inline void zephyr_putpixel(S3L_PixelInfo *p)
 inline int zephyr_drawtriangle(S3L_Vec4 point0, S3L_Vec4 point1, S3L_Vec4 point2,
 								S3L_Index modelIndex, S3L_Index triangleIndex)
 {
-	/*plot_line(200, point0.x, point0.y, point1.x, point1.y);
+	plot_line(200, point0.x, point0.y, point1.x, point1.y);
 	plot_line(200, point2.x, point2.y, point1.x, point1.y);
-	plot_line(200, point2.x, point2.y, point0.x, point0.y);*/
+	plot_line(200, point2.x, point2.y, point0.x, point0.y);
 	return 1;
 }
 
 static const struct device *display_device = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
 
-int main()
+static void render_function(void *, void *, void *)
 {
-	struct display_buffer_descriptor buf_desc;
 	int sinvar = 0;
 	timing_t start_time, end_time, dstart_time, rend_time, rstart_time;
 	uint32_t total_time_us, render_time_us, draw_time_us;
 	int close = 800;
 	int scroll = 0;
 	int close_add = 1;
-	S3L_Scene scene;
-
-	if (!device_is_ready(display_device)) {
-		printf("Display device not ready");
-		return 0;
-	}
-
-	timing_init();
-	timing_start();
-
-	k_msleep(100);
-	display_blanking_on(display_device);
-	display_set_pixel_format(display_device, PIXEL_FORMAT_L_8);
-	display_blanking_off(display_device);
+	struct display_buffer_descriptor buf_desc;
+	k_timepoint_t timing = FPS_TIMEPOINT(15);
 
 	buf_desc.buf_size = S3L_RESOLUTION_X * S3L_RESOLUTION_Y;
 	buf_desc.width = S3L_RESOLUTION_X;
 	buf_desc.height = S3L_RESOLUTION_Y;
 	buf_desc.pitch = S3L_RESOLUTION_X;
 
-	models[0] = building_01;
-
-	S3L_sceneInit(models,1,&scene);
-
-	S3L_transform3DSet(0,0,512,0,0,0,S3L_F*10,S3L_F*10,S3L_F*10,&(models[0].transform));
-
-	scene.camera.transform.translation.y = 0 * S3L_F;
-	scene.camera.transform.translation.z = -1 * S3L_F;
-	//scene.camera.focalLength = 0;
-
 	while (1) {
+		timing = FPS_TIMEPOINT(15);
+		uint32_t ticks = sys_clock_cycle_get_32();
 		models[0].transform.rotation.y = sinvar;
+		models[1].transform.rotation.y = sinvar;
+		models[2].transform.rotation.y = sinvar;
+		models[3].transform.rotation.y = sinvar;
+		models[4].transform.rotation.y = sinvar;
+		models[5].transform.rotation.y = sinvar;
+		models[6].transform.rotation.y = sinvar;
+		models[7].transform.rotation.y = sinvar;
+		models[8].transform.rotation.y = sinvar;
 		start_time = timing_counter_get();
 		/* clear viewport to black */
 		S3L_newFrame();
@@ -161,10 +149,59 @@ int main()
 			close_add = 1;
 		}
 		scroll -= 10;
-		k_msleep(1);
+		while (!sys_timepoint_expired(timing)) {
+			k_sleep(K_NSEC(100));
+		}
 		//return 0;
 		//msleep(100);
 	}
+}
+
+K_THREAD_DEFINE(render_thread, 4096,
+                render_function, NULL, NULL, NULL,
+                5, 0, 100);
+
+int main()
+{
+	if (!device_is_ready(display_device)) {
+		printf("Display device not ready");
+		return 0;
+	}
+
+	timing_init();
+	timing_start();
+
+	k_msleep(100);
+	display_blanking_on(display_device);
+	display_set_pixel_format(display_device, PIXEL_FORMAT_L_8);
+	display_blanking_off(display_device);
+
+	models[0] = building_01;
+	models[1] = building_01;
+	models[2] = building_01;
+	models[3] = building_01;
+	models[4] = building_01;
+	models[5] = building_01;
+	models[6] = building_01;
+	models[7] = building_01;
+	models[8] = building_01;
+	models[9] = building_01;
+
+	S3L_sceneInit(models,9,&scene);
+
+	S3L_transform3DSet(0,0,512,0,0,0,S3L_F*2,S3L_F*2,S3L_F*2,&(models[0].transform));
+	S3L_transform3DSet(256,0,512,0,0,0,S3L_F*2,S3L_F*2,S3L_F*2,&(models[1].transform));
+	S3L_transform3DSet(-256,0,512,0,0,0,S3L_F*2,S3L_F*2,S3L_F*2,&(models[2].transform));
+	S3L_transform3DSet(0,256,512,0,0,0,S3L_F*2,S3L_F*2,S3L_F*2,&(models[3].transform));
+	S3L_transform3DSet(0,-256,512,0,0,0,S3L_F*2,S3L_F*2,S3L_F*2,&(models[4].transform));
+	S3L_transform3DSet(256,256,512,0,0,0,S3L_F*2,S3L_F*2,S3L_F*2,&(models[5].transform));
+	S3L_transform3DSet(256,-256,512,0,0,0,S3L_F*2,S3L_F*2,S3L_F*2,&(models[6].transform));
+	S3L_transform3DSet(-256,256,512,0,0,0,S3L_F*2,S3L_F*2,S3L_F*2,&(models[7].transform));
+	S3L_transform3DSet(-256,-256,512,0,0,0,S3L_F*2,S3L_F*2,S3L_F*2,&(models[8].transform));
+
+	scene.camera.transform.translation.y = 0 * S3L_F;
+	scene.camera.transform.translation.z = -0 * S3L_F;
+	//scene.camera.focalLength = 0;
 
 	return 0;
 }

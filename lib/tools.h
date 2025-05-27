@@ -46,3 +46,29 @@ static void plot_line (uint8_t color, int x0, int y0, int x1, int y1)
 		err += dy;
 	}
 }*/
+
+/* Instanciate a 3D model from a original */
+#define INSTANCIATE_MODEL(name, model) S3L_Model3D name = {	\
+.vertices = building_01_vertices,							\
+.triangleCount = model.triangleCount,						\
+.vertexCount = model.vertexCount,							\
+.triangles = model.triangles,								\
+.customTransformMatrix = 0,									\
+.transform.scale.x = S3L_F,									\
+.transform.scale.y = S3L_F,									\
+.transform.scale.z = S3L_F,									\
+.transform.scale.w = 0,										\
+.transform.translation.x = 0,								\
+.transform.translation.y = 0,								\
+.transform.translation.z = 0,								\
+.transform.translation.w = S3L_F,							\
+.transform.rotation.x = 0,									\
+.transform.rotation.y = 0,									\
+.transform.rotation.z = 0,									\
+.transform.rotation.w = S3L_F,								\
+.config.backfaceCulling = model.config.backfaceCulling,		\
+.config.visible = model.config.visible,						\
+.triangleTextures = model.triangleTextures,					\
+.triangleUVs = model.triangleUVs,							\
+.triangleTextureIndex = model.triangleTextureIndex,			\
+};
