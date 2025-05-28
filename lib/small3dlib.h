@@ -538,26 +538,35 @@ typedef struct
   S3L_Index vertexCount;
   const S3L_Index *triangles;
   S3L_Index triangleCount;
+  const S3L_Unit *triangleUVs;
+  const S3L_Index *triangleTextureIndex;
+  const S3L_Unit **triangleTextures;
+} S3L_Model3D_Model;
+
+typedef struct
+{
   S3L_Transform3D transform;
   S3L_Mat4 *customTransformMatrix; /**< This can be used to override the
                                      transform (if != 0) with a custom
                                      transform matrix, which is more
                                      general. */
   S3L_DrawConfig config;
-  const S3L_Unit *triangleUVs;
-  const S3L_Index *triangleTextureIndex;
-  const S3L_Unit **triangleTextures;
+  const S3L_Model3D_Model *model;
 } S3L_Model3D;                ///< Represents a 3D model.
-
-void S3L_model3DInit(
-  const S3L_Unit *vertices,
-  S3L_Index vertexCount,
-  const S3L_Index *triangles,
-  S3L_Index triangleCount,
-  S3L_Model3D *model);
 
 typedef struct
 {
+  S3L_Transform3D transform;
+  const S3L_Unit *texture;
+  S3L_Unit height;
+  S3L_Unit width;
+  S3L_Unit scale;
+} S3L_Billboard;
+
+typedef struct
+{
+  S3L_Billboard *billboards;
+  S3L_Index billboardCount;
   S3L_Model3D *models;
   S3L_Index modelCount;
   S3L_Camera camera;
@@ -566,6 +575,8 @@ typedef struct
 void S3L_sceneInit(
   S3L_Model3D *models,
   S3L_Index modelCount,
+  S3L_Billboard *billboards,
+  S3L_Index billboardCount,
   S3L_Scene *scene);
 
 typedef struct
@@ -664,7 +675,7 @@ void S3L_getIndexedTriangleValues(
   the triangles containing the vertex. The maximum number of these triangle
   normals that will be averaged is set with
   S3L_NORMAL_COMPUTE_MAXIMUM_AVERAGE. */
-void S3L_computeModelNormals(S3L_Model3D model, S3L_Unit *dst,
+void S3L_computeModelNormals(S3L_Model3D *model, S3L_Unit *dst,
   int8_t transformNormals);
 
 /** Interpolated between two values, v1 and v2, in the same ratio as t is to
@@ -1112,7 +1123,7 @@ void S3L_getIndexedTriangleValues(
   }
 }
 
-void S3L_computeModelNormals(S3L_Model3D model, S3L_Unit *dst,
+void S3L_computeModelNormals(S3L_Model3D *model, S3L_Unit *dst,
   int8_t transformNormals)
 {
   S3L_Index vPos = 0;
@@ -1124,27 +1135,27 @@ void S3L_computeModelNormals(S3L_Model3D model, S3L_Unit *dst,
   S3L_Vec4 ns[S3L_NORMAL_COMPUTE_MAXIMUM_AVERAGE];
   S3L_Index normalCount;
 
-  for (uint32_t i = 0; i < model.vertexCount; ++i)
+  for (uint32_t i = 0; i < model->model->vertexCount; ++i)
   {
     normalCount = 0;
 
-    for (uint32_t j = 0; j < model.triangleCount * 3; j += 3)
+    for (uint32_t j = 0; j < model->model->triangleCount * 3; j += 3)
     {
       if (
-        (model.triangles[j] == i) ||
-        (model.triangles[j + 1] == i) ||
-        (model.triangles[j + 2] == i))
+        (model->model->triangles[j] == i) ||
+        (model->model->triangles[j + 1] == i) ||
+        (model->model->triangles[j + 2] == i))
       {    
         S3L_Vec4 t0, t1, t2;
         uint32_t vIndex;
 
         #define getVertex(n)\
-          vIndex = model.triangles[j + n] * 3;\
-          t##n.x = model.vertices[vIndex];\
+          vIndex = model->model->triangles[j + n] * 3;\
+          t##n.x = model->model->vertices[vIndex];\
           vIndex++;\
-          t##n.y = model.vertices[vIndex];\
+          t##n.y = model->model->vertices[vIndex];\
           vIndex++;\
-          t##n.z = model.vertices[vIndex];
+          t##n.z = model->model->vertices[vIndex];
 
         getVertex(0)
         getVertex(1)
@@ -1197,10 +1208,10 @@ void S3L_computeModelNormals(S3L_Model3D model, S3L_Unit *dst,
     
   S3L_Mat4 m;
 
-  S3L_makeWorldMatrix(model.transform,m);
+  S3L_makeWorldMatrix(model->transform,m);
 
   if (transformNormals)
-    for (S3L_Index i = 0; i < model.vertexCount * 3; i += 3)
+    for (S3L_Index i = 0; i < model->model->vertexCount * 3; i += 3)
     {
       n.x = dst[i];
       n.y = dst[i + 1];
@@ -1830,30 +1841,17 @@ void S3L_pixelInfoInit(S3L_PixelInfo *p)
   p->previousZ = 0;
 }
 
-void S3L_model3DInit(
-  const S3L_Unit *vertices,
-  S3L_Index vertexCount,
-  const S3L_Index *triangles,
-  S3L_Index triangleCount,
-  S3L_Model3D *model)
-{
-  model->vertices = vertices;
-  model->vertexCount = vertexCount;
-  model->triangles = triangles;
-  model->triangleCount = triangleCount;
-  model->customTransformMatrix = 0;  
-
-  S3L_transform3DInit(&(model->transform));
-  S3L_drawConfigInit(&(model->config));
-}
-
 void S3L_sceneInit(
   S3L_Model3D *models,
   S3L_Index modelCount,
+  S3L_Billboard *billboards,
+  S3L_Index billboardCount,
   S3L_Scene *scene)
 {
   scene->models = models;
   scene->modelCount = modelCount;
+  scene->billboards = billboards;
+  scene->billboardCount = billboardCount;
   S3L_cameraInit(&(scene->camera));
 }
 
@@ -1869,10 +1867,14 @@ void S3L_drawConfigInit(S3L_DrawConfig *config)
 #ifndef S3L_TRIANGLE_FUNCTION
   #error Triangle rendering function (S3L_TRIANGLE_FUNCTION) not specified!
 #endif
+#ifndef S3L_BILLBOARD_FUNCTION
+  #error Billboard rendering function (S3L_BILLBOARD_FUNCTION) not specified!
+#endif
 
 static inline void S3L_PIXEL_FUNCTION(S3L_PixelInfo *pixel); // forward decl
 static inline int S3L_TRIANGLE_FUNCTION(S3L_Vec4 point0, S3L_Vec4 point1, S3L_Vec4 point2,
                                         S3L_Index modelIndex, S3L_Index triangleIndex);
+static inline int S3L_BILLBOARD_FUNCTION(S3L_Vec4 point, S3L_Billboard *billboard);
 
 /** Serves to accelerate linear interpolation for performance-critical
   code. Functions such as S3L_interpolate require division to compute each
@@ -2668,11 +2670,11 @@ uint16_t S3L_sortArrayLength;
 void _S3L_projectVertex(const S3L_Model3D *model, S3L_Index triangleIndex,
   uint8_t vertex, S3L_Mat4 projectionMatrix, S3L_Vec4 *result)
 {
-  uint32_t vertexIndex = model->triangles[triangleIndex * 3 + vertex] * 3;
+  uint32_t vertexIndex = model->model->triangles[triangleIndex * 3 + vertex] * 3;
 
-  result->x = model->vertices[vertexIndex];
-  result->y = model->vertices[vertexIndex + 1];
-  result->z = model->vertices[vertexIndex + 2];
+  result->x = model->model->vertices[vertexIndex];
+  result->y = model->model->vertices[vertexIndex + 1];
+  result->z = model->model->vertices[vertexIndex + 2];
   result->w = S3L_F; // needed for translation 
  
   S3L_vec3Xmat4(result,projectionMatrix);
@@ -2841,7 +2843,7 @@ uint32_t S3L_drawScene(S3L_Scene scene)
   S3L_Vec4 transformed[6]; // transformed triangle coords, for 2 triangles
 
   const S3L_Model3D *model;
-  S3L_Index modelIndex, triangleIndex;
+  S3L_Index modelIndex, triangleIndex, billboardIndex;
 
   S3L_makeCameraMatrix(scene.camera.transform,matCamera);
 
@@ -2849,6 +2851,29 @@ uint32_t S3L_drawScene(S3L_Scene scene)
   uint16_t previousModel = 0;
   S3L_sortArrayLength = 0;
 #endif
+
+  for (billboardIndex = 0; billboardIndex < scene.billboardCount; ++billboardIndex)
+  {
+    S3L_makeWorldMatrix(scene.billboards[billboardIndex].transform,matFinal);
+    S3L_mat4Xmat4(matFinal,matCamera);
+
+    transformed->x = 0;
+    transformed->y = 0;
+    transformed->z = 0;
+    transformed->w = S3L_F;
+
+    S3L_vec3Xmat4(transformed, matFinal);
+
+    transformed->w = transformed->z;
+
+    _S3L_mapProjectedVertexToScreen(transformed, scene.camera.focalLength);
+    if (transformed->x < 0 || transformed->x >= S3L_RESOLUTION_X || transformed->y < 0 || transformed->y >= S3L_RESOLUTION_Y || transformed->z <= S3L_NEAR)
+    {
+      continue;
+    }
+
+    S3L_BILLBOARD_FUNCTION(*transformed, &(scene.billboards[billboardIndex]));
+  }
 
   for (modelIndex = 0; modelIndex < scene.modelCount; ++modelIndex)
   {
@@ -2875,7 +2900,7 @@ uint32_t S3L_drawScene(S3L_Scene scene)
 
     S3L_mat4Xmat4(matFinal,matCamera);
 
-    S3L_Index triangleCount = scene.models[modelIndex].triangleCount;
+    S3L_Index triangleCount = scene.models[modelIndex].model->triangleCount;
 
     triangleIndex = 0;
       

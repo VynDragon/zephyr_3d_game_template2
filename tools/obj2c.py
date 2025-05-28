@@ -43,11 +43,11 @@ for mesh in object_in.mesh_list:
 file_out.write("};\n")
 
 file_out.write("static const S3L_Model3D " +  data_name + " = {\n")
-file_out.write(".vertices = " + data_vertices_name + ",\n")
+file_out.write(".model.vertices = " + data_vertices_name + ",\n")
 
-file_out.write(".triangleCount = " + str(int(total_polys)) + ",\n")
-file_out.write(".vertexCount = " + str(len(object_in.vertices)) + ",\n")
-file_out.write(".triangles = " + data_index_name + ",\n")
+file_out.write(".model.triangleCount = " + str(int(total_polys)) + ",\n")
+file_out.write(".model.vertexCount = " + str(len(object_in.vertices)) + ",\n")
+file_out.write(".model.triangles = " + data_index_name + ",\n")
 file_out.write(".customTransformMatrix = 0,\n")
 file_out.write(".transform.scale.x = S3L_F,\n")
 file_out.write(".transform.scale.y = S3L_F,\n")

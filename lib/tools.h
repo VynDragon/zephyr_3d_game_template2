@@ -1,3 +1,15 @@
+#pragma once
+
+void clearScreen(void)
+{
+	uint32_t index = 0;
+
+	for (; index < S3L_RESOLUTION_Y * S3L_RESOLUTION_X; index++)
+	{
+		video_buffer[index] = 0;
+	}
+}
+
 static void plot_line (uint8_t color, int x0, int y0, int x1, int y1)
 {
 	int dx =  abs (x1 - x0), sx = x0 < x1 ? 1 : -1;
@@ -5,16 +17,12 @@ static void plot_line (uint8_t color, int x0, int y0, int x1, int y1)
 	int err = dx + dy, e2; /* error value e_xy */
 
 	for (;;){  /* loop */
-		S3L_PixelInfo p = {
-			.x = x0,
-			.y = y0,
-			.depth = (256 - color) * 16,
-		};
-		zephyr_putpixel(&p);
+		if (0 < x0 && S3L_RESOLUTION_X > x0 && 0 < y0 && S3L_RESOLUTION_Y > y0) {
+			video_buffer[x0 + y0 * S3L_RESOLUTION_X] = color;
 #if S3L_Z_BUFFER
-		if (0 < x0 && S3L_RESOLUTION_X > x0 && 0 < y0 && S3L_RESOLUTION_Y > y0)
 			S3L_zBuffer[y0 * S3L_RESOLUTION_X + x0] = 0;
 #endif
+		}
 		if (x0 == x1 && y0 == y1) break;
 		e2 = 2 * err;
 		if (e2 >= dy) { err += dy; x0 += sx; } /* e_xy+e_x > 0 */
