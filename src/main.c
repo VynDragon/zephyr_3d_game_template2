@@ -23,7 +23,7 @@ static void render_function(void *, void *, void *)
 	timing_t start_time, end_time, dstart_time, rend_time, rstart_time;
 	uint32_t total_time_us, render_time_us, draw_time_us;
 	struct display_buffer_descriptor buf_desc;
-	k_timepoint_t timing = FPS_TIMEPOINT(4);
+	k_timepoint_t timing = FPS_TIMEPOINT(60);
 
 	buf_desc.buf_size = S3L_RESOLUTION_X * S3L_RESOLUTION_Y;
 	buf_desc.width = S3L_RESOLUTION_X;
@@ -31,7 +31,7 @@ static void render_function(void *, void *, void *)
 	buf_desc.pitch = S3L_RESOLUTION_X;
 
 	while (1) {
-		timing = FPS_TIMEPOINT(4);
+		timing = FPS_TIMEPOINT(60);
 		start_time = timing_counter_get();
 		/* clear viewport to black */
 		S3L_newFrame();
@@ -57,16 +57,23 @@ static void render_function(void *, void *, void *)
 	}
 }
 
+static int origbillboard[4][2] = {
+	{0,64},
+	{0,-64},
+	{64,0},
+	{-64,0},
+};
+
 static void process_function(void *, void *, void *)
 {
 	int sinvar = 0;
-	k_timepoint_t timing = FPS_TIMEPOINT(15);
+	k_timepoint_t timing = FPS_TIMEPOINT(60);
 
 	while (1) {
-		timing = FPS_TIMEPOINT(15);
+		timing = FPS_TIMEPOINT(60);
 		uint32_t ticks = sys_clock_cycle_get_32();
-		//S3L_MODELS[0].config.visible = S3L_VISIBLE_SOLID;
-		//S3L_MODELS[0].transform.rotation.y = sinvar;
+		S3L_MODELS[0].config.visible = S3L_VISIBLE_SOLID;
+		S3L_MODELS[0].transform.rotation.y = sinvar;
 		S3L_MODELS[0].config.visible = S3L_VISIBLE_TEXTURED | S3L_VISIBLE_DISTANCELIGHT;
 		S3L_MODELS[1].transform.rotation.y = sinvar;
 		S3L_MODELS[1].config.visible = S3L_VISIBLE_SOLID | S3L_VISIBLE_DISTANCELIGHT;
@@ -79,8 +86,23 @@ static void process_function(void *, void *, void *)
 		S3L_MODELS[7].transform.rotation.y = sinvar;
 		S3L_MODELS[4].config.visible = S3L_VISIBLE_WIREFRAME;
 		S3L_MODELS[8].transform.rotation.y = sinvar;
+
+		for (int i = 0; i < 4; i++) {
+			S3L_BILLBOARDS[i].transform.translation.z = origbillboard[i][1];
+			S3L_BILLBOARDS[i].transform.translation.x = origbillboard[i][0];
+		}
+
+		S3L_rotate2DPoint(&(S3L_BILLBOARDS[0].transform.translation.z), &(S3L_BILLBOARDS[0].transform.translation.x), sinvar);
+		S3L_rotate2DPoint(&(S3L_BILLBOARDS[1].transform.translation.z), &(S3L_BILLBOARDS[1].transform.translation.x), sinvar);
+		S3L_rotate2DPoint(&(S3L_BILLBOARDS[2].transform.translation.z), &(S3L_BILLBOARDS[2].transform.translation.x), sinvar);
+		S3L_rotate2DPoint(&(S3L_BILLBOARDS[3].transform.translation.z), &(S3L_BILLBOARDS[3].transform.translation.x), sinvar);
+
+		for (int i = 0; i < 4; i++) {
+			S3L_BILLBOARDS[i].transform.translation.z = S3L_BILLBOARDS[i].transform.translation.z + 190;
+		}
+
 		sinvar+=1;
-		S3L_SCENE.camera.transform.translation.z = sinvar;
+		//S3L_SCENE.camera.transform.translation.z = sinvar;
 		while (!sys_timepoint_expired(timing)) {
 			k_sleep(K_NSEC(100));
 		}
@@ -121,10 +143,13 @@ int main()
 	S3L_MODELS[9] = building_01;
 
 	S3L_BILLBOARDS[0] = cat;
+	S3L_BILLBOARDS[1] = cat;
+	S3L_BILLBOARDS[2] = cat;
+	S3L_BILLBOARDS[3] = cat;
 
-	S3L_sceneInit(S3L_MODELS, 1, S3L_BILLBOARDS, 1,&S3L_SCENE);
+	S3L_sceneInit(S3L_MODELS, 9, S3L_BILLBOARDS, 4, &S3L_SCENE);
 
-	S3L_transform3DSet(0,0,256,0,128,0,S3L_F*2,S3L_F*2,S3L_F*1.9,&(S3L_MODELS[0].transform));
+	S3L_transform3DSet(0,0,400,0,0,0,S3L_F*2,S3L_F*2,S3L_F*2,&(S3L_MODELS[0].transform));
 	S3L_transform3DSet(256,0,512,0,0,0,S3L_F*2,S3L_F*2,S3L_F*2,&(S3L_MODELS[1].transform));
 	S3L_transform3DSet(-256,0,512,0,0,0,S3L_F*2,S3L_F*2,S3L_F*2,&(S3L_MODELS[2].transform));
 	S3L_transform3DSet(0,256,512,0,0,0,S3L_F*2,S3L_F*2,S3L_F*2,&(S3L_MODELS[3].transform));
@@ -132,15 +157,16 @@ int main()
 	S3L_transform3DSet(256,256,512,0,0,0,S3L_F*2,S3L_F*2,S3L_F*2,&(S3L_MODELS[5].transform));
 	S3L_transform3DSet(256,-256,512,0,0,0,S3L_F*2,S3L_F*2,S3L_F*2,&(S3L_MODELS[6].transform));
 	S3L_transform3DSet(-256,256,512,0,0,0,S3L_F*2,S3L_F*2,S3L_F*2,&(S3L_MODELS[7].transform));
-	S3L_transform3DSet(-256,-256,128,0,0,0,S3L_F*2,S3L_F*2,S3L_F*2,&(S3L_MODELS[8].transform));
+	S3L_transform3DSet(-256,-256,512,0,0,0,S3L_F*2,S3L_F*2,S3L_F*2,&(S3L_MODELS[8].transform));
 
-	S3L_transform3DSet(0,8,156,0,0,0,S3L_F,S3L_F,S3L_F,&(S3L_BILLBOARDS[0].transform));
+	S3L_transform3DSet(origbillboard[0][0],0,origbillboard[0][1],0,0,0,S3L_F*4*2,S3L_F*2,S3L_F*2,&(S3L_BILLBOARDS[0].transform));
+	S3L_transform3DSet(origbillboard[1][0],0,origbillboard[1][1],0,0,0,S3L_F*2,S3L_F*2*2,S3L_F*2,&(S3L_BILLBOARDS[1].transform));
+	S3L_transform3DSet(origbillboard[2][0],0,origbillboard[2][1],0,0,0,S3L_F*2,S3L_F*2,S3L_F*2,&(S3L_BILLBOARDS[2].transform));
+	S3L_transform3DSet(origbillboard[3][0],0,origbillboard[3][1],0,0,0,S3L_F*2,S3L_F*2,S3L_F*2,&(S3L_BILLBOARDS[3].transform));
 
 	S3L_SCENE.camera.transform.translation.y = 0 * S3L_F;
 	S3L_SCENE.camera.transform.translation.z = -0 * S3L_F;
 	//S3L_SCENE.camera.focalLength = 0;
-
-	//k_thread_resume(render_thread);
 
 	k_thread_create(&render_thread, render_thread_stack, 4096,
                 render_function, NULL, NULL, NULL,

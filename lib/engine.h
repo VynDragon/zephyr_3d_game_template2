@@ -6,7 +6,7 @@
 #define S3L_PERSPECTIVE_CORRECTION 0
 #define S3L_SORT 0
 #define S3L_STENCIL_BUFFER 0
-#define S3L_Z_BUFFER 1
+#define S3L_Z_BUFFER 2
 #define S3L_NEAR 1
 
 #define S3L_PIXEL_FUNCTION		zephyr_putpixel
@@ -71,11 +71,11 @@ inline void zephyr_putpixel(S3L_PixelInfo *p)
 
 		uv[0] = abs(S3L_interpolateBarycentric(uvs[0], uvs[2], uvs[4], p->barycentric) % TEXTURE_WH);
 		uv[1] = abs(S3L_interpolateBarycentric(uvs[1], uvs[3], uvs[5], p->barycentric) % TEXTURE_WH);
-		if (0 < p->x && S3L_RESOLUTION_X > p->x && 0 < p->y && S3L_RESOLUTION_Y > p->y)
+		if (likely(0 < p->x && S3L_RESOLUTION_X > p->x && 0 < p->y && S3L_RESOLUTION_Y > p->y))
 			video_buffer[p->x + p->y * S3L_RESOLUTION_X] = model->model->triangleTextures[model->model->triangleTextureIndex[p->triangleIndex]][(uv[0] >> 0) + (uv[1] >> 0) * TEXTURE_WH] * depthmul;
 
 	} else if (zephyr_putpixel_current_render_mode & S3L_VISIBLE_SOLID) {
-		if (0 < p->x && S3L_RESOLUTION_X > p->x && 0 < p->y && S3L_RESOLUTION_Y > p->y)
+		if (likely(0 < p->x && S3L_RESOLUTION_X > p->x && 0 < p->y && S3L_RESOLUTION_Y > p->y))
 			video_buffer[p->x + p->y * S3L_RESOLUTION_X] = 255 * depthmul;
 	}
 }
@@ -95,25 +95,29 @@ inline int zephyr_drawtriangle(S3L_Vec4 point0, S3L_Vec4 point1, S3L_Vec4 point2
 
 inline int zephyr_drawbillboard(S3L_Vec4 point, S3L_Billboard *billboard)
 {
-	float scale_x = ((float)(billboard->transform.scale.x * S3L_SCENE.camera.focalLength) / (float)point.z) * ((float)billboard->scale/16384);
-	float scale_y = ((float)(billboard->transform.scale.y * S3L_SCENE.camera.focalLength) / (float)point.z) * ((float)billboard->scale/16384);
-	int scaled_height = billboard->height * scale_x;
-	int scaled_width = billboard->width * scale_y;
+	if (!S3L_zTest(point.x,point.y,point.z))
+		return 0;
 
-	for (int y = 0; y < billboard->height; y++) {
-		for (int x = 0; x < billboard->width; x++) {
-			for (int j = y * scale_y; j < scale_y + y * scale_y; j++) {
-				for (int i = x * scale_x; i < scale_x + x * scale_x; i++) {
-					int m = i + point.x - scaled_width / 2;
-					int n = j + point.y - scaled_height / 2;
-					if (0 < m && S3L_RESOLUTION_X > m && 0 < n && S3L_RESOLUTION_Y > n) {
-						video_buffer[n * S3L_RESOLUTION_X + m] = billboard->texture[x + y * billboard->width];
-						#if S3L_Z_BUFFER
-						S3L_zBuffer[n * S3L_RESOLUTION_X + m] = S3L_zBufferFormat(point.z);
-						#endif
-					}
-				}
-			}
+	int focal = S3L_SCENE.camera.focalLength != 0 ? S3L_SCENE.camera.focalLength : 1;
+	float scale_x = ((float)(billboard->transform.scale.x * focal) / (float)point.z) * ((float)billboard->scale/16384);
+	float scale_y = ((float)(billboard->transform.scale.y * focal) / (float)point.z) * ((float)billboard->scale/16384);
+	int scaled_width = billboard->width * scale_x;
+	int scaled_height = billboard->height * scale_y;
+
+	/* this has been optimized */
+	int startx = point.x - scaled_width / 2;
+	int endx =  MIN(point.x + scaled_width / 2, S3L_RESOLUTION_X);
+	int starty = point.y - scaled_height / 2;
+	int endy =  MIN(point.y + scaled_height / 2, S3L_RESOLUTION_Y);
+	S3L_Unit z = S3L_zBufferFormat(point.z);
+	for (int i = MAX(0, startx); i < endx; i++) {
+		int m = (float)(i - startx) / scale_x;
+		for (int j = MAX(0, starty); j < endy; j++) {
+			int n = (float)(j - starty) / scale_y;
+			video_buffer[j * S3L_RESOLUTION_X + i] = billboard->texture[m + n * billboard->width];
+			#if S3L_Z_BUFFER
+			S3L_zBuffer[j * S3L_RESOLUTION_X + i] = z;
+			#endif
 		}
 	}
 	return 0;
