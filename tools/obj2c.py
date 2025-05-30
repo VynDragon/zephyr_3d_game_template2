@@ -21,7 +21,7 @@ data_vertices_name = data_name + "_vertices"
 #data_polys_name = data_name + "_polys"
 data_index_name = data_name + "_indexes"
 
-file_out.write("#pragma once\nstatic const S3L_Unit " +  data_vertices_name + "[] = {\n")
+file_out.write("#pragma once\nstatic const L3_Unit " +  data_vertices_name + "[] = {\n")
 
 for count, vertex in enumerate(object_in.vertices):
 	x = int(vertex[0] * args.scale)
@@ -31,7 +31,7 @@ for count, vertex in enumerate(object_in.vertices):
 
 file_out.write("};\n")
 
-file_out.write("static const S3L_Index " +  data_index_name + "[] = {\n")
+file_out.write("static const L3_Index " +  data_index_name + "[] = {\n")
 
 total_polys = 0
 
@@ -42,25 +42,25 @@ for mesh in object_in.mesh_list:
 
 file_out.write("};\n")
 
-file_out.write("static const S3L_Model3D " +  data_name + " = {\n")
+file_out.write("static const L3_Model3D " +  data_name + " = {\n")
 file_out.write(".model.vertices = " + data_vertices_name + ",\n")
 
 file_out.write(".model.triangleCount = " + str(int(total_polys)) + ",\n")
 file_out.write(".model.vertexCount = " + str(len(object_in.vertices)) + ",\n")
 file_out.write(".model.triangles = " + data_index_name + ",\n")
 file_out.write(".customTransformMatrix = 0,\n")
-file_out.write(".transform.scale.x = S3L_F,\n")
-file_out.write(".transform.scale.y = S3L_F,\n")
-file_out.write(".transform.scale.z = S3L_F,\n")
+file_out.write(".transform.scale.x = L3_F,\n")
+file_out.write(".transform.scale.y = L3_F,\n")
+file_out.write(".transform.scale.z = L3_F,\n")
 file_out.write(".transform.scale.w = 0,\n")
 file_out.write(".transform.translation.x = 0,\n")
 file_out.write(".transform.translation.y = 0,\n")
 file_out.write(".transform.translation.z = 0,\n")
-file_out.write(".transform.translation.w = S3L_F,\n")
+file_out.write(".transform.translation.w = L3_F,\n")
 file_out.write(".transform.rotation.x = 0,\n")
 file_out.write(".transform.rotation.y = 0,\n")
 file_out.write(".transform.rotation.z = 0,\n")
-file_out.write(".transform.rotation.w = S3L_F,\n")
+file_out.write(".transform.rotation.w = L3_F,\n")
 file_out.write(".config.backfaceCulling = 2,\n")
 file_out.write(".config.visible = 1,\n")
 file_out.write("};\n")

@@ -25,7 +25,7 @@ data_texture_name = data_name + "_textures"
 data_uv_name = data_name + "_UVs"
 data_texindex_name = data_name + "texindex"
 
-file_out.write("#pragma once\nstatic const S3L_Unit " +  data_vertices_name + "[] = {\n")
+file_out.write("#pragma once\nstatic const L3_Unit " +  data_vertices_name + "[] = {\n")
 
 for count, vertex in enumerate(object_in.vertices):
 	x = int(vertex[0] * args.scale)
@@ -35,7 +35,7 @@ for count, vertex in enumerate(object_in.vertices):
 
 file_out.write("};\n")
 
-file_out.write("static const S3L_Index " +  data_index_name + "[] = {\n")
+file_out.write("static const L3_Index " +  data_index_name + "[] = {\n")
 
 total_polys = 0
 
@@ -53,19 +53,19 @@ for name, value in object_in.materials.items():
 		tex = Image.open(value.texture.find())
 		tex = tex.resize((TEXSQUARE_SIZE, TEXSQUARE_SIZE))
 		tex = tex.convert("L")
-		file_out.write("static const S3L_Unit " +  data_name + name + "texturedata[" + str(TEXSQUARE_SIZE * TEXSQUARE_SIZE) + "] = {\n")
+		file_out.write("static const L3_Unit " +  data_name + name + "texturedata[" + str(TEXSQUARE_SIZE * TEXSQUARE_SIZE) + "] = {\n")
 		for p in list(tex.getdata()):
 			file_out.write(str(p) + ",")
 		file_out.write("};\n")
 		textures[data_name + name + "texturedata"] = index
 		index = index +1
 
-file_out.write("static const S3L_Unit *" +  data_texture_name + "[] = {\n")
+file_out.write("static const L3_Unit *" +  data_texture_name + "[] = {\n")
 for i, n in textures.items():
 	file_out.write(i + ",\n")
 file_out.write("};\n")
 
-file_out.write("static const S3L_Unit " +  data_uv_name + "[] = {\n")
+file_out.write("static const L3_Unit " +  data_uv_name + "[] = {\n")
 for mesh in object_in.mesh_list:
 	for faceid, face in enumerate(mesh.faces):
 		face0uv = (mesh.materials[0].vertices[faceid * 5 * 3], mesh.materials[0].vertices[faceid * 5 * 3+ 1])
@@ -76,7 +76,7 @@ for mesh in object_in.mesh_list:
 		file_out.write(str(int(face2uv[0] * TEXSQUARE_SIZE)) + ", " + str(int(face2uv[1] * TEXSQUARE_SIZE)) + ",\n")
 file_out.write("};\n")
 
-file_out.write("static const S3L_Index " +  data_texindex_name + "[] = {\n")
+file_out.write("static const L3_Index " +  data_texindex_name + "[] = {\n")
 for mesh in object_in.mesh_list:
 	for faceid, face in enumerate(mesh.faces):
 		texname = textures.get(data_name + mesh.materials[0].name + "texturedata")
@@ -87,7 +87,7 @@ for mesh in object_in.mesh_list:
 file_out.write("};\n")
 
 
-file_out.write("static const S3L_Model3D_Model " +  data_name + "model = {\n")
+file_out.write("static const L3_Model3D_Model " +  data_name + "model = {\n")
 file_out.write(".vertices = " + data_vertices_name + ",\n")
 file_out.write(".triangleCount = " + str(int(total_polys)) + ",\n")
 file_out.write(".vertexCount = " + str(len(object_in.vertices)) + ",\n")
@@ -97,21 +97,21 @@ file_out.write(".triangleUVs = " + data_uv_name + ",\n")
 file_out.write(".triangleTextureIndex = " + data_texindex_name + ",\n")
 file_out.write("};\n")
 
-file_out.write("static const S3L_Model3D " +  data_name + " = {\n")
+file_out.write("static const L3_Model3D " +  data_name + " = {\n")
 
 file_out.write(".customTransformMatrix = 0,\n")
-file_out.write(".transform.scale.x = S3L_F,\n")
-file_out.write(".transform.scale.y = S3L_F,\n")
-file_out.write(".transform.scale.z = S3L_F,\n")
+file_out.write(".transform.scale.x = L3_F,\n")
+file_out.write(".transform.scale.y = L3_F,\n")
+file_out.write(".transform.scale.z = L3_F,\n")
 file_out.write(".transform.scale.w = 0,\n")
 file_out.write(".transform.translation.x = 0,\n")
 file_out.write(".transform.translation.y = 0,\n")
 file_out.write(".transform.translation.z = 0,\n")
-file_out.write(".transform.translation.w = S3L_F,\n")
+file_out.write(".transform.translation.w = L3_F,\n")
 file_out.write(".transform.rotation.x = 0,\n")
 file_out.write(".transform.rotation.y = 0,\n")
 file_out.write(".transform.rotation.z = 0,\n")
-file_out.write(".transform.rotation.w = S3L_F,\n")
+file_out.write(".transform.rotation.w = L3_F,\n")
 file_out.write(".config.backfaceCulling = 2,\n")
 file_out.write(".config.visible = 1,\n")
 file_out.write(".model = &" + data_name + "model,\n")

@@ -1,0 +1,11 @@
+
+
+config RESOLUTION_X
+	int "Display Width"
+	default 128
+
+config RESOLUTION_Y
+	int "Display Height"
+	default 64
+
+source "Kconfig.zephyr"
