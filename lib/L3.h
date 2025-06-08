@@ -70,7 +70,7 @@ is an expensive operation! Possible values:
 2: Approximation (computing only at every L3_PC_APPROX_LENGTHth pixel).
 	Quake-style approximation is used, which only computes the PC after
 	L3_PC_APPROX_LENGTH pixels. This is reasonably accurate and fast. */
-#define L3_PERSPECTIVE_CORRECTION 0
+#define L3_PERSPECTIVE_CORRECTION 1
 
 /** Whether to compute depth for each pixel (fragment). Some other options
 may turn this on automatically. If you don't need depth information, turning

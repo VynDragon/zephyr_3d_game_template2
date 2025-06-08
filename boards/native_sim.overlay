@@ -3,3 +3,11 @@
 	height = <128>;
 	width = <256>;
 };
+
+/ {
+soc {
+evdev {
+  compatible = "zephyr,native-linux-evdev";
+};
+};
+};

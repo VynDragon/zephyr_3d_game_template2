@@ -21,10 +21,14 @@ int ENGINE_BLIT_FUNCTION(L3_COLORTYPE *buffer, uint16_t size_x, uint16_t size_y)
 #define ENGINE_VISUAL_UNUSED		0
 #define ENGINE_VISUAL_MODEL			1
 #define ENGINE_VISUAL_BILLBOARD	2
+#define ENGINE_VISUAL_NOTHING		3
 
 typedef struct Engine_object_s Engine_object;
 
+/* functions ran each tick for associated object */
 typedef void (*Engine_object_pf)(Engine_object *self, void * data);
+/* function ran each tick engine */
+typedef void (*Engine_pf)(void);
 
 typedef struct Engine_object_s {
 	union {
@@ -37,7 +41,7 @@ typedef struct Engine_object_s {
 	void *data;
 } Engine_object;
 
-int init_engine(void);
+int init_engine(Engine_pf pf);
 
 /* add object to object list, returns pointer to the instance in the table
  */
@@ -48,7 +52,10 @@ Engine_object *engine_add_object(Engine_object object);
 int engine_remove_object(Engine_object *object);
 
 /* moves object around to clean up table and improve performance
+ * INVALIDATES ALL add_object REFERENCES!
  */
 int engine_optimize_object_table(void);
 
 size_t engine_object_getcnt(void);
+
+L3_Camera *engine_getcamera(void);

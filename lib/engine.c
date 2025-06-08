@@ -11,6 +11,7 @@ static Engine_object engine_objects[CONFIG_MAX_OBJECTS] = {0};
 static uint32_t		engine_objects_count = 0;
 K_MUTEX_DEFINE(engine_objects_lock);
 K_MUTEX_DEFINE(engine_render_lock);
+static Engine_pf engine_pf;
 
 /* ------------------------------------------------------------------------------------------- */
 
@@ -102,6 +103,11 @@ size_t engine_object_getcnt(void)
 	return engine_objects_count;
 }
 
+L3_Camera *engine_getcamera(void)
+{
+	return &(L3_SCENE.camera);
+}
+
 static void build_render_list(void)
 {
 	L3_Model3D *render_m = L3_MODELS;
@@ -159,6 +165,7 @@ static void process_function(void *, void *, void *)
 		k_mutex_lock(&engine_render_lock, K_FOREVER);
 		build_render_list();
 		k_mutex_unlock(&engine_render_lock);
+		engine_pf();
 		run_all_object_process();
 		k_mutex_unlock(&engine_objects_lock);
 
@@ -181,12 +188,14 @@ K_THREAD_STACK_DEFINE(render_thread_stack, CONFIG_RENDER_THREAD_STACK);
 static struct k_thread process_thread;
 K_THREAD_STACK_DEFINE(process_thread_stack, CONFIG_PROCESS_THREAD_STACK);
 
-int init_engine(void)
+int init_engine(Engine_pf pf)
 {
 	L3_sceneInit(L3_MODELS, 0, L3_BILLBOARDS, 0, &L3_SCENE);
 	L3_SCENE.camera.transform.translation.y = 0 * L3_F;
 	L3_SCENE.camera.transform.translation.z = 0 * L3_F;
 	//L3_SCENE.camera.focalLength = 0;
+
+	engine_pf = pf;
 
 
 	k_thread_create(&render_thread, render_thread_stack, CONFIG_RENDER_THREAD_STACK,
