@@ -1,14 +1,9 @@
-
-&clk_wifipll {
-	overclock;
-};
-
 &clk_bclk {
 	divider = <4>;
 };
 
 &clk_root {
-	pll-select = <1>;
+	clocks = <&clk_wifipll BL61X_WIFIPLL_OC_480MHz>;
 };
 
 &clk_flash {
