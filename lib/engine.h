@@ -18,10 +18,14 @@
 #define ENGINE_BLIT_FUNCTION blit_display
 int ENGINE_BLIT_FUNCTION(L3_COLORTYPE *buffer, uint16_t size_x, uint16_t size_y);
 
-#define ENGINE_VISUAL_UNUSED		0
-#define ENGINE_VISUAL_MODEL			1
+#define ENGINE_VISUAL_UNUSED	0
+#define ENGINE_VISUAL_MODEL		1
 #define ENGINE_VISUAL_BILLBOARD	2
-#define ENGINE_VISUAL_NOTHING		3
+#define ENGINE_VISUAL_NOTHING	3
+
+#define ENGINE_COLLISION_UNUSED		0
+#define ENGINE_COLLISION_FLATPLANE	1
+#define ENGINE_COLLISION_CUBOID		2
 
 typedef struct Engine_object_s Engine_object;
 
@@ -30,15 +34,21 @@ typedef void (*Engine_object_pf)(Engine_object *self, void * data);
 /* function ran each tick engine */
 typedef void (*Engine_pf)(void);
 
+typedef struct E_C_Flatplane_s {
+	bool	negative;
+	L3_Vec4	a, b, c , d;
+} E_C_Flatplane;
+
+typedef struct E_C_Cuboid_s {
+	L3_Vec4	a, b, c, d, e, f, g, h;
+} E_C_Cuboid;
+
 typedef struct Engine_object_s {
-	union {
-		L3_Model3D		model;
-		L3_Billboard	billboard;
-	} visual;
-	uint8_t			visual_type;
-	L3_Unit	view_range;
+	L3_Object			visual;
+	uint8_t				visual_type;
+	L3_Unit				view_range;
 	Engine_object_pf	process;
-	void *data;
+	void 				*data;
 } Engine_object;
 
 int init_engine(Engine_pf pf);

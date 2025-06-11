@@ -20,6 +20,7 @@ data_name = Path(args.filename_in).stem
 data_vertices_name = data_name + "_vertices"
 #data_polys_name = data_name + "_polys"
 data_index_name = data_name + "_indexes"
+data_model_name = data_name + "_model"
 
 file_out.write("#pragma once\nstatic const L3_Unit " +  data_vertices_name + "[] = {\n")
 
@@ -42,13 +43,14 @@ for mesh in object_in.mesh_list:
 
 file_out.write("};\n")
 
-file_out.write("static const L3_Model3D " +  data_name + " = {\n")
+file_out.write("static const L3_Model3D " +  data_model_name + " = {\n")
 file_out.write(".model.vertices = " + data_vertices_name + ",\n")
-
 file_out.write(".model.triangleCount = " + str(int(total_polys)) + ",\n")
 file_out.write(".model.vertexCount = " + str(len(object_in.vertices)) + ",\n")
 file_out.write(".model.triangles = " + data_index_name + ",\n")
-file_out.write(".customTransformMatrix = 0,\n")
+file_out.write("};\n")
+
+file_out.write("static const L3_Object " +  data_name + " = {\n")
 file_out.write(".transform.scale.x = L3_F,\n")
 file_out.write(".transform.scale.y = L3_F,\n")
 file_out.write(".transform.scale.z = L3_F,\n")
@@ -63,4 +65,5 @@ file_out.write(".transform.rotation.z = 0,\n")
 file_out.write(".transform.rotation.w = L3_F,\n")
 file_out.write(".config.backfaceCulling = 2,\n")
 file_out.write(".config.visible = 1,\n")
+file_out.write(".model = &" + data_model_name + ",\n")
 file_out.write("};\n")

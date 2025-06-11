@@ -5,6 +5,7 @@
 #include <zephyr/timing/timing.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <zephyr/random/random.h>
 #include <math.h>
 
 #include <zephyr/logging/log.h>
@@ -34,23 +35,23 @@ int blit_display(L3_COLORTYPE *buffer, uint16_t size_x, uint16_t size_y)
 
 static int flip = 1;
 void do_move(Engine_object *self, void* data) {
-	self->visual.billboard.transform.translation.z += *(int*)data;
-	if (self->visual.billboard.transform.translation.z > 200)
+	self->visual.transform.translation.z += *(int*)data;
+	if (self->visual.transform.translation.z > 200)
 		*(int*)data = -*(int*)data;
-	if (self->visual.billboard.transform.translation.z < 64)
+	if (self->visual.transform.translation.z < 64)
 		*(int*)data = -*(int*)data;
 }
 
 static void do_rotate_1(Engine_object *self, void *data) {
-	self->visual.model.transform.rotation.y += 1;
+	self->visual.transform.rotation.y += 1;
 }
 
 static void do_rotate_2(Engine_object *self, void *data) {
-	self->visual.model.transform.rotation.x += 1;
+	self->visual.transform.rotation.x += 1;
 }
 
 static void do_rotate_3(Engine_object *self, void *data) {
-	self->visual.model.transform.rotation.z += 1;
+	self->visual.transform.rotation.z += 1;
 }
 
 typedef struct {
@@ -65,18 +66,18 @@ static Controls controls = {0};
 
 static void process() {
 	if (player != 0) {
-		player->visual.model.transform.rotation.y += controls.vy;
-		player->visual.model.transform.rotation.x += controls.vx;
-		L3_Unit x = (controls.z * L3_cos(player->visual.model.transform.rotation.y + L3_F/4)) / L3_F;
-		L3_Unit z = (controls.z * L3_sin(player->visual.model.transform.rotation.y + L3_F/4)) / L3_F;
-		x -= (controls.x * L3_cos(player->visual.model.transform.rotation.y)) / L3_F;
-		z -= (controls.x * L3_sin(player->visual.model.transform.rotation.y)) / L3_F;
+		player->visual.transform.rotation.y += controls.vy;
+		player->visual.transform.rotation.x += controls.vx;
+		L3_Unit x = (controls.z * L3_cos(player->visual.transform.rotation.y + L3_F/4)) / L3_F;
+		L3_Unit z = (controls.z * L3_sin(player->visual.transform.rotation.y + L3_F/4)) / L3_F;
+		x -= (controls.x * L3_cos(player->visual.transform.rotation.y)) / L3_F;
+		z -= (controls.x * L3_sin(player->visual.transform.rotation.y)) / L3_F;
 
-		player->visual.model.transform.translation.z += z;
-		player->visual.model.transform.translation.x += x;
+		player->visual.transform.translation.z += z;
+		player->visual.transform.translation.x += x;
 
 		L3_Camera *camera = engine_getcamera();
-		camera->transform = player->visual.model.transform;
+		camera->transform = player->visual.transform;
 	}
 }
 
@@ -108,24 +109,24 @@ static void update_controls(struct input_event *evt, void *user_data)
 	}
 	if (evt->code == INPUT_KEY_W) {
 		if (evt->value)
-			cont->z = 10;
+			cont->z = 128;
 		else
 			cont->z = 0;
 	} else if (evt->code == INPUT_KEY_S) {
 		if (evt->value)
-			cont->z = -10;
+			cont->z = -128;
 		else
 			cont->z = 0;
 	}
 
 	if (evt->code == INPUT_KEY_A) {
 		if (evt->value)
-			cont->x = 10;
+			cont->x = 128;
 		else
 			cont->x = 0;
 	} else if (evt->code == INPUT_KEY_D) {
 		if (evt->value)
-			cont->x = -10;
+			cont->x = -128;
 		else
 			cont->x = 0;
 	}
@@ -152,56 +153,67 @@ int main()
 
 	/* 'player' object */
 	Engine_object tmp = {0};
-	L3_transform3DSet(0,0,0,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.model.transform));
-	tmp.view_range = 16;
+	L3_transform3DSet(0,0,L3_F,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));
+	tmp.view_range = 16 * L3_F;
 	tmp.visual_type = ENGINE_VISUAL_NOTHING;
 	player = engine_add_object(tmp);
 
-	tmp.visual.model = building_01;
-	L3_transform3DSet(0,0,400,0,0,0,L3_F*2,L3_F*2,L3_F*2,&(tmp.visual.model.transform));
-	tmp.view_range = 8192;
+	INSTANCIATE_OBJECT(tmpm, building_01);
+	tmp.visual = tmpm;
+	L3_transform3DSet(0,0,10*L3_F,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));
+	tmp.view_range = 8192 * L3_F;
 	tmp.visual_type = ENGINE_VISUAL_MODEL;
 	void *rm = engine_add_object(tmp);
 
-	tmp.visual.model = building_01;
-	L3_transform3DSet(0,0,400,0,0,0,L3_F*2,L3_F*2,L3_F*2,&(tmp.visual.model.transform));
-	tmp.view_range = 8192;
+	tmp.visual = building_01;
+	L3_transform3DSet(0,0,10*L3_F,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));
+	tmp.view_range = 8192 * L3_F;
 	tmp.visual_type = ENGINE_VISUAL_MODEL;
 	tmp.process = 0;
 	engine_add_object(tmp);
 
-	tmp.visual.model = building_01;
-	L3_transform3DSet(-256,0,400,0,0,0,L3_F*2,L3_F*2,L3_F*2,&(tmp.visual.model.transform));
-	tmp.visual.model.config.visible = L3_VISIBLE_WIREFRAME;
-	tmp.view_range = 8192;
+	tmp.visual = building_01;
+	L3_transform3DSet(-10*L3_F,0,10*L3_F,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));
+	tmp.visual.config.visible = L3_VISIBLE_WIREFRAME;
+	tmp.view_range = 8192 * L3_F;
 	tmp.visual_type = ENGINE_VISUAL_MODEL;
 	tmp.process = 0;
 	engine_add_object(tmp);
 
-	tmp.visual.model = building_01;
-	L3_transform3DSet(256,0,400,0,0,0,L3_F*2,L3_F*2,L3_F*2,&(tmp.visual.model.transform));
-	tmp.visual.model.config.visible = L3_VISIBLE_SOLID | L3_VISIBLE_DISTANCELIGHT;
-	tmp.view_range = 8192;
+	tmp.visual = building_01;
+	L3_transform3DSet(10*L3_F,0,10*L3_F,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));
+	tmp.visual.config.visible = L3_VISIBLE_SOLID | L3_VISIBLE_DISTANCELIGHT;
+	tmp.view_range = 8192 * L3_F;
 	tmp.visual_type = ENGINE_VISUAL_MODEL;
 	tmp.process = 0;
 	engine_add_object(tmp);
 
-	tmp.visual.billboard = cat;
-	L3_transform3DSet(0,0,128,0,0,0,L3_F*2,L3_F*2,L3_F*2,&(tmp.visual.billboard.transform));
-	tmp.view_range = 192;
+	tmp.visual = cat;
+	L3_transform3DSet(0,0,5*L3_F,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));
+	tmp.view_range = 12 * L3_F;
 	tmp.visual_type = ENGINE_VISUAL_BILLBOARD;
 	tmp.data = &flip;
 	tmp.process = 0;
 	engine_add_object(tmp);
+
+	for (int i = 0; i < 1000; i++) {
+		tmp.visual = cat;
+		int x, y, z;
+		x = sys_rand8_get() / 4 - 32;
+		y = sys_rand8_get() / 8 - 16;
+		z = sys_rand8_get() / 4 - 32;
+		L3_transform3DSet(x*L3_F,y*L3_F,z*L3_F,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));
+		tmp.view_range = 50 * L3_F;
+		tmp.visual_type = ENGINE_VISUAL_BILLBOARD;
+		tmp.process = 0;
+		engine_add_object(tmp);
+	}
 
 	printf("obj cnt: %d\n", engine_object_getcnt());
 	engine_remove_object(rm);
 	printf("obj cnt: %d\n", engine_object_getcnt());
 	engine_optimize_object_table();
 	printf("obj cnt: %d\n", engine_object_getcnt());
-
-	/*L3_BILLBOARDS[0] = cat;
-	L3_transform3DSet(origbillboard[0][0],0,origbillboard[0][1],0,0,0,L3_F*4*2,L3_F*2,L3_F*2,&(L3_BILLBOARDS[0].transform));*/
 
 	return 0;
 }

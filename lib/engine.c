@@ -110,31 +110,23 @@ L3_Camera *engine_getcamera(void)
 
 static void build_render_list(void)
 {
-	L3_Model3D *render_m = L3_MODELS;
-	int m_cnt = 0;
-	L3_Billboard *render_b = L3_BILLBOARDS;
-	int b_cnt = 0;
+	const L3_Object **render_o = L3_OBJECTS;
+	int o_cnt = 0;
 	for (int i = 0; i < engine_objects_count; i++) {
-		if (engine_objects[i].visual_type == ENGINE_VISUAL_MODEL) {
-			if (m_cnt < L3_MAX_MODELS) {
-				if (engine_objects[i].view_range > L3_distanceManhattan(engine_objects[i].visual.model.transform.translation, L3_SCENE.camera.transform.translation)) {
-					*render_m = engine_objects[i].visual.model;
-					render_m++;
-					m_cnt++;
-				}
-			}
-		} else if (engine_objects[i].visual_type == ENGINE_VISUAL_BILLBOARD) {
-			if (b_cnt < L3_MAX_BILLBOARDS) {
-				if (engine_objects[i].view_range > L3_distanceManhattan(engine_objects[i].visual.billboard.transform.translation, L3_SCENE.camera.transform.translation)) {
-					*render_b = engine_objects[i].visual.billboard;
-					render_b++;
-					b_cnt++;
+		if (engine_objects[i].visual_type >= ENGINE_VISUAL_MODEL) {
+			if (o_cnt < L3_MAX_OBJECTS) {
+				if (engine_objects[i].view_range > L3_distanceManhattan(engine_objects[i].visual.transform.translation, L3_SCENE.camera.transform.translation)) {
+					*render_o = &(engine_objects[i].visual);
+					render_o++;
+					o_cnt++;
 				}
 			}
 		}
 	}
-	L3_SCENE.modelCount = m_cnt;
-	L3_SCENE.billboardCount = b_cnt;
+#if	CONFIG_LOG_PERFORMANCE
+	printf("selected %d objects\n", o_cnt);
+#endif
+	L3_SCENE.objectCount = o_cnt;
 }
 
 static void run_all_object_process(void)
@@ -190,7 +182,7 @@ K_THREAD_STACK_DEFINE(process_thread_stack, CONFIG_PROCESS_THREAD_STACK);
 
 int init_engine(Engine_pf pf)
 {
-	L3_sceneInit(L3_MODELS, 0, L3_BILLBOARDS, 0, &L3_SCENE);
+	L3_sceneInit(L3_OBJECTS, 0, &L3_SCENE);
 	L3_SCENE.camera.transform.translation.y = 0 * L3_F;
 	L3_SCENE.camera.transform.translation.z = 0 * L3_F;
 	//L3_SCENE.camera.focalLength = 0;
