@@ -7,8 +7,12 @@ LOG_MODULE_REGISTER(engine);
 
 /* ------------------------------------------------------------------------------------------- */
 
-static Engine_object engine_objects[CONFIG_MAX_OBJECTS] = {0};
+static Engine_Object engine_objects[CONFIG_MAX_OBJECTS] = {0};
 static uint32_t		engine_objects_count = 0;
+static const E_Collider	*engine_colliders[ENGINE_MAX_COLLIDERS];
+static uint32_t		engine_colliders_count = 0;
+Engine_DObject	engine_dynamic_objects[ENGINE_MAX_DOBJECTS];
+uint32_t		engine_dynamic_objects_count = 0;
 K_MUTEX_DEFINE(engine_objects_lock);
 K_MUTEX_DEFINE(engine_render_lock);
 static Engine_pf engine_pf;
@@ -60,7 +64,7 @@ static void render_function(void *, void *, void *)
 	}
 }
 
-Engine_object *engine_add_object(Engine_object object)
+Engine_Object *engine_add_object(Engine_Object object)
 {
 	if (object.visual_type == ENGINE_VISUAL_UNUSED)
 		return 0;
@@ -81,7 +85,7 @@ Engine_object *engine_add_object(Engine_object object)
 	return &(engine_objects[i]);
 }
 
-int engine_remove_object(Engine_object *object)
+int engine_remove_object(Engine_Object *object)
 {
 	object->visual_type = ENGINE_VISUAL_UNUSED;
 	return 0;
@@ -140,6 +144,103 @@ static void run_all_object_process(void)
 	}
 }
 
+static void build_collider_list(void)
+{
+	const E_Collider **colliders = engine_colliders;
+	engine_colliders_count = 0;
+	for (int i = 0; i < engine_objects_count; i++) {
+		if (engine_objects[i].collisions != 0) {
+			if (engine_colliders_count < ENGINE_MAX_COLLIDERS) {
+				for (int j = 0; j < engine_objects[i].collisions->colliderCount; j++) {
+					*colliders = &(engine_objects[i].collisions->colliders[j]);
+					colliders++;
+					engine_colliders_count++;
+				}
+			}
+		}
+	}
+#if	CONFIG_LOG_PERFORMANCE
+	printf("selected %d colliders\n", engine_colliders_count);
+#endif
+}
+
+static void do_collision(Engine_DObject *object, const E_Collider *collider)
+{
+	L3_Vec4 up = {0, L3_F, 0, L3_F};
+	L3_Vec4 right = {L3_F, 0, 0, L3_F};
+	L3_Vec4 far = {0, 0, L3_F, L3_F};
+	L3_Mat4 transMat;
+	L3_Vec4 muln, mulo;
+	L3_Vec4 plane_pos;
+
+	plane_pos.x = collider->transform->translation.x + collider->cube.offset.x;
+	plane_pos.y = collider->transform->translation.y + collider->cube.offset.y;
+	plane_pos.z = collider->transform->translation.z + collider->cube.offset.z;
+
+	muln.x = object->physics.transform->translation.x - plane_pos.x;
+	muln.y = object->physics.transform->translation.y - plane_pos.y;
+	muln.z = object->physics.transform->translation.z - plane_pos.z;
+	mulo.x = object->physics.last_transform.translation.x - plane_pos.x;
+	mulo.y = object->physics.last_transform.translation.y - plane_pos.y;
+	mulo.z = object->physics.last_transform.translation.z - plane_pos.z;
+
+	L3_makeRotationMatrixZXY(collider->transform->rotation.x,
+							 collider->transform->rotation.y,
+							 collider->transform->rotation.z,
+							 transMat);
+
+	L3_vec3Xmat4(&up, transMat);
+	L3_vec3Xmat4(&right, transMat);
+	L3_vec3Xmat4(&far, transMat);
+
+	L3_Unit dotx = L3_vec3Dot(right, muln);
+	L3_Unit x = collider->cube.size.x * collider->transform->scale.x / L3_F;
+	L3_Unit y = collider->cube.size.y * collider->transform->scale.y / L3_F;
+	L3_Unit z = collider->cube.size.z * collider->transform->scale.z / L3_F;
+	if (dotx > x*1.1 || dotx < -x*1.1)
+		return;
+	L3_Unit doty = L3_vec3Dot(up, muln);
+	if (doty > y*1.1 || doty < -y*1.1)
+		return;
+	L3_Unit dotz = L3_vec3Dot(far, muln);
+	if (dotz > z*1.1 || dotz < -z*1.1)
+		return;
+	if (abs(dotz) < z && abs(doty) < y && abs(dotx) < x) {
+		object->physics.transform->translation.x = object->physics.last_transform.translation.x;
+		object->physics.transform->translation.y = object->physics.last_transform.translation.y;
+		object->physics.transform->translation.z = object->physics.last_transform.translation.z;
+	}
+
+	L3_vec3Normalize(&up);
+
+	L3_Unit dotv = L3_vec3Dot(up, object->physics.speeds.translation);
+	object->physics.speeds.translation.x = (- 2 * dotv * up.x / L3_F + object->physics.speeds.translation.x) * collider->cube.bouncyness / L3_F;
+	object->physics.speeds.translation.y = (- 2 * dotv * up.y / L3_F + object->physics.speeds.translation.y) * collider->cube.bouncyness / L3_F;
+	object->physics.speeds.translation.z = (- 2 * dotv * up.z / L3_F + object->physics.speeds.translation.z) * collider->cube.bouncyness / L3_F;
+}
+
+
+static void do_DObjects_speeds(Engine_DObject *object)
+{
+	object->physics.transform->translation.x += object->physics.speeds.translation.x;
+	object->physics.transform->translation.y += object->physics.speeds.translation.y;
+	object->physics.transform->translation.z += object->physics.speeds.translation.z;
+	object->physics.transform->rotation.x += object->physics.speeds.rotation.x;
+	object->physics.transform->rotation.y += object->physics.speeds.rotation.y;
+	object->physics.transform->rotation.z += object->physics.speeds.rotation.z;
+}
+
+static void run_all_DObjects(void)
+{
+	for (int i = 0; i < engine_dynamic_objects_count; i++) {
+		do_DObjects_speeds(&(engine_dynamic_objects[i]));
+		for (int j = 0; j < engine_colliders_count; j++) {
+			do_collision(&(engine_dynamic_objects[i]), engine_colliders[j]);
+		}
+		engine_dynamic_objects[i].physics.last_transform = *engine_dynamic_objects[i].physics.transform;
+	}
+}
+
 static void process_function(void *, void *, void *)
 {
 	k_timepoint_t timing = L3_FPS_TIMEPOINT(CONFIG_TARGET_PROCESS_FPS);
@@ -159,6 +260,8 @@ static void process_function(void *, void *, void *)
 		k_mutex_unlock(&engine_render_lock);
 		engine_pf();
 		run_all_object_process();
+		build_collider_list();
+		run_all_DObjects();
 		k_mutex_unlock(&engine_objects_lock);
 
 #if	CONFIG_LOG_PERFORMANCE

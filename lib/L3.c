@@ -2051,7 +2051,7 @@ static int L3_zephyr_putpixel_current_render_mode = 0;
 inline void zephyr_putpixel(L3_PixelInfo *p)
 {
 	float depthmul = 1.0;
-	L3_Object *object = engine_global_scene.objects[p->objectIndex];
+	const L3_Object *object = engine_global_scene.objects[p->objectIndex];
 
 	if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_DISTANCELIGHT) {
 		depthmul = p->depth / 512;
@@ -2086,7 +2086,8 @@ inline int zephyr_drawtriangle(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
 		L3_plot_line(255, point0.x, point0.y, point1.x, point1.y);
 		L3_plot_line(255, point2.x, point2.y, point1.x, point1.y);
 		L3_plot_line(255, point2.x, point2.y, point0.x, point0.y);
-		return 0;
+		if (!(L3_zephyr_putpixel_current_render_mode & ~L3_VISIBLE_WIREFRAME))
+			return 0;
 	}
 	return 1;
 }

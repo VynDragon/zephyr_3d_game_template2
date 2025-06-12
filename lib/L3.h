@@ -118,7 +118,7 @@ the maximum number of triangles that can be drawn in a single frame
 
 /** Distance of the near clipping plane. Points in front or EXATLY ON this
 plane are considered outside the frustum. This must be >= 0. */
-#define L3_NEAR 16
+#define L3_NEAR 64
 
 /** If true, the library will use wider data types which will largely supress
 many rendering bugs and imprecisions happening due to overflows, but this will
