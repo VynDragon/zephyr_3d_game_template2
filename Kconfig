@@ -2,11 +2,11 @@
 
 config RESOLUTION_X
 	int "Display Width"
-	default 128
+	default 256
 
 config RESOLUTION_Y
 	int "Display Height"
-	default 64
+	default 128
 
 config TARGET_RENDER_FPS
 	int "FPS of rendering"

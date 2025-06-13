@@ -2098,8 +2098,8 @@ inline int zephyr_drawbillboard(L3_Vec4 point, const L3_Object *billboard)
 		return 0;
 
 	int focal = L3_SCENE.camera.focalLength != 0 ? L3_SCENE.camera.focalLength : 1;
-	float scale_x = ((float)(billboard->transform.scale.x * focal) / (float)point.z) * ((float)billboard->billboard->scale/0x4000);
-	float scale_y = ((float)(billboard->transform.scale.y * focal) / (float)point.z) * ((float)billboard->billboard->scale/0x4000);
+	float scale_x = ((float)(billboard->transform.scale.x * focal) / (float)point.z) * ((float)billboard->billboard->scale/0x4000) * L3_RESOLUTION_X / L3_F;
+	float scale_y = ((float)(billboard->transform.scale.y * focal) / (float)point.z) * ((float)billboard->billboard->scale/0x4000) * L3_RESOLUTION_Y / L3_F;
 	int scaled_width = billboard->billboard->width * scale_x;
 	int scaled_height = billboard->billboard->height * scale_y;
 

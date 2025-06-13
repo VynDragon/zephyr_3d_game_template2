@@ -52,7 +52,7 @@ values:
 3: Perform both geometrical and barycentric correction of triangle crossing
 	the near plane. This is significantly more expensive but results in
 	correct rendering. */
-#define L3_NEAR_CROSS_STRATEGY 1
+#define L3_NEAR_CROSS_STRATEGY 3
 
 /** If on, disables computation of per-pixel values such as barycentric
 coordinates and depth -- these will still be available but will be the same
@@ -118,7 +118,7 @@ the maximum number of triangles that can be drawn in a single frame
 
 /** Distance of the near clipping plane. Points in front or EXATLY ON this
 plane are considered outside the frustum. This must be >= 0. */
-#define L3_NEAR 64
+#define L3_NEAR 64 * L3_RESOLUTION_X / 256
 
 /** If true, the library will use wider data types which will largely supress
 many rendering bugs and imprecisions happening due to overflows, but this will

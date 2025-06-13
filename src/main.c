@@ -21,6 +21,10 @@ LOG_MODULE_REGISTER(main);
 
 #include "cube.h"
 
+#include "plane.h"
+
+#include "sphere.h"
+
 static const struct device *display_device = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
 
 int blit_display(L3_COLORTYPE *buffer, uint16_t size_x, uint16_t size_y)
@@ -61,20 +65,14 @@ typedef struct {
 	L3_Unit vy;
 	L3_Unit z;
 	L3_Unit x;
+	L3_Unit jump;
 } Controls;
 
 static Engine_Object* player = 0;
+static L3_Vec4 player_colpoint[2] = {{.x = 0, .y = 0, .z = 0, .w = L3_F }, {.x = 0, .y = L3_F, .z = 0, .w = L3_F }};
 static Controls controls = {0};
-static E_Collider collider_test[1] = {0};
-static E_Collider collider_test2[1] = {0};
-static Engine_Collisions collision_test = {
-	.colliders = collider_test,
-	.colliderCount = 1,
-};
-static Engine_Collisions collision_test2 = {
-	.colliders = collider_test2,
-	.colliderCount = 1,
-};
+static E_Collider collider_test[6][1] = {0};
+static Engine_Collisions collision_test[6] = {0};
 
 static void process() {
 	if (player != 0) {
@@ -90,13 +88,18 @@ static void process() {
 		engine_dynamic_objects[0].physics.speeds.translation.x += x;
 		engine_dynamic_objects[0].physics.speeds.translation.x *= 0.85;
 		engine_dynamic_objects[0].physics.speeds.translation.z *= 0.85;
+		engine_dynamic_objects[0].physics.speeds.translation.y *= 0.95;
 		//engine_dynamic_objects[0].physics.speeds.translation.x -= 1;
 		//player->visual.transform.translation.z += z;
 		//player->visual.transform.translation.x += x;
-		//engine_dynamic_objects[0].physics.speeds.translation.y -= 1;
+		engine_dynamic_objects[0].physics.speeds.translation.y -= 32;
+
+		engine_dynamic_objects[0].physics.speeds.translation.y += controls.jump;
 
 		L3_Camera *camera = engine_getcamera();
 		camera->transform = player->visual.transform;
+		camera->transform.translation.y += L3_F;
+		printf("ppos: %d, %d, %d\n", player->visual.transform.translation.x, player->visual.transform.translation.y, player->visual.transform.translation.z);
 	}
 }
 
@@ -149,6 +152,13 @@ static void update_controls(struct input_event *evt, void *user_data)
 		else
 			cont->x = 0;
 	}
+
+	if (evt->code == INPUT_KEY_SPACE) {
+		if (evt->value)
+			cont->jump = 256;
+		else
+			cont->jump = 0;
+	}
 }
 
 INPUT_CALLBACK_DEFINE(0, update_controls, &controls);
@@ -172,7 +182,7 @@ int main()
 
 	/* 'player' object */
 	Engine_Object tmp = {0};
-	L3_transform3DSet(0,L3_F*0,0,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));
+	L3_transform3DSet(0,L3_F*10,0,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));
 	tmp.view_range = 16 * L3_F;
 	tmp.visual_type = ENGINE_VISUAL_NOTHING;
 	player = engine_add_object(tmp);
@@ -180,6 +190,13 @@ int main()
 	engine_dynamic_objects[0].physics.transform = &(player->visual.transform);
 	engine_dynamic_objects[0].physics.last_transform = player->visual.transform;
 	engine_dynamic_objects_count = 1;
+	engine_dynamic_objects[0].physics.pointOffsetsCount = 2;
+	engine_dynamic_objects[0].physics.pointOffsets = player_colpoint;
+	/*engine_dynamic_objects[0].physics.sphere.size = L3_F * 4;
+	engine_dynamic_objects[0].physics.sphere.offset.x = 0;
+	engine_dynamic_objects[0].physics.sphere.offset.y = L3_F;
+	engine_dynamic_objects[0].physics.sphere.offset.z = 0;*/
+
 
 	INSTANCIATE_OBJECT(tmpm, building_01);
 	tmp.visual = tmpm;
@@ -189,22 +206,24 @@ int main()
 	void *rm = engine_add_object(tmp);
 
 	tmp.visual = building_01;
-	L3_transform3DSet(0,0,10*L3_F,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));
+	L3_transform3DSet(0,180,10*L3_F,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));
 	tmp.view_range = 8192 * L3_F;
 	tmp.visual_type = ENGINE_VISUAL_MODEL;
 	tmp.process = 0;
-	engine_add_object(tmp);
-	tmp.collisions = &collision_test2;
-	collider_test2[0].transform = &(engine_add_object(tmp)->visual.transform);
-	collider_test2[0].cube.size.y = 2.5*L3_F;
-	collider_test2[0].cube.bouncyness = 128;
-	collider_test2[0].cube.size.x = 2.5*L3_F;
-	collider_test2[0].cube.size.z = 4.5*L3_F;
+	tmp.collisions = &(collision_test[1]);
+	collision_test[1].colliderCount = 1;
+	collision_test[1].colliders = collider_test[1];
+	collider_test[1][0].transform = &(engine_add_object(tmp)->visual.transform);
+	collider_test[1][0].cube.size.y = 2.5*L3_F;
+	collider_test[1][0].cube.bouncyness = 128;
+	collider_test[1][0].cube.size.x = 2.5*L3_F;
+	collider_test[1][0].cube.size.z = 4.5*L3_F;
+	collider_test[1][0].type = ENGINE_COLLIDER_CUBE;
 
 	tmp.collisions = 0;
 
 	tmp.visual = building_01;
-	L3_transform3DSet(-10*L3_F,0,10*L3_F,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));
+	L3_transform3DSet(-10*L3_F,180,10*L3_F,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));
 	tmp.visual.config.visible = L3_VISIBLE_WIREFRAME;
 	tmp.view_range = 8192 * L3_F;
 	tmp.visual_type = ENGINE_VISUAL_MODEL;
@@ -212,7 +231,7 @@ int main()
 	engine_add_object(tmp);
 
 	tmp.visual = building_01;
-	L3_transform3DSet(10*L3_F,0,10*L3_F,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));
+	L3_transform3DSet(10*L3_F,180,10*L3_F,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));
 	tmp.visual.config.visible = L3_VISIBLE_SOLID | L3_VISIBLE_DISTANCELIGHT;
 	tmp.view_range = 8192 * L3_F;
 	tmp.visual_type = ENGINE_VISUAL_MODEL;
@@ -220,7 +239,7 @@ int main()
 	engine_add_object(tmp);
 
 	tmp.visual = cat;
-	L3_transform3DSet(0,0,5*L3_F,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));
+	L3_transform3DSet(0,0,5*L3_F,0,0,0,L3_F*4,L3_F*4,L3_F*4,&(tmp.visual.transform));
 	tmp.view_range = 12 * L3_F;
 	tmp.visual_type = ENGINE_VISUAL_BILLBOARD;
 	tmp.data = &flip;
@@ -228,17 +247,95 @@ int main()
 	engine_add_object(tmp);
 
 	tmp.visual = cube;
-	L3_transform3DSet(L3_F*2,0,2*L3_F,0,64,128,L3_F,L3_F,L3_F,&(tmp.visual.transform));
+	L3_transform3DSet(L3_F*2,L3_F,2*L3_F,0,64,128,L3_F,L3_F,L3_F,&(tmp.visual.transform));
 	tmp.view_range = 64 * L3_F;
 	tmp.visual_type = ENGINE_VISUAL_MODEL;
 	tmp.data = 0;
 	tmp.process = 0;
-	tmp.collisions = &collision_test;
-	collider_test[0].transform = &(engine_add_object(tmp)->visual.transform);
-	collider_test[0].cube.size.y = 0.5*L3_F;
-	collider_test[0].cube.bouncyness = 128;
-	collider_test[0].cube.size.x = 0.5*L3_F;
-	collider_test[0].cube.size.z = 0.5*L3_F;
+	tmp.collisions = &(collision_test[0]);
+	collision_test[0].colliderCount = 1;
+	collision_test[0].colliders = collider_test[0];
+	collider_test[0][0].transform = &(engine_add_object(tmp)->visual.transform);
+	collider_test[0][0].cube.size.y = 0.5*L3_F;
+	collider_test[0][0].cube.bouncyness = 128;
+	collider_test[0][0].cube.size.x = 0.5*L3_F;
+	collider_test[0][0].cube.size.z = 0.5*L3_F;
+	collider_test[0][0].type = ENGINE_COLLIDER_CUBE;
+
+	tmp.visual = sphere;
+	L3_transform3DSet(-L3_F*2,0,2*L3_F,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));
+	tmp.view_range = 64 * L3_F;
+	tmp.visual_type = ENGINE_VISUAL_MODEL;
+	tmp.data = 0;
+	tmp.process = 0;
+	tmp.collisions = &(collision_test[2]);
+	collision_test[2].colliderCount = 1;
+	collision_test[2].colliders = collider_test[2];
+	collider_test[2][0].transform = &(engine_add_object(tmp)->visual.transform);
+	collider_test[2][0].sphere.size = L3_F;
+	collider_test[2][0].sphere.bouncyness = 0xFF;
+	collider_test[2][0].type = ENGINE_COLLIDER_SPHERE;
+
+	tmp.visual = plane;
+	L3_transform3DSet(0,0*L3_F,0*L3_F,0,0,0,L3_F*100,L3_F,L3_F*100,&(tmp.visual.transform));
+	tmp.view_range = 8192 * L3_F;
+	tmp.visual_type = ENGINE_VISUAL_MODEL;
+	tmp.process = 0;
+	tmp.collisions = &(collision_test[3]);
+	collision_test[3].colliderCount = 1;
+	collision_test[3].colliders = collider_test[3];
+	collider_test[3][0].transform = &(engine_add_object(tmp)->visual.transform);
+	collider_test[3][0].axisplane.size.y = 1;
+	collider_test[3][0].axisplane.bouncyness = 0xFF;
+	collider_test[3][0].axisplane.size.x = 1*L3_F;
+	collider_test[3][0].axisplane.size.z = 1*L3_F;
+	collider_test[3][0].type = ENGINE_COLLIDER_APLANEY;
+
+	tmp.visual = plane;
+	L3_transform3DSet(0,128,-2*L3_F,0,0,0,L3_F*2,L3_F,L3_F*2,&(tmp.visual.transform));
+	tmp.view_range = 8192 * L3_F;
+	tmp.visual_type = ENGINE_VISUAL_MODEL;
+	tmp.process = 0;
+	tmp.collisions = &(collision_test[4]);
+	collision_test[4].colliderCount = 1;
+	collision_test[4].colliders = collider_test[4];
+	collider_test[4][0].transform = &(engine_add_object(tmp)->visual.transform);
+	collider_test[4][0].axisplane.size.y = 1;
+	collider_test[4][0].axisplane.bouncyness = 128;
+	collider_test[4][0].axisplane.size.x = 1*L3_F;
+	collider_test[4][0].axisplane.size.z = 1*L3_F;
+	collider_test[4][0].type = ENGINE_COLLIDER_APLANEY;
+
+	/*tmp.visual = plane;
+	L3_transform3DSet(0,2*L3_F,0*L3_F,0,0,0,L3_F*10,L3_F,L3_F*10,&(tmp.visual.transform));
+	tmp.view_range = 8192 * L3_F;
+	tmp.visual_type = ENGINE_VISUAL_MODEL;
+	tmp.process = 0;
+	tmp.collisions = &(collision_test[5]);
+	collision_test[5].colliderCount = 1;
+	collision_test[5].colliders = collider_test[5];
+	collider_test[5][0].transform = &(engine_add_object(tmp)->visual.transform);
+	collider_test[5][0].axisplane.size.y = -1;
+	collider_test[5][0].axisplane.bouncyness = 0x0;
+	collider_test[5][0].axisplane.size.x = 1*L3_F;
+	collider_test[5][0].axisplane.size.z = 1*L3_F;
+	collider_test[5][0].type = ENGINE_COLLIDER_APLANEY;*/
+
+	tmp.visual = sphere;
+	L3_transform3DSet(-L3_F*4,0,2*L3_F,0,0,-128,L3_F,L3_F*3,L3_F*4,&(tmp.visual.transform));
+	tmp.view_range = 64 * L3_F;
+	tmp.visual_type = ENGINE_VISUAL_MODEL;
+	tmp.data = 0;
+	tmp.process = 0;
+	tmp.collisions = &(collision_test[5]);
+	collision_test[5].colliderCount = 1;
+	collision_test[5].colliders = collider_test[5];
+	collider_test[5][0].transform = &(engine_add_object(tmp)->visual.transform);
+	collider_test[5][0].capsule.size.x = L3_F;
+	collider_test[5][0].capsule.size.y = L3_F;
+	collider_test[5][0].capsule.size.z = L3_F;
+	collider_test[5][0].capsule.bouncyness = 0xFFF;
+	collider_test[5][0].type = ENGINE_COLLIDER_CAPSULE;
 
 
 	/*for (int i = 0; i < 1000; i++) {
@@ -259,8 +356,6 @@ int main()
 	printf("obj cnt: %d\n", engine_object_getcnt());
 	engine_optimize_object_table();
 	printf("obj cnt: %d\n", engine_object_getcnt());
-
-	engine_dynamic_objects[0].physics.speeds.translation.z = 1000;
 
 	return 0;
 }

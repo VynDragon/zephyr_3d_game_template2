@@ -40,10 +40,44 @@ typedef struct E_C_Cuboid_s {
 	L3_Unit	bouncyness;
 } E_C_Cuboid;
 
+/* Basic Sphere collider */
+typedef struct E_C_Sphere_s {
+	L3_Vec4	offset;
+	L3_Unit size;
+	L3_Unit	bouncyness;
+} E_C_Sphere;
+
+/* Sphere but differnet x/y/z sizes */
+typedef struct E_C_Capsule_s {
+	L3_Vec4	offset;
+	L3_Vec4 size;
+	L3_Unit	bouncyness;
+} E_C_Capsule;
+
+/* Basic plane aligned in axis, useful for absolute walls (ground, ceiling)*/
+typedef struct E_C_AxisPlane_s {
+	L3_Vec4	offset;
+	/* axis size define direction */
+	L3_Vec4 size;
+	L3_Unit	bouncyness;
+} E_C_AxisPlane;
+
+#define ENGINE_COLLIDER_NOTHING	0
+#define ENGINE_COLLIDER_CUBE	1
+#define ENGINE_COLLIDER_SPHERE	2
+#define ENGINE_COLLIDER_CAPSULE	3
+#define ENGINE_COLLIDER_APLANEX	4
+#define ENGINE_COLLIDER_APLANEY	5
+#define ENGINE_COLLIDER_APLANEZ	6
+
 typedef struct E_Collider_s {
 	union {
 		E_C_Cuboid		cube;
+		E_C_Sphere		sphere;
+		E_C_Capsule		capsule;
+		E_C_AxisPlane	axisplane;
 	};
+	uint8_t			type;
 	L3_Transform3D	*transform;
 } E_Collider;
 
@@ -52,12 +86,15 @@ typedef struct Engine_Physics_s {
 	L3_Transform3D	*transform;
 	L3_Transform3D	speeds;
 	L3_Transform3D	last_transform;
+	/* points to check collisions against, if 0, use transform */
+	L3_Vec4	*pointOffsets;
+	uint8_t pointOffsetsCount;
 } Engine_Physics;
 
 typedef struct Engine_Collisions_s {
 	/* Collider table */
-	E_Collider		*colliders;
-	L3_Index		colliderCount;
+	E_Collider	*colliders;
+	uint8_t		colliderCount;
 } Engine_Collisions;
 
 typedef struct Engine_Object_s {
