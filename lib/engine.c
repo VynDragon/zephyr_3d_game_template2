@@ -62,7 +62,10 @@ static void render_function(void *, void *, void *)
 #endif
 		while (!sys_timepoint_expired(timing)) {
 			k_sleep(K_NSEC(100));
+			k_yield();
 		}
+		/* force unready thread to avoid monopolization of CPU time */
+		k_sleep(K_NSEC(10));
 		k_yield();
 	}
 }
@@ -317,13 +320,85 @@ static void do_collision_axisplane_y(Engine_DObject *object, const E_Collider *c
 		if (point.y > plane_pos.y) {
 			return;
 		}
+		if (object->physics.last_transform.translation.y < plane_pos.y && collider->axisplane.traverseable) {
+			return;
+		}
 	} else {
 		if (point.y < plane_pos.y) {
 			return;
 		}
+		if (object->physics.last_transform.translation.y > plane_pos.y && collider->axisplane.traverseable) {
+			return;
+		}
 	}
 	object->physics.transform->translation.y = plane_pos.y;
-	object->physics.speeds.translation.y = -object->physics.speeds.translation.y * collider->cube.bouncyness / L3_F;
+	object->physics.speeds.translation.y = -object->physics.speeds.translation.y * collider->axisplane.bouncyness / L3_F;
+}
+
+static void do_collision_axisplane_z(Engine_DObject *object, const E_Collider *collider, L3_Vec4 point)
+{
+	L3_Vec4 plane_pos;
+
+	plane_pos.x = collider->transform->translation.x + collider->axisplane.offset.x;
+	plane_pos.y = collider->transform->translation.y + collider->axisplane.offset.y;
+	plane_pos.z = collider->transform->translation.z + collider->axisplane.offset.z;
+
+	L3_Unit x = collider->axisplane.size.x * collider->transform->scale.x / L3_F;
+	L3_Unit z = collider->axisplane.size.y * collider->transform->scale.y / L3_F;
+	if (point.x > plane_pos.x + x / 2 || point.x < plane_pos.x - x / 2)
+		return;
+	if (point.y > plane_pos.y + z / 2 || point.y < plane_pos.y - z / 2)
+		return;
+	if (collider->axisplane.size.z > 0) {
+		if (point.y > plane_pos.z) {
+			return;
+		}
+		if (object->physics.last_transform.translation.z < plane_pos.z && collider->axisplane.traverseable) {
+			return;
+		}
+	} else {
+		if (point.z < plane_pos.z) {
+			return;
+		}
+		if (object->physics.last_transform.translation.z > plane_pos.z && collider->axisplane.traverseable) {
+			return;
+		}
+	}
+	object->physics.transform->translation.z = plane_pos.z;
+	object->physics.speeds.translation.z = -object->physics.speeds.translation.z * collider->axisplane.bouncyness / L3_F;
+}
+
+static void do_collision_axisplane_x(Engine_DObject *object, const E_Collider *collider, L3_Vec4 point)
+{
+	L3_Vec4 plane_pos;
+
+	plane_pos.x = collider->transform->translation.x + collider->axisplane.offset.x;
+	plane_pos.y = collider->transform->translation.y + collider->axisplane.offset.y;
+	plane_pos.z = collider->transform->translation.z + collider->axisplane.offset.z;
+
+	L3_Unit x = collider->axisplane.size.y * collider->transform->scale.y / L3_F;
+	L3_Unit z = collider->axisplane.size.z * collider->transform->scale.z / L3_F;
+	if (point.y > plane_pos.y + x / 2 || point.y < plane_pos.y - x / 2)
+		return;
+	if (point.z > plane_pos.z + z / 2 || point.z < plane_pos.z - z / 2)
+		return;
+	if (collider->axisplane.size.x > 0) {
+		if (point.y > plane_pos.x) {
+			return;
+		}
+		if (object->physics.last_transform.translation.x < plane_pos.x && collider->axisplane.traverseable) {
+			return;
+		}
+	} else {
+		if (point.y < plane_pos.x) {
+			return;
+		}
+		if (object->physics.last_transform.translation.x > plane_pos.x && collider->axisplane.traverseable) {
+			return;
+		}
+	}
+	object->physics.transform->translation.x = plane_pos.x;
+	object->physics.speeds.translation.x = -object->physics.speeds.translation.x * collider->axisplane.bouncyness / L3_F;
 }
 
 static void do_collision(Engine_DObject *object, const E_Collider *collider, L3_Vec4 point)
@@ -338,6 +413,12 @@ static void do_collision(Engine_DObject *object, const E_Collider *collider, L3_
 		break;
 		case ENGINE_COLLIDER_APLANEY:
 			do_collision_axisplane_y(object, collider, point);
+		break;
+		case ENGINE_COLLIDER_APLANEX:
+			do_collision_axisplane_x(object, collider, point);
+		break;
+		case ENGINE_COLLIDER_APLANEZ:
+			do_collision_axisplane_z(object, collider, point);
 		break;
 		case ENGINE_COLLIDER_CAPSULE:
 			do_collision_capsule(object, collider, point);
@@ -412,7 +493,10 @@ static void process_function(void *, void *, void *)
 
 		while (!sys_timepoint_expired(timing)) {
 			k_sleep(K_NSEC(100));
+			k_yield();
 		}
+		/* force unready thread to avoid monopolization of CPU time */
+		k_sleep(K_NSEC(10));
 		k_yield();
 	}
 }
@@ -435,7 +519,7 @@ int init_engine(Engine_pf pf)
 
 	k_thread_create(&render_thread, render_thread_stack, CONFIG_RENDER_THREAD_STACK,
                 render_function, NULL, NULL, NULL,
-                6, 0, K_NO_WAIT);
+                15, 0, K_NO_WAIT);
 
 	k_thread_create(&process_thread, process_thread_stack, CONFIG_PROCESS_THREAD_STACK,
                 process_function, NULL, NULL, NULL,

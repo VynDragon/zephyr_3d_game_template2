@@ -18,6 +18,8 @@
 #define ENGINE_BLIT_FUNCTION blit_display
 int ENGINE_BLIT_FUNCTION(L3_COLORTYPE *buffer, uint16_t size_x, uint16_t size_y);
 
+#define E_SPEED(speed) (speed / CONFIG_TARGET_PROCESS_FPS)
+
 #define ENGINE_VISUAL_UNUSED	0
 #define ENGINE_VISUAL_NOTHING	1
 #define ENGINE_VISUAL_MODEL		2
@@ -60,6 +62,8 @@ typedef struct E_C_AxisPlane_s {
 	/* axis size define direction */
 	L3_Vec4 size;
 	L3_Unit	bouncyness;
+	/* determine if we need to be >= than its limit for it to affect */
+	bool traverseable;
 } E_C_AxisPlane;
 
 #define ENGINE_COLLIDER_NOTHING	0

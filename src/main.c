@@ -31,9 +31,27 @@ int blit_display(L3_COLORTYPE *buffer, uint16_t size_x, uint16_t size_y)
 {
 	struct display_buffer_descriptor buf_desc;
 	buf_desc.buf_size = size_x * size_y;
+	//uint8_t buf[128] = {0};
+	//buf_desc.buf_size = size_x * size_y / 8 / 8;
 	buf_desc.width = size_x;
 	buf_desc.height = size_y;
 	buf_desc.pitch = size_x;
+
+	/*for (int j = 0; j < size_y; j+= 8) {
+		for (int i = 0; i < size_x; i++) {
+			buf[i] = buffer[i + (j + 0) * size_x] > 128 ? buf[i] | 1<<0 : buf[i] & ~(1<<0);
+			buf[i] = buffer[i + (j + 1) * size_x] > 128 ? buf[i] | 1<<1 : buf[i] & ~(1<<1);
+			buf[i] = buffer[i + (j + 2) * size_x] > 128 ? buf[i] | 1<<2 : buf[i] & ~(1<<2);
+			buf[i] = buffer[i + (j + 3) * size_x] > 128 ? buf[i] | 1<<3 : buf[i] & ~(1<<3);
+			buf[i] = buffer[i + (j + 4) * size_x] > 128 ? buf[i] | 1<<4 : buf[i] & ~(1<<4);
+			buf[i] = buffer[i + (j + 5) * size_x] > 128 ? buf[i] | 1<<5 : buf[i] & ~(1<<5);
+			buf[i] = buffer[i + (j + 6) * size_x] > 128 ? buf[i] | 1<<6 : buf[i] & ~(1<<6);
+			buf[i] = buffer[i + (j + 7) * size_x] > 128 ? buf[i] | 1<<7 : buf[i] & ~(1<<7);
+		}
+		display_write(display_device, 0, j, &buf_desc, buf);
+	}*/
+
+
 
 	display_write(display_device, 0, 0, &buf_desc, buffer);
 	return 0;
@@ -71,8 +89,8 @@ typedef struct {
 static Engine_Object* player = 0;
 static L3_Vec4 player_colpoint[2] = {{.x = 0, .y = 0, .z = 0, .w = L3_F }, {.x = 0, .y = L3_F, .z = 0, .w = L3_F }};
 static Controls controls = {0};
-static E_Collider collider_test[6][1] = {0};
-static Engine_Collisions collision_test[6] = {0};
+static E_Collider collider_test[7][1] = {0};
+static Engine_Collisions collision_test[7] = {0};
 
 static void process() {
 	if (player != 0) {
@@ -92,14 +110,14 @@ static void process() {
 		//engine_dynamic_objects[0].physics.speeds.translation.x -= 1;
 		//player->visual.transform.translation.z += z;
 		//player->visual.transform.translation.x += x;
-		engine_dynamic_objects[0].physics.speeds.translation.y -= 32;
+		engine_dynamic_objects[0].physics.speeds.translation.y -= E_SPEED(5*L3_F);
 
 		engine_dynamic_objects[0].physics.speeds.translation.y += controls.jump;
 
 		L3_Camera *camera = engine_getcamera();
 		camera->transform = player->visual.transform;
 		camera->transform.translation.y += L3_F;
-		printf("ppos: %d, %d, %d\n", player->visual.transform.translation.x, player->visual.transform.translation.y, player->visual.transform.translation.z);
+		//printf("ppos: %d, %d, %d\n", player->visual.transform.translation.x, player->visual.transform.translation.y, player->visual.transform.translation.z);
 	}
 }
 
@@ -120,42 +138,42 @@ static void update_controls(struct input_event *evt, void *user_data)
 	}
 	if (evt->code == INPUT_KEY_LEFT) {
 		if (evt->value)
-			cont->vy = 5;
+			cont->vy = 15;
 		else
 			cont->vy = 0;
 	} else if (evt->code == INPUT_KEY_RIGHT) {
 		if (evt->value)
-			cont->vy = -5;
+			cont->vy = -15;
 		else
 			cont->vy = 0;
 	}
 	if (evt->code == INPUT_KEY_W) {
 		if (evt->value)
-			cont->z = 48;
+			cont->z = E_SPEED(3*L3_F);
 		else
 			cont->z = 0;
 	} else if (evt->code == INPUT_KEY_S) {
 		if (evt->value)
-			cont->z = -48;
+			cont->z = -E_SPEED(3*L3_F);
 		else
 			cont->z = 0;
 	}
 
 	if (evt->code == INPUT_KEY_A) {
 		if (evt->value)
-			cont->x = 48;
+			cont->x = E_SPEED(3*L3_F);
 		else
 			cont->x = 0;
 	} else if (evt->code == INPUT_KEY_D) {
 		if (evt->value)
-			cont->x = -48;
+			cont->x = -E_SPEED(3*L3_F);
 		else
 			cont->x = 0;
 	}
 
 	if (evt->code == INPUT_KEY_SPACE) {
 		if (evt->value)
-			cont->jump = 256;
+			cont->jump = E_SPEED(15*L3_F);
 		else
 			cont->jump = 0;
 	}
@@ -175,7 +193,7 @@ int main()
 
 	k_msleep(100);
 	display_blanking_on(display_device);
-	display_set_pixel_format(display_device, PIXEL_FORMAT_L_8);
+	//display_set_pixel_format(display_device, PIXEL_FORMAT_L_8);
 	display_blanking_off(display_device);
 
 	init_engine(&process);
@@ -192,10 +210,6 @@ int main()
 	engine_dynamic_objects_count = 1;
 	engine_dynamic_objects[0].physics.pointOffsetsCount = 2;
 	engine_dynamic_objects[0].physics.pointOffsets = player_colpoint;
-	/*engine_dynamic_objects[0].physics.sphere.size = L3_F * 4;
-	engine_dynamic_objects[0].physics.sphere.offset.x = 0;
-	engine_dynamic_objects[0].physics.sphere.offset.y = L3_F;
-	engine_dynamic_objects[0].physics.sphere.offset.z = 0;*/
 
 
 	INSTANCIATE_OBJECT(tmpm, building_01);
@@ -279,7 +293,7 @@ int main()
 	tmp.visual = plane;
 	L3_transform3DSet(0,0*L3_F,0*L3_F,0,0,0,L3_F*100,L3_F,L3_F*100,&(tmp.visual.transform));
 	tmp.view_range = 8192 * L3_F;
-	tmp.visual_type = ENGINE_VISUAL_MODEL;
+	tmp.visual_type = ENGINE_VISUAL_NOTHING;
 	tmp.process = 0;
 	tmp.collisions = &(collision_test[3]);
 	collision_test[3].colliderCount = 1;
@@ -305,6 +319,22 @@ int main()
 	collider_test[4][0].axisplane.size.x = 1*L3_F;
 	collider_test[4][0].axisplane.size.z = 1*L3_F;
 	collider_test[4][0].type = ENGINE_COLLIDER_APLANEY;
+
+	tmp.visual = plane;
+	L3_transform3DSet(L3_F*2,L3_F*1.5,-2*L3_F,0,0,0,L3_F*2,L3_F,L3_F*2,&(tmp.visual.transform));
+	tmp.view_range = 8192 * L3_F;
+	tmp.visual_type = ENGINE_VISUAL_MODEL;
+	tmp.process = 0;
+	tmp.collisions = &(collision_test[6]);
+	collision_test[6].colliderCount = 1;
+	collision_test[6].colliders = collider_test[6];
+	collider_test[6][0].transform = &(engine_add_object(tmp)->visual.transform);
+	collider_test[6][0].axisplane.size.y = 1;
+	collider_test[6][0].axisplane.bouncyness = 128;
+	collider_test[6][0].axisplane.size.x = 1*L3_F;
+	collider_test[6][0].axisplane.size.z = 1*L3_F;
+	collider_test[6][0].axisplane.traverseable = true;
+	collider_test[6][0].type = ENGINE_COLLIDER_APLANEY;
 
 	/*tmp.visual = plane;
 	L3_transform3DSet(0,2*L3_F,0*L3_F,0,0,0,L3_F*10,L3_F,L3_F*10,&(tmp.visual.transform));
