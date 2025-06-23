@@ -15,15 +15,7 @@ LOG_MODULE_REGISTER(main);
 
 #include "engine.h"
 
-#include "building.h"
-
-#include "cat.h"
-
-#include "cube.h"
-
-#include "plane.h"
-
-#include "sphere.h"
+#include "demo.h"
 
 static const struct device *display_device = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
 
@@ -200,7 +192,7 @@ int main()
 
 	/* 'player' object */
 	Engine_Object tmp = {0};
-	L3_transform3DSet(0,L3_F*10,0,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));
+	L3_transform3DSet(5 * L3_F,0,0,0,-80,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));
 	tmp.view_range = 16 * L3_F;
 	tmp.visual_type = ENGINE_VISUAL_NOTHING;
 	player = engine_add_object(tmp);
@@ -211,162 +203,8 @@ int main()
 	engine_dynamic_objects[0].physics.pointOffsetsCount = 2;
 	engine_dynamic_objects[0].physics.pointOffsets = player_colpoint;
 
-
-	INSTANCIATE_OBJECT(tmpm, building_01);
-	tmp.visual = tmpm;
-	L3_transform3DSet(0,0,10*L3_F,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));
-	tmp.view_range = 8192 * L3_F;
-	tmp.visual_type = ENGINE_VISUAL_MODEL;
-	void *rm = engine_add_object(tmp);
-
-	tmp.visual = building_01;
-	L3_transform3DSet(0,180,10*L3_F,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));
-	tmp.view_range = 8192 * L3_F;
-	tmp.visual_type = ENGINE_VISUAL_MODEL;
-	tmp.process = 0;
-	tmp.collisions = &(collision_test[1]);
-	collision_test[1].colliderCount = 1;
-	collision_test[1].colliders = collider_test[1];
-	collider_test[1][0].transform = &(engine_add_object(tmp)->visual.transform);
-	collider_test[1][0].cube.size.y = 2.5*L3_F;
-	collider_test[1][0].cube.bouncyness = 128;
-	collider_test[1][0].cube.size.x = 2.5*L3_F;
-	collider_test[1][0].cube.size.z = 4.5*L3_F;
-	collider_test[1][0].type = ENGINE_COLLIDER_CUBE;
-
-	tmp.collisions = 0;
-
-	tmp.visual = building_01;
-	L3_transform3DSet(-10*L3_F,180,10*L3_F,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));
-	tmp.visual.config.visible = L3_VISIBLE_WIREFRAME;
-	tmp.view_range = 8192 * L3_F;
-	tmp.visual_type = ENGINE_VISUAL_MODEL;
-	tmp.process = 0;
-	engine_add_object(tmp);
-
-	tmp.visual = building_01;
-	L3_transform3DSet(10*L3_F,180,10*L3_F,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));
-	tmp.visual.config.visible = L3_VISIBLE_SOLID | L3_VISIBLE_DISTANCELIGHT;
-	tmp.view_range = 8192 * L3_F;
-	tmp.visual_type = ENGINE_VISUAL_MODEL;
-	tmp.process = 0;
-	engine_add_object(tmp);
-
-	tmp.visual = cat;
-	L3_transform3DSet(0,0,5*L3_F,0,0,0,L3_F*4,L3_F*4,L3_F*4,&(tmp.visual.transform));
-	tmp.view_range = 12 * L3_F;
-	tmp.visual_type = ENGINE_VISUAL_BILLBOARD;
-	tmp.data = &flip;
-	tmp.process = 0;
-	engine_add_object(tmp);
-
-	tmp.visual = cube;
-	L3_transform3DSet(L3_F*2,L3_F,2*L3_F,0,64,128,L3_F,L3_F,L3_F,&(tmp.visual.transform));
-	tmp.view_range = 64 * L3_F;
-	tmp.visual_type = ENGINE_VISUAL_MODEL;
-	tmp.data = 0;
-	tmp.process = 0;
-	tmp.collisions = &(collision_test[0]);
-	collision_test[0].colliderCount = 1;
-	collision_test[0].colliders = collider_test[0];
-	collider_test[0][0].transform = &(engine_add_object(tmp)->visual.transform);
-	collider_test[0][0].cube.size.y = 0.5*L3_F;
-	collider_test[0][0].cube.bouncyness = 128;
-	collider_test[0][0].cube.size.x = 0.5*L3_F;
-	collider_test[0][0].cube.size.z = 0.5*L3_F;
-	collider_test[0][0].type = ENGINE_COLLIDER_CUBE;
-
-	tmp.visual = sphere;
-	L3_transform3DSet(-L3_F*2,0,2*L3_F,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));
-	tmp.view_range = 64 * L3_F;
-	tmp.visual_type = ENGINE_VISUAL_MODEL;
-	tmp.data = 0;
-	tmp.process = 0;
-	tmp.collisions = &(collision_test[2]);
-	collision_test[2].colliderCount = 1;
-	collision_test[2].colliders = collider_test[2];
-	collider_test[2][0].transform = &(engine_add_object(tmp)->visual.transform);
-	collider_test[2][0].sphere.size = L3_F;
-	collider_test[2][0].sphere.bouncyness = 0xFF;
-	collider_test[2][0].type = ENGINE_COLLIDER_SPHERE;
-
-	tmp.visual = plane;
-	L3_transform3DSet(0,0*L3_F,0*L3_F,0,0,0,L3_F*100,L3_F,L3_F*100,&(tmp.visual.transform));
-	tmp.view_range = 8192 * L3_F;
-	tmp.visual_type = ENGINE_VISUAL_NOTHING;
-	tmp.process = 0;
-	tmp.collisions = &(collision_test[3]);
-	collision_test[3].colliderCount = 1;
-	collision_test[3].colliders = collider_test[3];
-	collider_test[3][0].transform = &(engine_add_object(tmp)->visual.transform);
-	collider_test[3][0].axisplane.size.y = 1;
-	collider_test[3][0].axisplane.bouncyness = 0xFF;
-	collider_test[3][0].axisplane.size.x = 1*L3_F;
-	collider_test[3][0].axisplane.size.z = 1*L3_F;
-	collider_test[3][0].type = ENGINE_COLLIDER_APLANEY;
-
-	tmp.visual = plane;
-	L3_transform3DSet(0,128,-2*L3_F,0,0,0,L3_F*2,L3_F,L3_F*2,&(tmp.visual.transform));
-	tmp.view_range = 8192 * L3_F;
-	tmp.visual_type = ENGINE_VISUAL_MODEL;
-	tmp.process = 0;
-	tmp.collisions = &(collision_test[4]);
-	collision_test[4].colliderCount = 1;
-	collision_test[4].colliders = collider_test[4];
-	collider_test[4][0].transform = &(engine_add_object(tmp)->visual.transform);
-	collider_test[4][0].axisplane.size.y = 1;
-	collider_test[4][0].axisplane.bouncyness = 128;
-	collider_test[4][0].axisplane.size.x = 1*L3_F;
-	collider_test[4][0].axisplane.size.z = 1*L3_F;
-	collider_test[4][0].type = ENGINE_COLLIDER_APLANEY;
-
-	tmp.visual = plane;
-	L3_transform3DSet(L3_F*2,L3_F*1.5,-2*L3_F,0,0,0,L3_F*2,L3_F,L3_F*2,&(tmp.visual.transform));
-	tmp.view_range = 8192 * L3_F;
-	tmp.visual_type = ENGINE_VISUAL_MODEL;
-	tmp.process = 0;
-	tmp.collisions = &(collision_test[6]);
-	collision_test[6].colliderCount = 1;
-	collision_test[6].colliders = collider_test[6];
-	collider_test[6][0].transform = &(engine_add_object(tmp)->visual.transform);
-	collider_test[6][0].axisplane.size.y = 1;
-	collider_test[6][0].axisplane.bouncyness = 128;
-	collider_test[6][0].axisplane.size.x = 1*L3_F;
-	collider_test[6][0].axisplane.size.z = 1*L3_F;
-	collider_test[6][0].axisplane.traverseable = true;
-	collider_test[6][0].type = ENGINE_COLLIDER_APLANEY;
-
-	/*tmp.visual = plane;
-	L3_transform3DSet(0,2*L3_F,0*L3_F,0,0,0,L3_F*10,L3_F,L3_F*10,&(tmp.visual.transform));
-	tmp.view_range = 8192 * L3_F;
-	tmp.visual_type = ENGINE_VISUAL_MODEL;
-	tmp.process = 0;
-	tmp.collisions = &(collision_test[5]);
-	collision_test[5].colliderCount = 1;
-	collision_test[5].colliders = collider_test[5];
-	collider_test[5][0].transform = &(engine_add_object(tmp)->visual.transform);
-	collider_test[5][0].axisplane.size.y = -1;
-	collider_test[5][0].axisplane.bouncyness = 0x0;
-	collider_test[5][0].axisplane.size.x = 1*L3_F;
-	collider_test[5][0].axisplane.size.z = 1*L3_F;
-	collider_test[5][0].type = ENGINE_COLLIDER_APLANEY;*/
-
-	tmp.visual = sphere;
-	L3_transform3DSet(-L3_F*4,0,2*L3_F,0,0,-128,L3_F,L3_F*3,L3_F*4,&(tmp.visual.transform));
-	tmp.view_range = 64 * L3_F;
-	tmp.visual_type = ENGINE_VISUAL_MODEL;
-	tmp.data = 0;
-	tmp.process = 0;
-	tmp.collisions = &(collision_test[5]);
-	collision_test[5].colliderCount = 1;
-	collision_test[5].colliders = collider_test[5];
-	collider_test[5][0].transform = &(engine_add_object(tmp)->visual.transform);
-	collider_test[5][0].capsule.size.x = L3_F;
-	collider_test[5][0].capsule.size.y = L3_F;
-	collider_test[5][0].capsule.size.z = L3_F;
-	collider_test[5][0].capsule.bouncyness = 0xFFF;
-	collider_test[5][0].type = ENGINE_COLLIDER_CAPSULE;
-
+	engine_set_statics(demo_scene, sizeof(demo_scene) / sizeof(*demo_scene));
+	engine_statics_enabled(true);
 
 	/*for (int i = 0; i < 1000; i++) {
 		tmp.visual = cat;
@@ -380,12 +218,25 @@ int main()
 		tmp.process = 0;
 		engine_add_object(tmp);
 	}*/
+/*
+#define aG 45
+	for (int i = 0; i < aG; i++) {
+		for (int j = 0; j < aG; j++) {
+			tmp.visual = building_01;
+			tmp.visual.config.visible = L3_VISIBLE_TEXTURED;
+			int x, y, z;
+			x = -200 + i * 30;
+			y = 180;
+			z = -200 + j * 30;
+			L3_transform3DSet(x*L3_F,y,z*L3_F,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));
+			tmp.view_range = 70 * L3_F;
+			tmp.visual_type = ENGINE_VISUAL_MODEL;
+			tmp.process = 0;
+			engine_add_object(tmp);
+		}
+	}/*
 
-	printf("obj cnt: %d\n", engine_object_getcnt());
-	engine_remove_object(rm);
-	printf("obj cnt: %d\n", engine_object_getcnt());
-	engine_optimize_object_table();
-	printf("obj cnt: %d\n", engine_object_getcnt());
+	printf("obj cnt: %d\n", engine_object_getcnt() + engine_statics_getcnt());
 
 	return 0;
 }

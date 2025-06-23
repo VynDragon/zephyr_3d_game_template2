@@ -76,7 +76,7 @@
 
 		ssd1327: ssd1327@0 {
 			compatible = "solomon,ssd1327fb";
-			mipi-max-frequency = <10000000>;
+			mipi-max-frequency = <30000000>;
 			reg = <0>;
 			width = <128>;
 			height = <64>;

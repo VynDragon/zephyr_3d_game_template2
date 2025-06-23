@@ -24,7 +24,7 @@
 #define L3_MAX_OBJECTS 0x2FF
 
 #define L3_SCENE		engine_global_scene
-#define L3_OBJECTS	engine_global_objects
+#define L3_OBJECTS		engine_global_objects
 
 #define L3_VISIBLE_INVISIBLE		0
 #define L3_VISIBLE_TEXTURED			BIT(0)
@@ -32,6 +32,9 @@
 #define L3_VISIBLE_SOLID			BIT(2)
 #define L3_VISIBLE_DISTANCELIGHT	BIT(3)
 #define L3_VISIBLE_BILLBOARD    	BIT(4)
+
+#define L3_PERFORMANCE_FUNCTION	__attribute__((optimize(3))) __attribute__((hot)) __attribute__((flatten))
+//#define L3_PERFORMANCE_FUNCTION
 
 /** Specifies how the library will handle triangles that partially cross the
 near plane. These are problematic and require special handling. Possible
@@ -90,7 +93,7 @@ Possible values:
 2: Use reduced-size z-buffer (of bytes). This is fast and somewhat accurate,
 	but inaccuracies can occur and a considerable amount of memory is
 	needed. */
-#define L3_Z_BUFFER 2
+#define L3_Z_BUFFER 1
 
 /** Whether to use stencil buffer for drawing -- with this a pixel that would
 be resterized over an already rasterized pixel (within a frame) will be
@@ -135,7 +138,7 @@ slightly different results. */
 /** For L3_PERSPECTIVE_CORRECTION == 2, this specifies after how many pixels
 PC is recomputed. Should be a power of two to keep up the performance.
 Smaller is nicer but slower. */
-#define L3_PC_APPROX_LENGTH 32
+#define L3_PC_APPROX_LENGTH 96
 
 /** For L3_Z_BUFFER == 2 this sets the reduced z-buffer granularity. */
 #define L3_REDUCED_Z_BUFFER_GRANULARITY 5

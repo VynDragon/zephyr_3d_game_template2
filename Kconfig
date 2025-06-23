@@ -30,6 +30,6 @@ config LOG_PERFORMANCE
 
 config MAX_OBJECTS
 	int "Maximum amount of objects"
-	default 1024
+	default 512
 
 source "Kconfig.zephyr"

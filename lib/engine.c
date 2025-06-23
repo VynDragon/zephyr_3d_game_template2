@@ -10,14 +10,22 @@ LOG_MODULE_REGISTER(engine);
 
 /* ------------------------------------------------------------------------------------------- */
 
-static Engine_Object engine_objects[CONFIG_MAX_OBJECTS] = {0};
-static uint32_t		engine_objects_count = 0;
-static const E_Collider	*engine_colliders[ENGINE_MAX_COLLIDERS];
-static uint32_t		engine_colliders_count = 0;
-Engine_DObject	engine_dynamic_objects[ENGINE_MAX_DOBJECTS];
-uint32_t		engine_dynamic_objects_count = 0;
+static Engine_Object		engine_objects[CONFIG_MAX_OBJECTS] = {0};
+static uint32_t				engine_objects_count = 0;
+
+static const Engine_Object	*static_engine_objects;
+static uint32_t				static_engine_objects_count;
+static bool					static_engine_objects_enabled = false;
+
+static const E_Collider		*engine_colliders[ENGINE_MAX_COLLIDERS];
+static uint32_t				engine_colliders_count = 0;
+
+Engine_DObject				engine_dynamic_objects[ENGINE_MAX_DOBJECTS];
+uint32_t					engine_dynamic_objects_count = 0;
+
 K_MUTEX_DEFINE(engine_objects_lock);
 K_MUTEX_DEFINE(engine_render_lock);
+
 static Engine_pf engine_pf;
 
 /* ------------------------------------------------------------------------------------------- */
@@ -113,6 +121,11 @@ size_t engine_object_getcnt(void)
 	return engine_objects_count;
 }
 
+size_t engine_statics_getcnt(void)
+{
+	return static_engine_objects_count;
+}
+
 L3_Camera *engine_getcamera(void)
 {
 	return &(L3_SCENE.camera);
@@ -122,14 +135,46 @@ static void build_render_list(void)
 {
 	const L3_Object **render_o = L3_OBJECTS;
 	int o_cnt = 0;
+	L3_Vec4 forward = {0, 0, L3_F, L3_F};
+	L3_Mat4 transMat;
+	L3_Vec4 dir;
+	L3_Unit dot;
+
+	L3_makeRotationMatrixZXY(L3_SCENE.camera.transform.rotation.x,
+							L3_SCENE.camera.transform.rotation.y,
+							L3_SCENE.camera.transform.rotation.z,
+							transMat);
+
+	L3_vec3Xmat4(&forward, transMat);
+
 	for (int i = 0; i < engine_objects_count; i++) {
 		if (engine_objects[i].visual_type >= ENGINE_VISUAL_MODEL) {
-			if (o_cnt < L3_MAX_OBJECTS) {
-				if (engine_objects[i].view_range > L3_distanceManhattan(engine_objects[i].visual.transform.translation, L3_SCENE.camera.transform.translation)) {
-					*render_o = &(engine_objects[i].visual);
-					render_o++;
-					o_cnt++;
-				}
+			if (o_cnt >= L3_MAX_OBJECTS) break;
+			if (engine_objects[i].view_range <= L3_distanceManhattan(engine_objects[i].visual.transform.translation, L3_SCENE.camera.transform.translation)) continue;
+			dir.x = engine_objects[i].visual.transform.translation.x - L3_SCENE.camera.transform.translation.x;
+			dir.y = engine_objects[i].visual.transform.translation.y - L3_SCENE.camera.transform.translation.y;
+			dir.z = engine_objects[i].visual.transform.translation.z - L3_SCENE.camera.transform.translation.z;
+			dot = L3_vec3Dot(forward, dir);
+			if (dot < -ENGINE_REAR_OBJECT_CUTOFF) continue;
+			*render_o = &(engine_objects[i].visual);
+			render_o++;
+			o_cnt++;
+		}
+	}
+
+	if (static_engine_objects_enabled) {
+		for (int i = 0; i < static_engine_objects_count; i++) {
+			if (static_engine_objects[i].visual_type >= ENGINE_VISUAL_MODEL) {
+				if (o_cnt >= L3_MAX_OBJECTS) break;
+				if (static_engine_objects[i].view_range <= L3_distanceManhattan(static_engine_objects[i].visual.transform.translation, L3_SCENE.camera.transform.translation)) continue;
+				dir.x = static_engine_objects[i].visual.transform.translation.x - L3_SCENE.camera.transform.translation.x;
+				dir.y = static_engine_objects[i].visual.transform.translation.y - L3_SCENE.camera.transform.translation.y;
+				dir.z = static_engine_objects[i].visual.transform.translation.z - L3_SCENE.camera.transform.translation.z;
+				dot = L3_vec3Dot(forward, dir);
+				if (dot < -ENGINE_REAR_OBJECT_CUTOFF) continue;
+				*render_o = &(static_engine_objects[i].visual);
+				render_o++;
+				o_cnt++;
 			}
 		}
 	}
@@ -148,19 +193,48 @@ static void run_all_object_process(void)
 			}
 		}
 	}
+
+	/*
+	if (static_engine_objects_enabled) {
+		for (int i = 0; i < static_engine_objects_count; i++) {
+			if (static_engine_objects[i].visual_type >= ENGINE_VISUAL_MODEL) {
+				if (static_engine_objects[i].process != NULL) {
+					static_engine_objects[i].process(&(static_engine_objects[i]), static_engine_objects[i].data);
+				}
+			}
+		}
+	}
+	*/
 }
 
 static void build_collider_list(void)
 {
 	const E_Collider **colliders = engine_colliders;
 	engine_colliders_count = 0;
+
 	for (int i = 0; i < engine_objects_count; i++) {
 		if (engine_objects[i].collisions != 0) {
-			if (engine_colliders_count < ENGINE_MAX_COLLIDERS) {
-				for (int j = 0; j < engine_objects[i].collisions->colliderCount; j++) {
-					*colliders = &(engine_objects[i].collisions->colliders[j]);
-					colliders++;
-					engine_colliders_count++;
+			if (engine_colliders_count >= ENGINE_MAX_COLLIDERS) break;
+			for (int j = 0; j < engine_objects[i].collisions->colliderCount; j++) {
+				*colliders = &(engine_objects[i].collisions->colliders[j]);
+				colliders++;
+				engine_colliders_count++;
+			}
+		}
+	}
+
+	if (static_engine_objects_enabled) {
+		for (int i = 0; i < static_engine_objects_count; i++) {
+			if (static_engine_objects[i].collisions != 0) {
+				if (engine_colliders_count >= ENGINE_MAX_COLLIDERS) break;
+				if (static_engine_objects[i].view_range > L3_distanceManhattan(static_engine_objects[i].visual.transform.translation, L3_SCENE.camera.transform.translation)) {
+					for (int j = 0; j < static_engine_objects[i].collisions->colliderCount; j++) {
+						if (engine_colliders_count < ENGINE_MAX_COLLIDERS) {
+							*colliders = &(static_engine_objects[i].collisions->colliders[j]);
+							colliders++;
+							engine_colliders_count++;
+						}
+					}
 				}
 			}
 		}
@@ -501,6 +575,18 @@ static void process_function(void *, void *, void *)
 	}
 }
 
+
+void engine_set_statics(const Engine_Object *objects, uint32_t count)
+{
+	static_engine_objects = objects;
+	static_engine_objects_count = count;
+}
+
+void engine_statics_enabled(bool yes)
+{
+	static_engine_objects_enabled = yes;
+}
+
 static struct k_thread render_thread;
 K_THREAD_STACK_DEFINE(render_thread_stack, CONFIG_RENDER_THREAD_STACK);
 
@@ -512,7 +598,7 @@ int init_engine(Engine_pf pf)
 	L3_sceneInit(L3_OBJECTS, 0, &L3_SCENE);
 	L3_SCENE.camera.transform.translation.y = 0 * L3_F;
 	L3_SCENE.camera.transform.translation.z = 0 * L3_F;
-	//L3_SCENE.camera.focalLength = 0;
+	L3_SCENE.camera.focalLength = 250;
 
 	engine_pf = pf;
 

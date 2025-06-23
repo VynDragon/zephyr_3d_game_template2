@@ -28,6 +28,9 @@ int ENGINE_BLIT_FUNCTION(L3_COLORTYPE *buffer, uint16_t size_x, uint16_t size_y)
 #define ENGINE_MAX_COLLIDERS 0xFF
 #define ENGINE_MAX_DOBJECTS	0xF
 
+/* do product to determine if object is behind camera limit */
+#define ENGINE_REAR_OBJECT_CUTOFF 1 * L3_F
+
 typedef struct Engine_Object_s Engine_Object;
 
 /* functions ran each tick for associated object */
@@ -82,7 +85,7 @@ typedef struct E_Collider_s {
 		E_C_AxisPlane	axisplane;
 	};
 	uint8_t			type;
-	L3_Transform3D	*transform;
+	const L3_Transform3D	*transform;
 } E_Collider;
 
 typedef struct Engine_Physics_s {
@@ -97,8 +100,8 @@ typedef struct Engine_Physics_s {
 
 typedef struct Engine_Collisions_s {
 	/* Collider table */
-	E_Collider	*colliders;
-	uint8_t		colliderCount;
+	const E_Collider	*colliders;
+	uint8_t				colliderCount;
 } Engine_Collisions;
 
 typedef struct Engine_Object_s {
@@ -132,7 +135,14 @@ int engine_optimize_object_table(void);
 
 size_t engine_object_getcnt(void);
 
+size_t engine_statics_getcnt(void);
+
 L3_Camera *engine_getcamera(void);
+
+/* sets const renderlist, can be from XIP */
+void engine_set_statics(const Engine_Object *objects, uint32_t count);
+/* enable or disable rendering statics set */
+void engine_statics_enabled(bool yes);
 
 extern Engine_DObject engine_dynamic_objects[ENGINE_MAX_DOBJECTS];
 extern uint32_t engine_dynamic_objects_count;

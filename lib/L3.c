@@ -51,6 +51,7 @@ L3_Scene engine_global_scene = {0};
 
 /* Code ------------------------------------------------------------------------------------------*/
 
+L3_PERFORMANCE_FUNCTION
 void L3_clearScreen(L3_COLORTYPE color)
 {
 	uint32_t index = 0;
@@ -61,6 +62,7 @@ void L3_clearScreen(L3_COLORTYPE color)
 	}
 }
 
+L3_PERFORMANCE_FUNCTION
 static void L3_plot_line (L3_COLORTYPE color, int x0, int y0, int x1, int y1)
 {
 	int dx =  abs (x1 - x0), sx = x0 < x1 ? 1 : -1;
@@ -333,6 +335,7 @@ void L3_getIndexedTriangleValues(
 	}
 }
 
+L3_PERFORMANCE_FUNCTION
 void L3_computeModelNormals(L3_Object *object, L3_Unit *dst,
 	int8_t transformNormals)
 {
@@ -435,6 +438,7 @@ void L3_computeModelNormals(L3_Object *object, L3_Unit *dst,
 		}
 }
 
+L3_PERFORMANCE_FUNCTION
 void L3_vec4Xmat4(L3_Vec4 *v, L3_Mat4 m)
 {
 	L3_Vec4 vBackup;
@@ -456,6 +460,7 @@ void L3_vec4Xmat4(L3_Vec4 *v, L3_Mat4 m)
 	v->w = dotCol(3);
 }
 
+L3_PERFORMANCE_FUNCTION
 void L3_vec3Xmat4(L3_Vec4 *v, L3_Mat4 m)
 {
 	L3_Vec4 vBackup;
@@ -480,6 +485,7 @@ void L3_vec3Xmat4(L3_Vec4 *v, L3_Mat4 m)
 
 #undef dotCol
 
+L3_PERFORMANCE_FUNCTION
 void L3_mat4Xmat4(L3_Mat4 m1, L3_Mat4 m2)
 {
 	L3_Mat4 mat1;
@@ -499,6 +505,7 @@ void L3_mat4Xmat4(L3_Mat4 m1, L3_Mat4 m2)
 		}
 }
 
+L3_PERFORMANCE_FUNCTION
 L3_Unit L3_sin(L3_Unit x)
 {
 #if L3_SIN_METHOD == 0
@@ -552,6 +559,7 @@ L3_Unit L3_sin(L3_Unit x)
 #endif
 }
 
+L3_PERFORMANCE_FUNCTION
 L3_Unit L3_asin(L3_Unit x)
 {
 #if L3_SIN_METHOD == 0
@@ -641,6 +649,7 @@ void L3_makeScaleMatrix(
 	#undef M
 }
 
+L3_PERFORMANCE_FUNCTION
 void L3_makeRotationMatrixZXY(
 	L3_Unit byX,
 	L3_Unit byY,
@@ -728,6 +737,7 @@ L3_Unit L3_vec2Length(L3_Vec4 v)
 	return L3_sqrt(v.x * v.x + v.y * v.y);
 }
 
+L3_PERFORMANCE_FUNCTION
 void L3_vec3Normalize(L3_Vec4 *v)
 {
 	#define SCALE 16
@@ -798,6 +808,7 @@ static inline void L3_mapProjectionPlaneToScreen(
 		(point.y * L3_HALF_RESOLUTION_X) / L3_F;
 }
 
+L3_PERFORMANCE_FUNCTION
 void L3_project3DPointToScreen(
 	L3_Vec4 point,
 	L3_Camera camera,
@@ -971,6 +982,7 @@ void L3_drawConfigInit(L3_DrawConfig *config)
 #define L3_stepFastLerp(state)\
 	state.valueScaled += state.stepScaled
 
+L3_PERFORMANCE_FUNCTION
 void L3_zBufferClear(void)
 {
 #if L3_Z_BUFFER
@@ -979,6 +991,7 @@ void L3_zBufferClear(void)
 #endif
 }
 
+L3_PERFORMANCE_FUNCTION
 void L3_stencilBufferClear(void)
 {
 #if L3_STENCIL_BUFFER
@@ -987,6 +1000,7 @@ void L3_stencilBufferClear(void)
 #endif
 }
 
+L3_PERFORMANCE_FUNCTION
 void L3_newFrame(void)
 {
 	L3_zBufferClear();
@@ -1001,6 +1015,7 @@ uint8_t _L3_projectedTriangleState = 0; // 0 = normal, 1 = cut, 2 = split
 L3_Vec4 _L3_triangleRemapBarycentrics[6];
 #endif
 
+L3_PERFORMANCE_FUNCTION
 void L3_drawTriangle(
 	L3_Vec4 point0,
 	L3_Vec4 point1,
@@ -1573,6 +1588,7 @@ void L3_rotate2DPoint(L3_Unit *x, L3_Unit *y, L3_Unit angle)
 		(angleCos * (*y)) / L3_F;
 }
 
+L3_PERFORMANCE_FUNCTION
 void L3_makeWorldMatrix(L3_Transform3D worldTransform, L3_Mat4 m)
 {
 	L3_makeScaleMatrix(
@@ -1600,6 +1616,7 @@ void L3_makeWorldMatrix(L3_Transform3D worldTransform, L3_Mat4 m)
 	L3_mat4Xmat4(m,t);
 }
 
+L3_PERFORMANCE_FUNCTION
 void L3_mat4Transpose(L3_Mat4 m)
 {
 	L3_Unit tmp;
@@ -1645,6 +1662,7 @@ void L3_makeCameraMatrix(L3_Transform3D cameraTransform, L3_Mat4 m)
 /** Checks if given triangle (in Screen Space) is at least partially visible,
 	i.e. returns false if the triangle is either completely outside the frustum
 	(left, right, top, bottom, near) or is invisible due to backface culling. */
+L3_PERFORMANCE_FUNCTION
 static inline int8_t L3_triangleIsVisible(
 	L3_Vec4 p0,
 	L3_Vec4 p1,
@@ -1683,8 +1701,7 @@ static inline int8_t L3_triangleIsVisible(
 	return 1;
 }
 
-
-
+L3_PERFORMANCE_FUNCTION
 void _L3_projectVertex(const L3_Object *object, L3_Index triangleIndex,
 	uint8_t vertex, L3_Mat4 projectionMatrix, L3_Vec4 *result)
 {
@@ -1701,6 +1718,7 @@ void _L3_projectVertex(const L3_Object *object, L3_Index triangleIndex,
 	/* We'll keep the non-clamped z in w for sorting. */
 }
 
+L3_PERFORMANCE_FUNCTION
 void _L3_mapProjectedVertexToScreen(L3_Vec4 *vertex, L3_Unit focalLength)
 {
 	vertex->z = vertex->z >= L3_NEAR ? vertex->z : L3_NEAR;
@@ -1723,6 +1741,7 @@ void _L3_mapProjectedVertexToScreen(L3_Vec4 *vertex, L3_Unit focalLength)
 	subdivided into two if it crosses the near plane, in which case two projected
 	triangles are returned (the info about splitting or cutting the triangle is
 	passed in global variables, see above). */
+L3_PERFORMANCE_FUNCTION
 void _L3_projectTriangle(
 	const L3_Object *object,
 	L3_Index triangleIndex,
@@ -1854,6 +1873,7 @@ void _L3_projectTriangle(
 }
 
 /* returns triangles drawn */
+L3_PERFORMANCE_FUNCTION
 uint32_t L3_drawScene(L3_Scene scene)
 {
 	uint32_t drawnTriangles = 0;
@@ -2048,6 +2068,7 @@ uint32_t L3_drawScene(L3_Scene scene)
 /* Zephyr Code -----------------------------------------------------------------------------------*/
 
 static int L3_zephyr_putpixel_current_render_mode = 0;
+L3_PERFORMANCE_FUNCTION
 inline void zephyr_putpixel(L3_PixelInfo *p)
 {
 	float depthmul = 1.0;
@@ -2069,15 +2090,21 @@ inline void zephyr_putpixel(L3_PixelInfo *p)
 
 		uv[0] = abs(L3_interpolateBarycentric(uvs[0], uvs[2], uvs[4], p->barycentric) % L3_TEXTURE_WH);
 		uv[1] = abs(L3_interpolateBarycentric(uvs[1], uvs[3], uvs[5], p->barycentric) % L3_TEXTURE_WH);
-		if (likely(0 < p->x && L3_RESOLUTION_X > p->x && 0 < p->y && L3_RESOLUTION_Y > p->y))
+		if (unlikely(0 > p->x && L3_RESOLUTION_X <= p->x && 0 > p->y && L3_RESOLUTION_Y <= p->y)) return;
+		if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_DISTANCELIGHT)
 			L3_video_buffer[p->x + p->y * L3_RESOLUTION_X] = object->model->triangleTextures[object->model->triangleTextureIndex[p->triangleIndex]][(uv[0] >> 0) + (uv[1] >> 0) * L3_TEXTURE_WH] * depthmul;
-
+		else
+			L3_video_buffer[p->x + p->y * L3_RESOLUTION_X] = object->model->triangleTextures[object->model->triangleTextureIndex[p->triangleIndex]][(uv[0] >> 0) + (uv[1] >> 0) * L3_TEXTURE_WH];
 	} else if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_SOLID) {
-		if (likely(0 < p->x && L3_RESOLUTION_X > p->x && 0 < p->y && L3_RESOLUTION_Y > p->y))
+		if (unlikely(0 > p->x && L3_RESOLUTION_X <= p->x && 0 > p->y && L3_RESOLUTION_Y <= p->y)) return;
+		if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_DISTANCELIGHT)
 			L3_video_buffer[p->x + p->y * L3_RESOLUTION_X] = 255.0 * depthmul;
+		else
+			L3_video_buffer[p->x + p->y * L3_RESOLUTION_X] = 255;
 	}
 }
 
+L3_PERFORMANCE_FUNCTION
 inline int zephyr_drawtriangle(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
 								L3_Index objectIndex, L3_Index triangleIndex)
 {
@@ -2092,6 +2119,7 @@ inline int zephyr_drawtriangle(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
 	return 1;
 }
 
+L3_PERFORMANCE_FUNCTION
 inline int zephyr_drawbillboard(L3_Vec4 point, const L3_Object *billboard)
 {
 	if (!L3_zTest(point.x,point.y,point.z))
