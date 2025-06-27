@@ -1,5 +1,3 @@
-
-
 config RESOLUTION_X
 	int "Display Width"
 	default 256
@@ -12,17 +10,9 @@ config TARGET_RENDER_FPS
 	int "FPS of rendering"
 	default 30
 
-config RENDER_THREAD_STACK
-	int "size of render thread's stack size"
-	default 1024
-
 config TARGET_PROCESS_FPS
 	int "FPS of processing logic"
 	default 30
-
-config PROCESS_THREAD_STACK
-	int "size of render thread's stack size"
-	default 2048
 
 config LOG_PERFORMANCE
 	bool "enable logging render times"
@@ -32,4 +22,4 @@ config MAX_OBJECTS
 	int "Maximum amount of objects"
 	default 512
 
-source "Kconfig.zephyr"
+rsource "lib/Kconfig"

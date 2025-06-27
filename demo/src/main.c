@@ -234,7 +234,7 @@ int main()
 			tmp.process = 0;
 			engine_add_object(tmp);
 		}
-	}/*
+	}*/
 
 	printf("obj cnt: %d\n", engine_object_getcnt() + engine_statics_getcnt());
 
