@@ -2,11 +2,17 @@
 * APACHE 2
 */
 
-
-#include "engine.h"
+#include <zephyr/kernel.h>
+#include <zephyr/device.h>
+#include <zephyr/drivers/display.h>
+#include <zephyr/timing/timing.h>
+#include <stdlib.h>
+#include <math.h>
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(engine);
+
+#include "engine.h"
 
 /* ------------------------------------------------------------------------------------------- */
 
@@ -20,6 +26,8 @@ static bool					static_engine_objects_enabled = false;
 static const E_Collider		*engine_colliders[ENGINE_MAX_COLLIDERS];
 static uint32_t				engine_colliders_count = 0;
 
+static E_Particle		engine_particles[ENGINE_MAX_PARTICLES];
+
 Engine_DObject				engine_dynamic_objects[ENGINE_MAX_DOBJECTS];
 uint32_t					engine_dynamic_objects_count = 0;
 
@@ -29,6 +37,63 @@ K_MUTEX_DEFINE(engine_render_lock);
 static Engine_pf engine_pf;
 
 /* ------------------------------------------------------------------------------------------- */
+
+
+L3_PERFORMANCE_FUNCTION
+inline int E_drawbillboard_particle(L3_Vec4 point, const E_Particle *particle)
+{
+	if (!L3_zTest(point.x,point.y,point.z))
+		return 0;
+
+	int focal = L3_SCENE.camera.focalLength != 0 ? L3_SCENE.camera.focalLength : 1;
+	float scale_x = ((float)(particle->transform.scale.x * focal) / (float)point.z) * ((float)particle->billboard->scale/0x4000) * L3_RESOLUTION_X / L3_F;
+	float scale_y = ((float)(particle->transform.scale.y * focal) / (float)point.z) * ((float)particle->billboard->scale/0x4000) * L3_RESOLUTION_X / L3_F;
+	int scaled_width = particle->billboard->width * scale_x;
+	int scaled_height = particle->billboard->height * scale_y;
+
+	int startx = point.x - scaled_width / 2;
+	int endx =  MIN(point.x + scaled_width / 2, L3_RESOLUTION_X);
+	int starty = point.y - scaled_height / 2;
+	int endy =  MIN(point.y + scaled_height / 2, L3_RESOLUTION_Y);
+	for (int i = MAX(0, startx); i < endx; i++) {
+		int m = (float)(i - startx) / scale_x;
+		for (int j = MAX(0, starty); j < endy; j++) {
+			int n = (float)(j - starty) / scale_y;
+			if (particle->billboard->texture[m + n * particle->billboard->width] > particle->billboard->transparency_threshold) {
+				L3_video_buffer[j * L3_RESOLUTION_X + i] = (L3_video_buffer[j * L3_RESOLUTION_X + i] * (0xFF - particle->billboard->transparency) +  particle->billboard->texture[m + n * particle->billboard->width] * particle->billboard->transparency) / 0xFF;
+			}
+		}
+	}
+	return 0;
+}
+
+__attribute__((flatten))
+L3_PERFORMANCE_FUNCTION
+static void E_drawParticles(void)
+{
+	L3_Mat4 matCamera;
+	L3_Vec4 transformed;
+
+	L3_makeCameraMatrix(L3_SCENE.camera.transform, matCamera);
+
+	for (int i = 0; i < ENGINE_MAX_PARTICLES; i++) {
+		if (engine_particles[i].life > 0) {
+			transformed = engine_particles[i].transform.translation;
+			transformed.w = L3_F;
+			L3_vec3Xmat4(&transformed, matCamera);
+
+			transformed.w = transformed.z;
+
+			_L3_mapProjectedVertexToScreen(&transformed, L3_SCENE.camera.focalLength);
+
+			if (transformed.x < 0 || transformed.x >= L3_RESOLUTION_X || transformed.y < 0 || transformed.y >= L3_RESOLUTION_Y || transformed.z <= L3_NEAR)
+			{
+				continue;
+			}
+			E_drawbillboard_particle(transformed, &(engine_particles[i]));
+		}
+	}
+}
 
 static void render_function(void *, void *, void *)
 {
@@ -52,6 +117,7 @@ static void render_function(void *, void *, void *)
 
 		k_mutex_lock(&engine_render_lock, K_FOREVER);
 		uint32_t drawnTriangles = L3_drawScene(L3_SCENE);
+		E_drawParticles();
 		k_mutex_unlock(&engine_render_lock);
 
 #if	CONFIG_LOG_PERFORMANCE
@@ -64,9 +130,9 @@ static void render_function(void *, void *, void *)
 		total_time_us = timing_cycles_to_ns(timing_cycles_get(&start_time, &end_time)) / 1000;
 		render_time_us = timing_cycles_to_ns(timing_cycles_get(&rstart_time, &rend_time)) / 1000;
 		draw_time_us = timing_cycles_to_ns(timing_cycles_get(&dstart_time, &end_time)) / 1000;
-		printf("total us: %u ms:%u fps:%u\n", total_time_us, (total_time_us) / 1000, 1000000 / (total_time_us != 0 ? total_time_us : 1));
-		printf("display us:%u render us:%u render fps: %u\n", draw_time_us, render_time_us, 1000000 / (render_time_us != 0 ? render_time_us : 1));
-		printf("rendered %u Polygons, %u polygons per second\n", drawnTriangles, drawnTriangles * 1000000 / (render_time_us != 0 ? render_time_us : 1));
+		LOG_INF("total us: %u ms:%u fps:%u", total_time_us, (total_time_us) / 1000, 1000000 / (total_time_us != 0 ? total_time_us : 1));
+		LOG_INF("display us:%u render us:%u render fps: %u", draw_time_us, render_time_us, 1000000 / (render_time_us != 0 ? render_time_us : 1));
+		LOG_INF("rendered %u Polygons, %u polygons per second", drawnTriangles, drawnTriangles * 1000000 / (render_time_us != 0 ? render_time_us : 1));
 #endif
 		while (!sys_timepoint_expired(timing)) {
 			k_sleep(K_NSEC(100));
@@ -131,6 +197,25 @@ L3_Camera *engine_getcamera(void)
 	return &(L3_SCENE.camera);
 }
 
+E_Particle *engine_create_particle(L3_Transform3D transform, Engine_Particle_pf process, const L3_Billboard *billboard, uint32_t lifespan)
+{
+	int i = 0;
+	for (; i < ENGINE_MAX_PARTICLES; i++) {
+		if (engine_particles[i].life <= 0) {
+			break;
+		}
+	}
+	if (i >= ENGINE_MAX_PARTICLES) {
+		return 0;
+	}
+
+	engine_particles[i].process = process;
+	engine_particles[i].billboard = billboard;
+	engine_particles[i].transform = transform;
+	engine_particles[i].life = lifespan;
+	return &(engine_particles[i]);
+}
+
 static void build_render_list(void)
 {
 	const L3_Object **render_o = L3_OBJECTS;
@@ -179,7 +264,7 @@ static void build_render_list(void)
 		}
 	}
 #if	CONFIG_LOG_PERFORMANCE
-	printf("selected %d objects\n", o_cnt);
+	LOG_INF("selected %d objects", o_cnt);
 #endif
 	L3_SCENE.objectCount = o_cnt;
 }
@@ -205,6 +290,16 @@ static void run_all_object_process(void)
 		}
 	}
 	*/
+}
+
+static void run_particles(void)
+{
+	for (int i = 0; i < ENGINE_MAX_PARTICLES; i++) {
+		if (engine_particles[i].life > 0) {
+			engine_particles[i].process(&(engine_particles[i]));
+			engine_particles[i].life -= 1;
+		}
+	}
 }
 
 static void build_collider_list(void)
@@ -240,7 +335,7 @@ static void build_collider_list(void)
 		}
 	}
 #if	CONFIG_LOG_PERFORMANCE
-	printf("selected %d colliders\n", engine_colliders_count);
+	LOG_INF("selected %d colliders", engine_colliders_count);
 #endif
 }
 
@@ -250,7 +345,7 @@ static void do_collision_cube(Engine_DObject *object, const E_Collider *collider
 	L3_Vec4 right = {L3_F, 0, 0, L3_F};
 	L3_Vec4 far = {0, 0, L3_F, L3_F};
 	L3_Mat4 transMat;
-	L3_Vec4 muln, mulo;
+	L3_Vec4 muln;
 	L3_Vec4 plane_pos;
 
 	plane_pos.x = collider->transform->translation.x + collider->cube.offset.x;
@@ -555,6 +650,7 @@ static void process_function(void *, void *, void *)
 		k_mutex_unlock(&engine_render_lock);
 		engine_pf();
 		run_all_object_process();
+		run_particles();
 		build_collider_list();
 		run_all_DObjects();
 		k_mutex_unlock(&engine_objects_lock);
@@ -562,7 +658,7 @@ static void process_function(void *, void *, void *)
 #if	CONFIG_LOG_PERFORMANCE
 		end_time = timing_counter_get();
 		total_time_us = timing_cycles_to_ns(timing_cycles_get(&start_time, &end_time)) / 1000;
-		printf("total process us: %u ms:%u fps:%u\n", total_time_us, (total_time_us) / 1000, 1000000 / (total_time_us != 0 ? total_time_us : 1));
+		LOG_INF("total process us: %u ms:%u fps:%u", total_time_us, (total_time_us) / 1000, 1000000 / (total_time_us != 0 ? total_time_us : 1));
 #endif
 
 		while (!sys_timepoint_expired(timing)) {
@@ -598,7 +694,7 @@ int init_engine(Engine_pf pf)
 	L3_sceneInit(L3_OBJECTS, 0, &L3_SCENE);
 	L3_SCENE.camera.transform.translation.y = 0 * L3_F;
 	L3_SCENE.camera.transform.translation.z = 0 * L3_F;
-	L3_SCENE.camera.focalLength = 250;
+	L3_SCENE.camera.focalLength = 256;
 
 	engine_pf = pf;
 

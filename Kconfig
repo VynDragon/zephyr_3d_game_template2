@@ -15,7 +15,7 @@ config TARGET_PROCESS_FPS
 	default 30
 
 config LOG_PERFORMANCE
-	bool "enable logging render times"
+	bool "enable logging render times, this can cause render lag"
 	default y
 
 config MAX_OBJECTS

@@ -1,3 +1,7 @@
+#include <stdlib.h>
+#include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
+LOG_MODULE_REGISTER(L3);
 
 #include "L3.h"
 
@@ -13,17 +17,6 @@
 
 #ifndef L3_MAX_PIXELS
 #define L3_MAX_PIXELS L3_RESOLUTION_X * L3_RESOLUTION_Y
-#endif
-
-#if L3_Z_BUFFER == 1
-	#define L3_MAX_DEPTH 2147483647
-	L3_Unit L3_zBuffer[L3_MAX_PIXELS];
-	#define L3_zBufferFormat(depth) (depth)
-#elif L3_Z_BUFFER == 2
-	#define L3_MAX_DEPTH 255
-	uint8_t L3_zBuffer[L3_MAX_PIXELS];
-	#define L3_zBufferFormat(depth)\
-		L3_min(255,(depth) >> L3_REDUCED_Z_BUFFER_GRANULARITY)
 #endif
 
 #if L3_SORT != 0
@@ -42,8 +35,34 @@ uint16_t L3_sortArrayLength;
 
 #if DT_HAS_CHOSEN(zephyr_dtcm)
 __attribute__((section("DTCM"))) L3_COLORTYPE L3_video_buffer[L3_RESOLUTION_X * L3_RESOLUTION_Y];
+/* why not? After all... */
+#elif DT_HAS_CHOSEN(zephyr_itcm)
+__attribute__((section("ITCM"))) L3_COLORTYPE L3_video_buffer[L3_RESOLUTION_X * L3_RESOLUTION_Y];
 #else
 L3_COLORTYPE L3_video_buffer[L3_RESOLUTION_X * L3_RESOLUTION_Y];
+#endif
+
+#if L3_Z_BUFFER == 1
+	#define L3_MAX_DEPTH 2147483647
+#if DT_HAS_CHOSEN(zephyr_dtcm)
+__attribute__((section("DTCM"))) L3_Unit L3_zBuffer[L3_MAX_PIXELS];
+#elif DT_HAS_CHOSEN(zephyr_itcm)
+__attribute__((section("ITCM"))) L3_Unit L3_zBuffer[L3_MAX_PIXELS];
+#else
+	L3_Unit L3_zBuffer[L3_MAX_PIXELS];
+#endif
+	#define L3_zBufferFormat(depth) (depth)
+#elif L3_Z_BUFFER == 2
+	#define L3_MAX_DEPTH 255
+#if DT_HAS_CHOSEN(zephyr_dtcm)
+__attribute__((section("DTCM"))) uint8_t L3_zBuffer[L3_MAX_PIXELS];
+#elif DT_HAS_CHOSEN(zephyr_itcm)
+__attribute__((section("ITCM"))) uint8_t L3_zBuffer[L3_MAX_PIXELS];
+#else
+	uint8_t L3_zBuffer[L3_MAX_PIXELS];
+#endif
+	#define L3_zBufferFormat(depth)\
+		L3_min(255,(depth) >> L3_REDUCED_Z_BUFFER_GRANULARITY)
 #endif
 
 const L3_Object *engine_global_objects[L3_MAX_OBJECTS] = {0};
@@ -84,7 +103,7 @@ static void L3_plot_line (L3_COLORTYPE color, int x0, int y0, int x1, int y1)
 }
 
 #if L3_Z_BUFFER
-static inline int8_t L3_zTest(
+int8_t L3_zTest(
 	L3_ScreenCoord x,
 	L3_ScreenCoord y,
 	L3_Unit depth)
@@ -1015,6 +1034,7 @@ uint8_t _L3_projectedTriangleState = 0; // 0 = normal, 1 = cut, 2 = split
 L3_Vec4 _L3_triangleRemapBarycentrics[6];
 #endif
 
+__attribute__((flatten))
 L3_PERFORMANCE_FUNCTION
 void L3_drawTriangle(
 	L3_Vec4 point0,
@@ -1873,6 +1893,7 @@ void _L3_projectTriangle(
 }
 
 /* returns triangles drawn */
+__attribute__((flatten))
 L3_PERFORMANCE_FUNCTION
 uint32_t L3_drawScene(L3_Scene scene)
 {
@@ -2098,7 +2119,7 @@ inline void zephyr_putpixel(L3_PixelInfo *p)
 	} else if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_SOLID) {
 		if (unlikely(0 > p->x && L3_RESOLUTION_X <= p->x && 0 > p->y && L3_RESOLUTION_Y <= p->y)) return;
 		if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_DISTANCELIGHT)
-			L3_video_buffer[p->x + p->y * L3_RESOLUTION_X] = 255.0 * depthmul;
+			L3_video_buffer[p->x + p->y * L3_RESOLUTION_X] = (L3_COLORTYPE)((float)255 * depthmul);
 		else
 			L3_video_buffer[p->x + p->y * L3_RESOLUTION_X] = 255;
 	}

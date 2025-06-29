@@ -5,8 +5,6 @@
 #pragma once
 
 #include <stdint.h>
-#include <stdlib.h>
-#include <zephyr/kernel.h>
 
 #define L3_RESOLUTION_X CONFIG_RESOLUTION_X
 #define L3_RESOLUTION_Y CONFIG_RESOLUTION_Y
@@ -33,7 +31,7 @@
 #define L3_VISIBLE_DISTANCELIGHT	BIT(3)
 #define L3_VISIBLE_BILLBOARD    	BIT(4)
 
-#define L3_PERFORMANCE_FUNCTION	__attribute__((optimize(3))) __attribute__((hot)) __attribute__((flatten))
+#define L3_PERFORMANCE_FUNCTION	__attribute__((optimize(3))) __attribute__((hot))
 //#define L3_PERFORMANCE_FUNCTION
 
 /** Specifies how the library will handle triangles that partially cross the
@@ -459,10 +457,13 @@ typedef struct
 
 typedef struct
 {
-	const L3_Unit *texture;
-	L3_Unit height;
-	L3_Unit width;
-	L3_Unit scale;
+	const L3_Unit	*texture;
+	L3_Unit			height;
+	L3_Unit			width;
+	L3_Unit			scale;
+	L3_COLORTYPE	transparency_threshold;
+	/* x / 0xFF */
+	uint8_t			transparency;
 } L3_Billboard;
 
 
@@ -786,7 +787,7 @@ m/2,  m/2,  m/2,\
 
 void L3_PIXEL_FUNCTION(L3_PixelInfo *pixel); // forward decl
 int L3_TRIANGLE_FUNCTION(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
-																				L3_Index modelIndex, L3_Index triangleIndex);
+	L3_Index modelIndex, L3_Index triangleIndex);
 int L3_BILLBOARD_FUNCTION(L3_Vec4 point, const L3_Object *billboard);
 
 /** Serves to accelerate linear interpolation for performance-critical
@@ -810,6 +811,12 @@ typedef struct
 
 uint32_t L3_drawScene(L3_Scene scene);
 void L3_clearScreen(L3_COLORTYPE color);
+
+void _L3_mapProjectedVertexToScreen(L3_Vec4 *vertex, L3_Unit focalLength);
+
+#if L3_Z_BUFFER
+int8_t L3_zTest(L3_ScreenCoord x, L3_ScreenCoord y, L3_Unit depth);
+#endif
 
 /* Instanciate a object from a original */
 #define INSTANCIATE_OBJECT(name, object) L3_Object name = {	\

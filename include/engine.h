@@ -5,36 +5,34 @@
 
 #pragma once
 
-#include <zephyr/kernel.h>
-#include <zephyr/device.h>
-#include <zephyr/drivers/display.h>
-#include <zephyr/timing/timing.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-
 #include "L3.h"
 
 #define ENGINE_BLIT_FUNCTION blit_display
 int ENGINE_BLIT_FUNCTION(L3_COLORTYPE *buffer, uint16_t size_x, uint16_t size_y);
 
 #define E_SPEED(speed) (speed / CONFIG_TARGET_PROCESS_FPS)
+/* returns a lifespan from value in seconds */
+#define E_LIFESPAN(lifespan) (lifespan * CONFIG_TARGET_PROCESS_FPS)
 
 #define ENGINE_VISUAL_UNUSED	0
 #define ENGINE_VISUAL_NOTHING	1
 #define ENGINE_VISUAL_MODEL		2
 #define ENGINE_VISUAL_BILLBOARD	3
 
-#define ENGINE_MAX_COLLIDERS 0xFF
-#define ENGINE_MAX_DOBJECTS	0xF
+#define ENGINE_MAX_COLLIDERS	 0xFF
+#define ENGINE_MAX_DOBJECTS		0xF
+#define ENGINE_MAX_PARTICLES	0x100
 
 /* do product to determine if object is behind camera limit */
 #define ENGINE_REAR_OBJECT_CUTOFF 1 * L3_F
 
 typedef struct Engine_Object_s Engine_Object;
+typedef struct E_Particle_s E_Particle;
 
 /* functions ran each tick for associated object */
 typedef void (*Engine_Object_pf)(Engine_Object *self, void * data);
+/* functions ran each tick for associated particle */
+typedef void (*Engine_Particle_pf)(E_Particle *self);
 /* function ran each tick engine */
 typedef void (*Engine_pf)(void);
 
@@ -118,6 +116,13 @@ typedef struct Engine_DObject_s {
 	Engine_Physics		physics;
 } Engine_DObject;
 
+typedef struct E_Particle_s {
+	L3_Transform3D		transform;
+	const L3_Billboard	*billboard;
+	Engine_Particle_pf	process;
+	uint32_t			life;
+} E_Particle;
+
 int init_engine(Engine_pf pf);
 
 /* add object to object list, returns pointer to the instance in the table
@@ -146,3 +151,5 @@ void engine_statics_enabled(bool yes);
 
 extern Engine_DObject engine_dynamic_objects[ENGINE_MAX_DOBJECTS];
 extern uint32_t engine_dynamic_objects_count;
+
+E_Particle *engine_create_particle(L3_Transform3D transform, Engine_Particle_pf process, const L3_Billboard *billboard, uint32_t lifespan);

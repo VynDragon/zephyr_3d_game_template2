@@ -8,6 +8,8 @@
 
 #include "sphere.h"
 
+#include "wood.h"
+
 static const Engine_Object demo_scene[];
 
 static const E_Collider demo_scene_colliders[][1] = {
@@ -288,5 +290,26 @@ static const Engine_Object demo_scene[] = {
 		.process = 0,
 		.data = 0,
 		.collisions = 0,
+	},
+	{
+		.visual.model = &wood_model,
+		.visual.config.backfaceCulling = 0,
+		.visual.config.visible = L3_VISIBLE_SOLID,
+		.visual.transform.scale.x = L3_F * 0.25,
+		.visual.transform.scale.y = L3_F * 0.25,
+		.visual.transform.scale.z = L3_F * 0.25,
+		.visual.transform.scale.w = 0,
+		.visual.transform.translation.x = 0,
+		.visual.transform.translation.y = 0,
+		.visual.transform.translation.z = 0,
+		.visual.transform.translation.w = L3_F,
+		.visual.transform.rotation.x = 0,
+		.visual.transform.rotation.y = 0,
+		.visual.transform.rotation.z = 0,
+		.visual.transform.rotation.w = L3_F,
+		.view_range = 8192 * L3_F,
+		.visual_type = ENGINE_VISUAL_MODEL,
+		.process = 0,
+		.data = 0,
 	},
 };
