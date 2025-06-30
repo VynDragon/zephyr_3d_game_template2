@@ -1,6 +1,6 @@
 #include "building.h"
 
-#include "cat.h"
+#include "cat2.h"
 
 #include "cube.h"
 
@@ -270,15 +270,15 @@ static const Engine_Object demo_scene[] = {
 		.collisions = &(demo_scene_collisions[6]),
 	},
 	{
-		.visual.billboard = &cat_billboard,
+		.visual.billboard = &cat2_billboard,
 		.visual.config.backfaceCulling = 1,
 		.visual.config.visible = L3_VISIBLE_BILLBOARD,
-		.visual.transform.scale.x = L3_F * 8,
-		.visual.transform.scale.y = L3_F * 8,
-		.visual.transform.scale.z = L3_F * 8,
+		.visual.transform.scale.x = L3_F * 1,
+		.visual.transform.scale.y = L3_F * 1,
+		.visual.transform.scale.z = L3_F * 1,
 		.visual.transform.scale.w = 0,
 		.visual.transform.translation.x = 0*L3_F,
-		.visual.transform.translation.y = 0,
+		.visual.transform.translation.y = 256,
 		.visual.transform.translation.z = 5*L3_F,
 		.visual.transform.translation.w = L3_F,
 		.visual.transform.rotation.x = 0,

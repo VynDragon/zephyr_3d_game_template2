@@ -7,6 +7,10 @@
 
 #include "L3.h"
 
+#ifndef DT_ZEPHYR_DISPLAYS_COUNT
+#define DT_ZEPHYR_DISPLAYS_COUNT 1
+#endif
+
 #define ENGINE_BLIT_FUNCTION blit_display
 int ENGINE_BLIT_FUNCTION(L3_COLORTYPE *buffer, uint16_t size_x, uint16_t size_y);
 
@@ -25,6 +29,10 @@ int ENGINE_BLIT_FUNCTION(L3_COLORTYPE *buffer, uint16_t size_x, uint16_t size_y)
 
 /* do product to determine if object is behind camera limit */
 #define ENGINE_REAR_OBJECT_CUTOFF 1 * L3_F
+
+#if DT_ZEPHYR_DISPLAYS_COUNT > 1
+#warning UI Display may end up being wrong, display > 1
+#endif
 
 typedef struct Engine_Object_s Engine_Object;
 typedef struct E_Particle_s E_Particle;
@@ -125,6 +133,10 @@ typedef struct E_Particle_s {
 
 int init_engine(Engine_pf pf);
 
+int init_engine_UI(void);;
+
+int engine_render_UI(void);
+
 /* add object to object list, returns pointer to the instance in the table
  */
 Engine_Object *engine_add_object(Engine_Object object);
@@ -140,6 +152,8 @@ int engine_optimize_object_table(void);
 
 size_t engine_object_getcnt(void);
 
+Engine_Object *engine_getobjects(void);
+
 size_t engine_statics_getcnt(void);
 
 L3_Camera *engine_getcamera(void);
@@ -151,5 +165,9 @@ void engine_statics_enabled(bool yes);
 
 extern Engine_DObject engine_dynamic_objects[ENGINE_MAX_DOBJECTS];
 extern uint32_t engine_dynamic_objects_count;
+extern const struct device *engine_display_devices[DT_ZEPHYR_DISPLAYS_COUNT];
+extern uint32_t engine_drawnTriangles;
 
 E_Particle *engine_create_particle(L3_Transform3D transform, Engine_Particle_pf process, const L3_Billboard *billboard, uint32_t lifespan);
+
+

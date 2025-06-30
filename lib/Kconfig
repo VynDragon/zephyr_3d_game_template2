@@ -1,6 +1,6 @@
 config RENDER_THREAD_STACK
 	int "size of render thread's stack size"
-	default 1024
+	default 4096
 
 config PROCESS_THREAD_STACK
 	int "size of render thread's stack size"

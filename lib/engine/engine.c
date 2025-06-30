@@ -26,7 +26,7 @@ static bool					static_engine_objects_enabled = false;
 static const E_Collider		*engine_colliders[ENGINE_MAX_COLLIDERS];
 static uint32_t				engine_colliders_count = 0;
 
-static E_Particle		engine_particles[ENGINE_MAX_PARTICLES];
+static E_Particle			engine_particles[ENGINE_MAX_PARTICLES];
 
 Engine_DObject				engine_dynamic_objects[ENGINE_MAX_DOBJECTS];
 uint32_t					engine_dynamic_objects_count = 0;
@@ -36,8 +36,25 @@ K_MUTEX_DEFINE(engine_render_lock);
 
 static Engine_pf engine_pf;
 
+uint32_t engine_drawnTriangles = 0;
+
 /* ------------------------------------------------------------------------------------------- */
 
+
+
+#if DT_HAS_COMPAT_STATUS_OKAY(zephyr_displays)
+#define ENUMERATE_DISPLAY_DEVS(node_id, prop, idx) DEVICE_DT_GET(DT_PROP_BY_IDX(node_id, prop, idx)),
+
+const struct device *engine_display_devices[DT_ZEPHYR_DISPLAYS_COUNT] = {
+	DT_FOREACH_PROP_ELEM(DT_COMPAT_GET_ANY_STATUS_OKAY(zephyr_displays), displays, ENUMERATE_DISPLAY_DEVS)
+};
+#else
+const struct device *engine_display_devices[] = {
+	DEVICE_DT_GET(DT_CHOSEN(zephyr_display)),
+};
+#endif
+
+/* ------------------------------------------------------------------------------------------- */
 
 L3_PERFORMANCE_FUNCTION
 inline int E_drawbillboard_particle(L3_Vec4 point, const E_Particle *particle)
@@ -116,8 +133,9 @@ static void render_function(void *, void *, void *)
 #endif
 
 		k_mutex_lock(&engine_render_lock, K_FOREVER);
-		uint32_t drawnTriangles = L3_drawScene(L3_SCENE);
+		engine_drawnTriangles = L3_drawScene(L3_SCENE);
 		E_drawParticles();
+		engine_render_UI();
 		k_mutex_unlock(&engine_render_lock);
 
 #if	CONFIG_LOG_PERFORMANCE
@@ -132,7 +150,7 @@ static void render_function(void *, void *, void *)
 		draw_time_us = timing_cycles_to_ns(timing_cycles_get(&dstart_time, &end_time)) / 1000;
 		LOG_INF("total us: %u ms:%u fps:%u", total_time_us, (total_time_us) / 1000, 1000000 / (total_time_us != 0 ? total_time_us : 1));
 		LOG_INF("display us:%u render us:%u render fps: %u", draw_time_us, render_time_us, 1000000 / (render_time_us != 0 ? render_time_us : 1));
-		LOG_INF("rendered %u Polygons, %u polygons per second", drawnTriangles, drawnTriangles * 1000000 / (render_time_us != 0 ? render_time_us : 1));
+		LOG_INF("rendered %u Polygons, %u polygons per second", engine_drawnTriangles, engine_drawnTriangles * 1000000 / (render_time_us != 0 ? render_time_us : 1));
 #endif
 		while (!sys_timepoint_expired(timing)) {
 			k_sleep(K_NSEC(100));
@@ -190,6 +208,11 @@ size_t engine_object_getcnt(void)
 size_t engine_statics_getcnt(void)
 {
 	return static_engine_objects_count;
+}
+
+Engine_Object *engine_getobjects(void)
+{
+	return engine_objects;
 }
 
 L3_Camera *engine_getcamera(void)
@@ -691,12 +714,20 @@ K_THREAD_STACK_DEFINE(process_thread_stack, CONFIG_PROCESS_THREAD_STACK);
 
 int init_engine(Engine_pf pf)
 {
+	int ret;
+
 	L3_sceneInit(L3_OBJECTS, 0, &L3_SCENE);
 	L3_SCENE.camera.transform.translation.y = 0 * L3_F;
 	L3_SCENE.camera.transform.translation.z = 0 * L3_F;
 	L3_SCENE.camera.focalLength = 256;
 
 	engine_pf = pf;
+
+	ret = init_engine_UI();
+	if (ret < 0) {
+		LOG_ERR("Couldnt init UI");
+		return ret;
+	}
 
 
 	k_thread_create(&render_thread, render_thread_stack, CONFIG_RENDER_THREAD_STACK,

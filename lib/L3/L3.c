@@ -2161,10 +2161,12 @@ inline int zephyr_drawbillboard(L3_Vec4 point, const L3_Object *billboard)
 		int m = (float)(i - startx) / scale_x;
 		for (int j = MAX(0, starty); j < endy; j++) {
 			int n = (float)(j - starty) / scale_y;
-			L3_video_buffer[j * L3_RESOLUTION_X + i] = billboard->billboard->texture[m + n * billboard->billboard->width];
-			#if L3_Z_BUFFER
-			L3_zBuffer[j * L3_RESOLUTION_X + i] = z;
-			#endif
+			if (billboard->billboard->texture[m + n * billboard->billboard->width] > billboard->billboard->transparency_threshold) {
+				L3_video_buffer[j * L3_RESOLUTION_X + i] = billboard->billboard->texture[m + n * billboard->billboard->width];
+				#if L3_Z_BUFFER
+				L3_zBuffer[j * L3_RESOLUTION_X + i] = z;
+				#endif
+			}
 		}
 	}
 	return 0;

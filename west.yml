@@ -12,3 +12,11 @@ manifest:
       import:
         name-allowlist:
           - hal_bouffalolab
+          - lvgl
+    # - name: zephyr
+    #   remote: zephyrproject-rtos
+    #   revision: main
+    #   import:
+    #     name-allowlist:
+    #       - hal_bouffalolab
+    #       - lvgl

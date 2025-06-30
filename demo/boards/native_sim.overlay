@@ -5,9 +5,9 @@
 };
 
 / {
-soc {
-evdev {
-  compatible = "zephyr,native-linux-evdev";
-};
-};
+	soc {
+		evdev {
+			compatible = "zephyr,native-linux-evdev";
+		};
+	};
 };

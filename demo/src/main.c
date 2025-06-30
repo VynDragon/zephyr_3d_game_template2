@@ -8,6 +8,8 @@
 #include <zephyr/random/random.h>
 #include <math.h>
 
+#include <lvgl.h>
+
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(main);
 
@@ -236,9 +238,12 @@ INPUT_CALLBACK_DEFINE(0, update_controls, &controls);
 
 int main()
 {
-	if (!device_is_ready(display_device)) {
-		printf("Display device not ready");
-		return 0;
+
+	for (int i = 0; i < DT_ZEPHYR_DISPLAYS_COUNT; i++) {
+		if (!device_is_ready(engine_display_devices[i])) {
+			LOG_ERR("Display device %d is not ready", i);
+			return -ENODEV;
+		}
 	}
 
 	timing_init();
