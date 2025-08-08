@@ -2,6 +2,8 @@
  * Size: 4 px
  * Bpp: 1
  * Opts: --bpp 1 --size 4 --no-compress --font FourPixelsFont.ttf --range 32-127 --format lvgl -o four_pixel_font.c
+ *
+ * This font is SIL font license licensed
  ******************************************************************************/
 
 #include "lvgl.h"

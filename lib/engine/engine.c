@@ -23,7 +23,12 @@ static const Engine_Object	*static_engine_objects;
 static uint32_t				static_engine_objects_count;
 static bool					static_engine_objects_enabled = false;
 
-static const E_Collider		*engine_colliders[ENGINE_MAX_COLLIDERS];
+typedef struct E_Collider_pair_t {
+	const E_Collider	*collider;
+	const Engine_Object	*parent;
+} E_Collider_pair;
+
+static E_Collider_pair		engine_colliders[ENGINE_MAX_COLLIDERS];
 static uint32_t				engine_colliders_count = 0;
 
 static E_Particle			engine_particles[ENGINE_MAX_PARTICLES];
@@ -112,6 +117,10 @@ static void E_drawParticles(void)
 	}
 }
 
+__attribute__((weak)) int engine_render_hook(void) {
+	return 0;
+}
+
 static void render_function(void *, void *, void *)
 {
 #if	CONFIG_LOG_PERFORMANCE
@@ -136,6 +145,7 @@ static void render_function(void *, void *, void *)
 		engine_drawnTriangles = L3_drawScene(L3_SCENE);
 		E_drawParticles();
 		engine_render_UI();
+		engine_render_hook();
 		k_mutex_unlock(&engine_render_lock);
 
 #if	CONFIG_LOG_PERFORMANCE
@@ -327,14 +337,15 @@ static void run_particles(void)
 
 static void build_collider_list(void)
 {
-	const E_Collider **colliders = engine_colliders;
+	E_Collider_pair *colliders = engine_colliders;
 	engine_colliders_count = 0;
 
 	for (int i = 0; i < engine_objects_count; i++) {
 		if (engine_objects[i].collisions != 0) {
 			if (engine_colliders_count >= ENGINE_MAX_COLLIDERS) break;
 			for (int j = 0; j < engine_objects[i].collisions->colliderCount; j++) {
-				*colliders = &(engine_objects[i].collisions->colliders[j]);
+				colliders->collider = &(engine_objects[i].collisions->colliders[j]);
+				colliders->parent = &(engine_objects[i]);
 				colliders++;
 				engine_colliders_count++;
 			}
@@ -348,7 +359,8 @@ static void build_collider_list(void)
 				if (static_engine_objects[i].view_range > L3_distanceManhattan(static_engine_objects[i].visual.transform.translation, L3_SCENE.camera.transform.translation)) {
 					for (int j = 0; j < static_engine_objects[i].collisions->colliderCount; j++) {
 						if (engine_colliders_count < ENGINE_MAX_COLLIDERS) {
-							*colliders = &(static_engine_objects[i].collisions->colliders[j]);
+							colliders->collider = &(static_engine_objects[i].collisions->colliders[j]);
+							colliders->parent = &(static_engine_objects[i]);
 							colliders++;
 							engine_colliders_count++;
 						}
@@ -362,7 +374,7 @@ static void build_collider_list(void)
 #endif
 }
 
-static void do_collision_cube(Engine_DObject *object, const E_Collider *collider, L3_Vec4 point)
+static void do_collision_cube(const Engine_Object *collider_object, Engine_DObject *object, const E_Collider *collider, L3_Vec4 point)
 {
 	L3_Vec4 up = {0, L3_F, 0, L3_F};
 	L3_Vec4 right = {L3_F, 0, 0, L3_F};
@@ -371,17 +383,17 @@ static void do_collision_cube(Engine_DObject *object, const E_Collider *collider
 	L3_Vec4 muln;
 	L3_Vec4 plane_pos;
 
-	plane_pos.x = collider->transform->translation.x + collider->cube.offset.x;
-	plane_pos.y = collider->transform->translation.y + collider->cube.offset.y;
-	plane_pos.z = collider->transform->translation.z + collider->cube.offset.z;
+	plane_pos.x = collider_object->visual.transform.translation.x + collider->cube.offset.x;
+	plane_pos.y = collider_object->visual.transform.translation.y + collider->cube.offset.y;
+	plane_pos.z = collider_object->visual.transform.translation.z + collider->cube.offset.z;
 
 	muln.x = point.x - plane_pos.x;
 	muln.y = point.y - plane_pos.y;
 	muln.z = point.z - plane_pos.z;
 
-	L3_makeRotationMatrixZXY(collider->transform->rotation.x,
-							collider->transform->rotation.y,
-							collider->transform->rotation.z,
+	L3_makeRotationMatrixZXY(collider_object->visual.transform.rotation.x,
+							collider_object->visual.transform.rotation.y,
+							collider_object->visual.transform.rotation.z,
 							transMat);
 
 	L3_vec3Xmat4(&up, transMat);
@@ -389,9 +401,9 @@ static void do_collision_cube(Engine_DObject *object, const E_Collider *collider
 	L3_vec3Xmat4(&far, transMat);
 
 	L3_Unit dotx = L3_vec3Dot(right, muln);
-	L3_Unit x = collider->cube.size.x * collider->transform->scale.x / L3_F;
-	L3_Unit y = collider->cube.size.y * collider->transform->scale.y / L3_F;
-	L3_Unit z = collider->cube.size.z * collider->transform->scale.z / L3_F;
+	L3_Unit x = collider->cube.size.x * collider_object->visual.transform.scale.x / L3_F;
+	L3_Unit y = collider->cube.size.y * collider_object->visual.transform.scale.y / L3_F;
+	L3_Unit z = collider->cube.size.z * collider_object->visual.transform.scale.z / L3_F;
 	if (dotx > x*1.1 || dotx < -x*1.1)
 		return;
 	L3_Unit doty = L3_vec3Dot(up, muln);
@@ -414,13 +426,13 @@ static void do_collision_cube(Engine_DObject *object, const E_Collider *collider
 	object->physics.speeds.translation.z = (- 2 * dotv * up.z / L3_F + object->physics.speeds.translation.z) * collider->cube.bouncyness / L3_F;
 }
 
-static void do_collision_sphere(Engine_DObject *object, const E_Collider *collider, L3_Vec4 point)
+static void do_collision_sphere(const Engine_Object *collider_object, Engine_DObject *object, const E_Collider *collider, L3_Vec4 point)
 {
 	L3_Vec4 pos, up;
 
-	pos.x = collider->transform->translation.x + collider->sphere.offset.x;
-	pos.y = collider->transform->translation.y + collider->sphere.offset.y;
-	pos.z = collider->transform->translation.z + collider->sphere.offset.z;
+	pos.x = collider_object->visual.transform.translation.x + collider->sphere.offset.x;
+	pos.y = collider_object->visual.transform.translation.y + collider->sphere.offset.y;
+	pos.z = collider_object->visual.transform.translation.z + collider->sphere.offset.z;
 
 	L3_Unit x = point.x - pos.x;
 	L3_Unit y = point.y - pos.y;
@@ -446,25 +458,25 @@ static void do_collision_sphere(Engine_DObject *object, const E_Collider *collid
 	object->physics.speeds.translation.z = (2 * dotv * up.z / L3_F + object->physics.speeds.translation.z) * collider->sphere.bouncyness / L3_F;
 }
 
-static void do_collision_capsule(Engine_DObject *object, const E_Collider *collider, L3_Vec4 point)
+static void do_collision_capsule(const Engine_Object *collider_object, Engine_DObject *object, const E_Collider *collider, L3_Vec4 point)
 {
 	L3_Vec4 pos, up;
 	L3_Vec4 r_size;
 	L3_Mat4 transMat;
 
-	pos.x = collider->transform->translation.x + collider->capsule.offset.x;
-	pos.y = collider->transform->translation.y + collider->capsule.offset.y;
-	pos.z = collider->transform->translation.z + collider->capsule.offset.z;
+	pos.x = collider_object->visual.transform.translation.x + collider->capsule.offset.x;
+	pos.y = collider_object->visual.transform.translation.y + collider->capsule.offset.y;
+	pos.z = collider_object->visual.transform.translation.z + collider->capsule.offset.z;
 
-	L3_makeRotationMatrixZXY(collider->transform->rotation.x,
-						collider->transform->rotation.y,
-						collider->transform->rotation.z,
+	L3_makeRotationMatrixZXY(collider_object->visual.transform.rotation.x,
+						collider_object->visual.transform.rotation.y,
+						collider_object->visual.transform.rotation.z,
 						transMat);
 
 	r_size = collider->capsule.size;
-	r_size.x *= collider->transform->scale.x / L3_F;
-	r_size.y *= collider->transform->scale.y / L3_F;
-	r_size.z *= collider->transform->scale.z / L3_F;
+	r_size.x *= collider_object->visual.transform.scale.x / L3_F;
+	r_size.y *= collider_object->visual.transform.scale.y / L3_F;
+	r_size.z *= collider_object->visual.transform.scale.z / L3_F;
 	L3_vec3Xmat4(&r_size, transMat);
 
 	L3_Unit x = point.x - pos.x;
@@ -494,16 +506,16 @@ static void do_collision_capsule(Engine_DObject *object, const E_Collider *colli
 	object->physics.speeds.translation.z = (-2 * dotv * up.z / L3_F + object->physics.speeds.translation.z) * collider->capsule.bouncyness / L3_F;
 }
 
-static void do_collision_axisplane_y(Engine_DObject *object, const E_Collider *collider, L3_Vec4 point)
+static void do_collision_axisplane_y(const Engine_Object *collider_object, Engine_DObject *object, const E_Collider *collider, L3_Vec4 point)
 {
 	L3_Vec4 plane_pos;
 
-	plane_pos.x = collider->transform->translation.x + collider->axisplane.offset.x;
-	plane_pos.y = collider->transform->translation.y + collider->axisplane.offset.y;
-	plane_pos.z = collider->transform->translation.z + collider->axisplane.offset.z;
+	plane_pos.x = collider_object->visual.transform.translation.x + collider->axisplane.offset.x;
+	plane_pos.y = collider_object->visual.transform.translation.y + collider->axisplane.offset.y;
+	plane_pos.z = collider_object->visual.transform.translation.z + collider->axisplane.offset.z;
 
-	L3_Unit x = collider->axisplane.size.x * collider->transform->scale.x / L3_F;
-	L3_Unit z = collider->axisplane.size.z * collider->transform->scale.z / L3_F;
+	L3_Unit x = collider->axisplane.size.x * collider_object->visual.transform.scale.x / L3_F;
+	L3_Unit z = collider->axisplane.size.z * collider_object->visual.transform.scale.z / L3_F;
 	if (point.x > plane_pos.x + x / 2 || point.x < plane_pos.x - x / 2)
 		return;
 	if (point.z > plane_pos.z + z / 2 || point.z < plane_pos.z - z / 2)
@@ -527,16 +539,16 @@ static void do_collision_axisplane_y(Engine_DObject *object, const E_Collider *c
 	object->physics.speeds.translation.y = -object->physics.speeds.translation.y * collider->axisplane.bouncyness / L3_F;
 }
 
-static void do_collision_axisplane_z(Engine_DObject *object, const E_Collider *collider, L3_Vec4 point)
+static void do_collision_axisplane_z(const Engine_Object *collider_object, Engine_DObject *object, const E_Collider *collider, L3_Vec4 point)
 {
 	L3_Vec4 plane_pos;
 
-	plane_pos.x = collider->transform->translation.x + collider->axisplane.offset.x;
-	plane_pos.y = collider->transform->translation.y + collider->axisplane.offset.y;
-	plane_pos.z = collider->transform->translation.z + collider->axisplane.offset.z;
+	plane_pos.x = collider_object->visual.transform.translation.x + collider->axisplane.offset.x;
+	plane_pos.y = collider_object->visual.transform.translation.y + collider->axisplane.offset.y;
+	plane_pos.z = collider_object->visual.transform.translation.z + collider->axisplane.offset.z;
 
-	L3_Unit x = collider->axisplane.size.x * collider->transform->scale.x / L3_F;
-	L3_Unit z = collider->axisplane.size.y * collider->transform->scale.y / L3_F;
+	L3_Unit x = collider->axisplane.size.x * collider_object->visual.transform.scale.x / L3_F;
+	L3_Unit z = collider->axisplane.size.y * collider_object->visual.transform.scale.y / L3_F;
 	if (point.x > plane_pos.x + x / 2 || point.x < plane_pos.x - x / 2)
 		return;
 	if (point.y > plane_pos.y + z / 2 || point.y < plane_pos.y - z / 2)
@@ -560,16 +572,16 @@ static void do_collision_axisplane_z(Engine_DObject *object, const E_Collider *c
 	object->physics.speeds.translation.z = -object->physics.speeds.translation.z * collider->axisplane.bouncyness / L3_F;
 }
 
-static void do_collision_axisplane_x(Engine_DObject *object, const E_Collider *collider, L3_Vec4 point)
+static void do_collision_axisplane_x(const Engine_Object *collider_object, Engine_DObject *object, const E_Collider *collider, L3_Vec4 point)
 {
 	L3_Vec4 plane_pos;
 
-	plane_pos.x = collider->transform->translation.x + collider->axisplane.offset.x;
-	plane_pos.y = collider->transform->translation.y + collider->axisplane.offset.y;
-	plane_pos.z = collider->transform->translation.z + collider->axisplane.offset.z;
+	plane_pos.x = collider_object->visual.transform.translation.x + collider->axisplane.offset.x;
+	plane_pos.y = collider_object->visual.transform.translation.y + collider->axisplane.offset.y;
+	plane_pos.z = collider_object->visual.transform.translation.z + collider->axisplane.offset.z;
 
-	L3_Unit x = collider->axisplane.size.y * collider->transform->scale.y / L3_F;
-	L3_Unit z = collider->axisplane.size.z * collider->transform->scale.z / L3_F;
+	L3_Unit x = collider->axisplane.size.y * collider_object->visual.transform.scale.y / L3_F;
+	L3_Unit z = collider->axisplane.size.z * collider_object->visual.transform.scale.z / L3_F;
 	if (point.y > plane_pos.y + x / 2 || point.y < plane_pos.y - x / 2)
 		return;
 	if (point.z > plane_pos.z + z / 2 || point.z < plane_pos.z - z / 2)
@@ -593,27 +605,27 @@ static void do_collision_axisplane_x(Engine_DObject *object, const E_Collider *c
 	object->physics.speeds.translation.x = -object->physics.speeds.translation.x * collider->axisplane.bouncyness / L3_F;
 }
 
-static void do_collision(Engine_DObject *object, const E_Collider *collider, L3_Vec4 point)
+static void do_collision(Engine_DObject *object, const E_Collider_pair *collider, L3_Vec4 point)
 {
-	switch (collider->type)
+	switch (collider->collider->type)
 	{
 		case ENGINE_COLLIDER_CUBE:
-			do_collision_cube(object, collider, point);
+			do_collision_cube(collider->parent, object, collider->collider, point);
 		break;
 		case ENGINE_COLLIDER_SPHERE:
-			do_collision_sphere(object, collider, point);
+			do_collision_sphere(collider->parent, object, collider->collider, point);
 		break;
 		case ENGINE_COLLIDER_APLANEY:
-			do_collision_axisplane_y(object, collider, point);
+			do_collision_axisplane_y(collider->parent, object, collider->collider, point);
 		break;
 		case ENGINE_COLLIDER_APLANEX:
-			do_collision_axisplane_x(object, collider, point);
+			do_collision_axisplane_x(collider->parent, object, collider->collider, point);
 		break;
 		case ENGINE_COLLIDER_APLANEZ:
-			do_collision_axisplane_z(object, collider, point);
+			do_collision_axisplane_z(collider->parent, object, collider->collider, point);
 		break;
 		case ENGINE_COLLIDER_CAPSULE:
-			do_collision_capsule(object, collider, point);
+			do_collision_capsule(collider->parent, object, collider->collider, point);
 		break;
 	}
 }
@@ -638,7 +650,7 @@ static void run_all_DObjects(void)
 		do_DObjects_speeds(&(engine_dynamic_objects[i]));
 		if (engine_dynamic_objects[i].physics.pointOffsetsCount == 0) {
 			for (int j = 0; j < engine_colliders_count; j++) {
-				do_collision(&(engine_dynamic_objects[i]), engine_colliders[j], engine_dynamic_objects[i].physics.transform->translation);
+				do_collision(&(engine_dynamic_objects[i]), &(engine_colliders[j]), engine_dynamic_objects[i].physics.transform->translation);
 			}
 		} else {
 			L3_makeWorldMatrix(*engine_dynamic_objects[i].physics.transform, transMat);
@@ -646,7 +658,7 @@ static void run_all_DObjects(void)
 				point_transformed = engine_dynamic_objects[i].physics.pointOffsets[k];
 				L3_vec3Xmat4(&point_transformed, transMat);
 				for (int j = 0; j < engine_colliders_count; j++) {
-					do_collision(&(engine_dynamic_objects[i]), engine_colliders[j], point_transformed);
+					do_collision(&(engine_dynamic_objects[i]), &(engine_colliders[j]), point_transformed);
 				}
 			}
 		}

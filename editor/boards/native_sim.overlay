@@ -1,0 +1,33 @@
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+
+&sdl_dc {
+	compatible = "zephyr,sdl-dc";
+	height = <512>;
+	width = <1024>;
+};
+
+/ {
+	/delete-property/ zephyr,display;
+
+	lvgl_displays: my-displays {
+		compatible = "zephyr,displays";
+		displays = <&sdl_dc &sdl_dc2>;
+		status = "okay";
+	};
+
+	soc {
+		sdl_dc2: sdl-dc2 {
+			compatible = "zephyr,sdl-dc";
+			height = <512>;
+			width = <1024>;
+		};
+		evdev: evdev {
+			compatible = "zephyr,native-linux-evdev";
+		};
+		input_sdl_touch2: input-sdl-touch2 {
+			compatible = "zephyr,input-sdl-touch";
+			display = <&sdl_dc2>;
+		};
+	};
+};
+

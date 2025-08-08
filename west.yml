@@ -6,17 +6,17 @@ manifest:
       url-base: https://github.com/VynDragon
 
   projects:
-    - name: zephyr
-      remote: VynDragon
-      revision: bflb/work_bflb
-      import:
-        name-allowlist:
-          - hal_bouffalolab
-          - lvgl
     # - name: zephyr
-    #   remote: zephyrproject-rtos
-    #   revision: main
+    #   remote: VynDragon
+    #   revision: bflb/work_bflb
     #   import:
     #     name-allowlist:
     #       - hal_bouffalolab
     #       - lvgl
+    - name: zephyr
+      remote: zephyrproject-rtos
+      revision: main
+      import:
+        name-allowlist:
+          - hal_bouffalolab
+          - lvgl

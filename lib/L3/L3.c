@@ -82,7 +82,7 @@ void L3_clearScreen(L3_COLORTYPE color)
 }
 
 L3_PERFORMANCE_FUNCTION
-static void L3_plot_line (L3_COLORTYPE color, int x0, int y0, int x1, int y1)
+void L3_plot_line (L3_COLORTYPE color, int x0, int y0, int x1, int y1)
 {
 	int dx =  abs (x1 - x0), sx = x0 < x1 ? 1 : -1;
 	int dy = -abs (y1 - y0), sy = y0 < y1 ? 1 : -1;

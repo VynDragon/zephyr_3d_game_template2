@@ -15,7 +15,6 @@ static const Engine_Object demo_scene[];
 static const E_Collider demo_scene_colliders[][1] = {
 	{
 		{
-		.transform = &(demo_scene[0].visual.transform),
 		.axisplane.size.y = 1,
 		.axisplane.bouncyness = 0xFF,
 		.axisplane.size.x = 1*L3_F,
@@ -25,7 +24,6 @@ static const E_Collider demo_scene_colliders[][1] = {
 	},
 	{
 		{
-		.transform = &(demo_scene[1].visual.transform),
 		.cube.size.y = 2.5*L3_F,
 		.cube.bouncyness = 128,
 		.cube.size.x = 2.5*L3_F,
@@ -35,7 +33,6 @@ static const E_Collider demo_scene_colliders[][1] = {
 	},
 	{
 		{
-		.transform = &(demo_scene[2].visual.transform),
 		.cube.size.y = 2.5*L3_F,
 		.cube.bouncyness = 128,
 		.cube.size.x = 2.5*L3_F,
@@ -45,7 +42,6 @@ static const E_Collider demo_scene_colliders[][1] = {
 	},
 	{
 		{
-		.transform = &(demo_scene[3].visual.transform),
 		.cube.size.y = 2.5*L3_F,
 		.cube.bouncyness = 128,
 		.cube.size.x = 2.5*L3_F,
@@ -55,7 +51,6 @@ static const E_Collider demo_scene_colliders[][1] = {
 	},
 	{
 		{
-		.transform = &(demo_scene[4].visual.transform),
 		.cube.size.y = 0.5*L3_F,
 		.cube.bouncyness = 128,
 		.cube.size.x = 0.5*L3_F,
@@ -65,7 +60,6 @@ static const E_Collider demo_scene_colliders[][1] = {
 	},
 	{
 		{
-		.transform = &(demo_scene[5].visual.transform),
 		.sphere.bouncyness = 128,
 		.sphere.size = 2*L3_F,
 		.type = ENGINE_COLLIDER_SPHERE,
@@ -73,7 +67,6 @@ static const E_Collider demo_scene_colliders[][1] = {
 	},
 	{
 		{
-		.transform = &(demo_scene[6].visual.transform),
 		.axisplane.size.y = 1,
 		.axisplane.bouncyness = 0xFF,
 		.axisplane.size.x = 1*L3_F,

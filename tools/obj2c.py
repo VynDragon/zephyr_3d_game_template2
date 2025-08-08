@@ -10,6 +10,8 @@ parser = argparse.ArgumentParser(
 parser.add_argument('filename_in')
 parser.add_argument('filename_out')
 parser.add_argument('--scale', '-s', default=512, type=int)
+parser.add_argument('--name', '-n', default=None, type=str)
+parser.add_argument('--backface', '-bf', default=1, type=int, help="Set backface culling (0,1,2)")
 
 args = parser.parse_args()
 
@@ -17,6 +19,8 @@ object_in = pywavefront.Wavefront(args.filename_in, collect_faces=True)
 file_out = open(args.filename_out, "xt")
 
 data_name = Path(args.filename_in).stem
+if args.name is not None:
+	data_name = args.name
 data_vertices_name = data_name + "_vertices"
 #data_polys_name = data_name + "_polys"
 data_index_name = data_name + "_indexes"
@@ -63,7 +67,7 @@ file_out.write(".transform.rotation.x = 0,\n")
 file_out.write(".transform.rotation.y = 0,\n")
 file_out.write(".transform.rotation.z = 0,\n")
 file_out.write(".transform.rotation.w = L3_F,\n")
-file_out.write(".config.backfaceCulling = 2,\n")
+file_out.write(".config.backfaceCulling = " + str(args.backface) + ",\n")
 file_out.write(".config.visible = 2,\n")
 file_out.write(".model = &" + data_model_name + ",\n")
 file_out.write("};\n")

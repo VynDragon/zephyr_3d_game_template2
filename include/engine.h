@@ -91,7 +91,6 @@ typedef struct E_Collider_s {
 		E_C_AxisPlane	axisplane;
 	};
 	uint8_t			type;
-	const L3_Transform3D	*transform;
 } E_Collider;
 
 typedef struct Engine_Physics_s {
@@ -133,9 +132,13 @@ typedef struct E_Particle_s {
 
 int init_engine(Engine_pf pf);
 
-int init_engine_UI(void);;
+int init_engine_UI(void);
 
 int engine_render_UI(void);
+
+int engine_render_hook(void);
+
+void engine_UI_set_area(int32_t x, int32_t y, int32_t w, int32_t h);
 
 /* add object to object list, returns pointer to the instance in the table
  */

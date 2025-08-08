@@ -811,6 +811,7 @@ typedef struct
 
 uint32_t L3_drawScene(L3_Scene scene);
 void L3_clearScreen(L3_COLORTYPE color);
+void L3_plot_line(L3_COLORTYPE color, int x0, int y0, int x1, int y1);
 
 void _L3_mapProjectedVertexToScreen(L3_Vec4 *vertex, L3_Unit focalLength);
 
