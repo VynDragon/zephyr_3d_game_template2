@@ -51,6 +51,8 @@ typedef struct Object_edit_data_t {
 	lv_obj_t *visible;
 	lv_obj_t *delete;
 	lv_obj_t *view_range;
+	lv_obj_t *backfaceCulling;
+	lv_obj_t *visible_tag;
 	bool inhibit_override;
 } Object_edit_data;
 
@@ -91,6 +93,18 @@ void update_object_edit()
 
 	snprintf(buffer, 63, "%d", selected_object->view_range);
 	lv_textarea_set_text(object_edit_data.view_range, buffer);
+	snprintf(buffer, 63, "%d", selected_object->visual.config.backfaceCulling);
+	lv_textarea_set_text(object_edit_data.backfaceCulling, buffer);
+
+	int i = 0;
+	for (; i < 16; i++) {
+		if (selected_object->visual.config.visible & (1 << i))
+			buffer[i] = '1';
+		else
+			buffer[i] = '0';
+	}
+	buffer[i] = 0;
+	lv_textarea_set_text(object_edit_data.visible_tag, buffer);
 
 	if (selected_object->visual_type > ENGINE_VISUAL_NOTHING)
 	{
@@ -186,6 +200,15 @@ static void object_edit_changed(lv_event_t * e)
 	selected_object->visual.transform.scale.z = atoi(lv_textarea_get_text(object_edit_data.area_sz));
 
 	selected_object->view_range = atoi(lv_textarea_get_text(object_edit_data.view_range));
+	selected_object->visual.config.backfaceCulling = atoi(lv_textarea_get_text(object_edit_data.backfaceCulling));
+
+	const char * visible_tag = lv_textarea_get_text(object_edit_data.visible_tag);
+	for (int i = 0; i < strlen(visible_tag); i++) {
+		if (visible_tag[i] == '1')
+			selected_object->visual.config.visible |= (1 << i);
+		else
+			selected_object->visual.config.visible &= ~(1 << i);
+	}
 
 	if (lv_obj_has_state(object_edit_data.visible, LV_STATE_CHECKED))
 	{
@@ -366,17 +389,50 @@ void object_edit_initialize()
 	lv_obj_add_event_cb(object_edit_data.view_range, object_edit_defocused, LV_EVENT_DEFOCUSED , object_edit_data.view_range);
 	lv_obj_set_pos(object_edit_data.view_range, 42, 36);
 
+	label = lv_label_create(object_edit);
+	lv_label_set_text(label, "bfc");
+	lv_obj_set_pos(label, 76, 38);
+	object_edit_data.backfaceCulling = lv_textarea_create(object_edit);
+	lv_textarea_set_one_line(object_edit_data.backfaceCulling, true);
+	lv_textarea_set_accepted_chars(object_edit_data.backfaceCulling, "012");
+	lv_textarea_set_max_length(object_edit_data.backfaceCulling, 1);
+	lv_obj_set_size(object_edit_data.backfaceCulling, 32, 8);
+	lv_obj_add_style(object_edit_data.backfaceCulling, &style_transp, 0);
+	lv_obj_add_event_cb(object_edit_data.backfaceCulling, object_edit_changed, LV_EVENT_VALUE_CHANGED, NULL);
+	lv_obj_add_event_cb(object_edit_data.backfaceCulling, object_edit_focused, LV_EVENT_FOCUSED , object_edit_data.backfaceCulling);
+	lv_obj_add_event_cb(object_edit_data.backfaceCulling, object_edit_defocused, LV_EVENT_DEFOCUSED , object_edit_data.backfaceCulling);
+	lv_obj_set_pos(object_edit_data.backfaceCulling, 88, 36);
+
 
 	object_edit_data.visible = lv_checkbox_create(object_edit);
 	lv_obj_add_style(object_edit_data.visible, &style_transp, 0);
 	lv_checkbox_set_text(object_edit_data.visible, "Visible");
 	lv_obj_set_pos(object_edit_data.visible, 0, 50);
 	lv_obj_set_size(object_edit_data.visible, 48, 16);
+	lv_obj_set_style_pad_ver(object_edit_data.visible, 0, 0);
+	lv_obj_set_style_radius(object_edit_data.visible, 0, 0);
+	lv_obj_set_style_pad_all(object_edit_data.visible, 0, LV_PART_INDICATOR);
+	lv_obj_set_style_radius(object_edit_data.visible, 0, LV_PART_INDICATOR);
 	lv_obj_add_event_cb(object_edit_data.visible, object_edit_changed, LV_EVENT_VALUE_CHANGED, NULL);
+
+	label = lv_label_create(object_edit);
+	lv_label_set_text(label, "rndr bits");
+	lv_obj_set_pos(label, 0, 64);
+	object_edit_data.visible_tag = lv_textarea_create(object_edit);
+	lv_textarea_set_one_line(object_edit_data.visible_tag, true);
+	lv_textarea_set_accepted_chars(object_edit_data.visible_tag, "01");
+	lv_textarea_set_max_length(object_edit_data.visible_tag, 16);
+	lv_obj_set_size(object_edit_data.visible_tag, 72, 8);
+	lv_obj_add_style(object_edit_data.visible_tag, &style_transp, 0);
+	lv_obj_add_event_cb(object_edit_data.visible_tag, object_edit_changed, LV_EVENT_VALUE_CHANGED, NULL);
+	lv_obj_add_event_cb(object_edit_data.visible_tag, object_edit_focused, LV_EVENT_FOCUSED , object_edit_data.visible_tag);
+	lv_obj_add_event_cb(object_edit_data.visible_tag, object_edit_defocused, LV_EVENT_DEFOCUSED , object_edit_data.visible_tag);
+	lv_obj_set_pos(object_edit_data.visible_tag, 34, 62);
+
 
 	object_edit_data.delete = lv_button_create(object_edit);
 	lv_obj_add_style(object_edit_data.delete, &style_transp, 0);
-	lv_obj_set_pos(object_edit_data.delete, 48, 50);
+	lv_obj_set_pos(object_edit_data.delete, 90, 96);
 	lv_obj_set_size(object_edit_data.delete, 32, 16);
 	lv_obj_add_event_cb(object_edit_data.delete, object_edit_changed, LV_EVENT_CLICKED, NULL);
 	label = lv_label_create(object_edit_data.delete);
@@ -628,6 +684,14 @@ static void main_key(struct input_event *evt, void *user_data)
 				case INPUT_KEY_KP9:
 				case INPUT_KEY_9:
 					lv_textarea_add_char(object_edit_data.focused, '9');
+				break;
+
+				case INPUT_KEY_LEFT:
+					lv_textarea_cursor_left(object_edit_data.focused);
+				break;
+
+				case INPUT_KEY_RIGHT:
+					lv_textarea_cursor_right(object_edit_data.focused);
 				break;
 
 				case INPUT_KEY_KPMINUS:
