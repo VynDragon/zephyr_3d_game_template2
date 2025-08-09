@@ -100,8 +100,7 @@ static void serialize_to_objects(int cnt)
 
 int serialize_objects(char *buffer, size_t buflen)
 {
-	Engine_Object *objects = engine_getobjects();
-	int ret;
+	int ret = 0;
 	size_t offset = 2;
 
 	objects_to_serialize();
@@ -138,4 +137,5 @@ int deserialize_objects(char *buffer, size_t buflen)
 	}
 
 	serialize_to_objects(cnt);
+	return ret;
 }

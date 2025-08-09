@@ -152,7 +152,7 @@ static void render_colliders_function(void *, void *, void *)
 
 		build_render_list();
 
-		uint32_t drawnTriangles = L3_drawScene(L3_SCENE);
+		/*uint32_t drawnTriangles = */L3_drawScene(L3_SCENE);
 
 
 		blit_display2(L3_video_buffer, L3_RESOLUTION_X, L3_RESOLUTION_Y);

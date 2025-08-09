@@ -465,6 +465,8 @@ int init_editor_UI(void)
 		lv_obj_add_style(btn, &style_transp, 0);
 		lv_obj_add_event_cb(btn, add_obj, LV_EVENT_CLICKED, (void*)i);
 	}
+
+	return 0;
 }
 
 
@@ -569,7 +571,7 @@ static void main_touch(struct input_event *evt, void *user_data)
 
 static void main_key(struct input_event *evt, void *user_data)
 {
-	Main_keys *cont = user_data;
+	//Main_keys *cont = user_data;
 
 	if (evt->code == INPUT_KEY_RIGHTCTRL) {
 		if (!evt->value)
@@ -694,4 +696,6 @@ int do_editor_UI(void)
 
 	lv_img_set_src(background_render, &background_render_img);
 	lv_timer_handler();
+
+	return 0;
 }
