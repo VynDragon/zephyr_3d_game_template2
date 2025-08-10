@@ -1,6 +1,6 @@
 {
 	.sphere.bouncyness = 128,
-	.sphere.size = 0.5 * L3_F * L3_F,
+	.sphere.size = 1.0 * L3_F,
 	.type = ENGINE_COLLIDER_SPHERE,
 },
 

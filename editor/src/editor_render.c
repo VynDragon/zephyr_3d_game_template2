@@ -54,27 +54,27 @@ static L3_Object build_collider_representation(const Engine_Object *object, cons
 			out.transform.translation.x += collider->cube.offset.x;
 			out.transform.translation.y += collider->cube.offset.y;
 			out.transform.translation.z += collider->cube.offset.z;
-			out.transform.scale.x *= collider->cube.size.x * 2 / L3_F;
-			out.transform.scale.y *= collider->cube.size.y * 2 / L3_F;
-			out.transform.scale.z *= collider->cube.size.z * 2 / L3_F;
+			out.transform.scale.x = (out.transform.scale.x * collider->cube.size.x * 1) / L3_F;
+			out.transform.scale.y = (out.transform.scale.y * collider->cube.size.y * 1) / L3_F;
+			out.transform.scale.z = (out.transform.scale.z * collider->cube.size.z * 1) / L3_F;
 			break;
 		case ENGINE_COLLIDER_SPHERE:
 			out.model = &sphere_model;
 			out.transform.translation.x += collider->sphere.offset.x;
 			out.transform.translation.y += collider->sphere.offset.y;
 			out.transform.translation.z += collider->sphere.offset.z;
-			out.transform.scale.x = collider->sphere.size * 2 / L3_F;
-			out.transform.scale.y = collider->sphere.size * 2 / L3_F;
-			out.transform.scale.z = collider->sphere.size * 2 / L3_F;
+			out.transform.scale.x = (out.transform.scale.x * collider->sphere.size * 1) / L3_F;
+			out.transform.scale.y = (out.transform.scale.x * collider->sphere.size * 1) / L3_F;
+			out.transform.scale.z = (out.transform.scale.x * collider->sphere.size * 1) / L3_F;
 			break;
 		case ENGINE_COLLIDER_CAPSULE:
 			out.model = &sphere_model;
 			out.transform.translation.x += collider->capsule.offset.x;
 			out.transform.translation.y += collider->capsule.offset.y;
 			out.transform.translation.z += collider->capsule.offset.z;
-			out.transform.scale.x *= collider->capsule.size.x * 2  / L3_F;
-			out.transform.scale.y *= collider->capsule.size.y * 2 / L3_F;
-			out.transform.scale.z *= collider->capsule.size.z * 2 / L3_F;
+			out.transform.scale.x = (out.transform.scale.x * collider->capsule.size.x * 1) / L3_F;
+			out.transform.scale.y = (out.transform.scale.y * collider->capsule.size.y * 1) / L3_F;
+			out.transform.scale.z = (out.transform.scale.z * collider->capsule.size.z * 1) / L3_F;
 			break;
 		case ENGINE_COLLIDER_APLANEX:
 			out.model = &plane_model;
@@ -82,18 +82,18 @@ static L3_Object build_collider_representation(const Engine_Object *object, cons
 			out.transform.translation.y += collider->axisplane.offset.y;
 			out.transform.translation.z += collider->axisplane.offset.z;
 			out.transform.rotation.z += 128;
-			out.transform.scale.x *= collider->axisplane.size.y * 2 / L3_F;
-			out.transform.scale.y *= collider->axisplane.size.x * 2 / L3_F;
-			out.transform.scale.z *= collider->axisplane.size.z * 2 / L3_F;
+			out.transform.scale.x = (out.transform.scale.x * collider->axisplane.size.y * 1) / L3_F;
+			out.transform.scale.y = (out.transform.scale.y * collider->axisplane.size.x * 1) / L3_F;
+			out.transform.scale.z = (out.transform.scale.z * collider->axisplane.size.z * 1) / L3_F;
 			break;
 		case ENGINE_COLLIDER_APLANEY:
 			out.model = &plane_model;
 			out.transform.translation.x += collider->axisplane.offset.x;
 			out.transform.translation.y += collider->axisplane.offset.y;
 			out.transform.translation.z += collider->axisplane.offset.z;
-			out.transform.scale.x *= collider->axisplane.size.x * 2 / L3_F;
-			out.transform.scale.y *= collider->axisplane.size.y * 2 / L3_F;
-			out.transform.scale.z *= collider->axisplane.size.z * 2 / L3_F;
+			out.transform.scale.x = (out.transform.scale.x * collider->axisplane.size.x * 1) / L3_F;
+			out.transform.scale.y = (out.transform.scale.y * collider->axisplane.size.y * 1) / L3_F;
+			out.transform.scale.z = (out.transform.scale.z * collider->axisplane.size.z * 1) / L3_F;
 			break;
 		case ENGINE_COLLIDER_APLANEZ:
 			out.model = &plane_model;
@@ -101,9 +101,9 @@ static L3_Object build_collider_representation(const Engine_Object *object, cons
 			out.transform.translation.y += collider->axisplane.offset.y;
 			out.transform.translation.z += collider->axisplane.offset.z;
 			out.transform.rotation.x += 128;
-			out.transform.scale.x *= collider->axisplane.size.y * 2 / L3_F;
-			out.transform.scale.y *= collider->axisplane.size.z * 2 / L3_F;
-			out.transform.scale.z *= collider->axisplane.size.y * 2 / L3_F;
+			out.transform.scale.x = (out.transform.scale.x * collider->axisplane.size.x * 1) / L3_F;
+			out.transform.scale.y = (out.transform.scale.y * collider->axisplane.size.z * 1) / L3_F;
+			out.transform.scale.z = (out.transform.scale.z * collider->axisplane.size.y * 1) / L3_F;
 			break;
 	}
 	return out;

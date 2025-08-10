@@ -1,8 +1,8 @@
 {
-.cube.size.y = 0.5*L3_F,
+.cube.size.y = 1.0*L3_F,
 .cube.bouncyness = 128,
-.cube.size.x = 0.5*L3_F,
-.cube.size.z = 0.5*L3_F,
+.cube.size.x = 1.0*L3_F,
+.cube.size.z = 1.0*L3_F,
 .type = ENGINE_COLLIDER_CUBE,
 },
 

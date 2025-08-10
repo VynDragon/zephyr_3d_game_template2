@@ -401,9 +401,9 @@ static void do_collision_cube(const Engine_Object *collider_object, Engine_DObje
 	L3_vec3Xmat4(&far, transMat);
 
 	L3_Unit dotx = L3_vec3Dot(right, muln);
-	L3_Unit x = collider->cube.size.x * collider_object->visual.transform.scale.x / L3_F;
-	L3_Unit y = collider->cube.size.y * collider_object->visual.transform.scale.y / L3_F;
-	L3_Unit z = collider->cube.size.z * collider_object->visual.transform.scale.z / L3_F;
+	L3_Unit x = collider->cube.size.x * 0.5 * collider_object->visual.transform.scale.x / L3_F;
+	L3_Unit y = collider->cube.size.y * 0.5 * collider_object->visual.transform.scale.y / L3_F;
+	L3_Unit z = collider->cube.size.z * 0.5 * collider_object->visual.transform.scale.z / L3_F;
 	if (dotx > x*1.1 || dotx < -x*1.1)
 		return;
 	L3_Unit doty = L3_vec3Dot(up, muln);
@@ -438,9 +438,9 @@ static void do_collision_sphere(const Engine_Object *collider_object, Engine_DOb
 	L3_Unit y = point.y - pos.y;
 	L3_Unit z = point.z - pos.z;
 	L3_Unit d = abs(x) + abs(y) + abs(z);
-	if (d*1.1 > collider->sphere.size / 2)
+	if (d*1.1 > collider_object->visual.transform.scale.x * collider->sphere.size / L3_F)
 		return;
-	if (d < collider->sphere.size / 2) {
+	if (d < collider_object->visual.transform.scale.x * collider->sphere.size / L3_F) {
 		object->physics.transform->translation.x = object->physics.last_transform.translation.x;
 		object->physics.transform->translation.y = object->physics.last_transform.translation.y;
 		object->physics.transform->translation.z = object->physics.last_transform.translation.z;
@@ -554,7 +554,7 @@ static void do_collision_axisplane_z(const Engine_Object *collider_object, Engin
 	if (point.y > plane_pos.y + z / 2 || point.y < plane_pos.y - z / 2)
 		return;
 	if (collider->axisplane.size.z > 0) {
-		if (point.y > plane_pos.z) {
+		if (point.z > plane_pos.z) {
 			return;
 		}
 		if (object->physics.last_transform.translation.z < plane_pos.z && collider->axisplane.traverseable) {
@@ -587,14 +587,14 @@ static void do_collision_axisplane_x(const Engine_Object *collider_object, Engin
 	if (point.z > plane_pos.z + z / 2 || point.z < plane_pos.z - z / 2)
 		return;
 	if (collider->axisplane.size.x > 0) {
-		if (point.y > plane_pos.x) {
+		if (point.x > plane_pos.x) {
 			return;
 		}
 		if (object->physics.last_transform.translation.x < plane_pos.x && collider->axisplane.traverseable) {
 			return;
 		}
 	} else {
-		if (point.y < plane_pos.x) {
+		if (point.x < plane_pos.x) {
 			return;
 		}
 		if (object->physics.last_transform.translation.x > plane_pos.x && collider->axisplane.traverseable) {

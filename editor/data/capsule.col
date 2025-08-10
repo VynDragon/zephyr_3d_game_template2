@@ -1,0 +1,8 @@
+{
+	.capsule.bouncyness = 128,
+	.capsule.size.x = 1.0 * L3_F,
+	.capsule.size.y = 1.0 * L3_F,
+	.capsule.size.z = 1.0 * L3_F,
+	.type = ENGINE_COLLIDER_CAPSULE,
+},
+

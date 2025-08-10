@@ -1,8 +1,8 @@
 {
 .axisplane.size.y = 1,
 .axisplane.bouncyness = 0xFF,
-.axisplane.size.x = 0.5*L3_F,
-.axisplane.size.z = 0.5*L3_F,
+.axisplane.size.x = 1.0*L3_F,
+.axisplane.size.z = 1.0*L3_F,
 .type = ENGINE_COLLIDER_APLANEY,
 },
 
