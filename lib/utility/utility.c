@@ -48,19 +48,19 @@ void utility_animation_objectprocess_framearray(Engine_Object *object, void* dat
 			frame_id = array->len - 1;
 		}
 	}
-	if (array->type == 0) {
-		object->visual.transform = array->transforms[frame_id];
-	} else if (array->type == 1) {
-		object->visual.transform.translation.x += array->transforms[frame_id].translation.x;
-		object->visual.transform.translation.y += array->transforms[frame_id].translation.y;
-		object->visual.transform.translation.z += array->transforms[frame_id].translation.z;
-		object->visual.transform.rotation.x += array->transforms[frame_id].rotation.x;
-		object->visual.transform.rotation.y += array->transforms[frame_id].rotation.y;
-		object->visual.transform.rotation.z += array->transforms[frame_id].rotation.z;
-		object->visual.transform.scale.x += array->transforms[frame_id].scale.x;
-		object->visual.transform.scale.y += array->transforms[frame_id].scale.y;
-		object->visual.transform.scale.z += array->transforms[frame_id].scale.z;
-	} else if (array->type == 4) {
-		object->visual.billboard = array->billboards[frame_id];
+	if (array->frames[frame_id].type == 1) {
+		object->visual.transform = array->frames[frame_id].transform;
+	} else if (array->frames[frame_id].type == 2) {
+		object->visual.transform.translation.x += array->frames[frame_id].transform.translation.x;
+		object->visual.transform.translation.y += array->frames[frame_id].transform.translation.y;
+		object->visual.transform.translation.z += array->frames[frame_id].transform.translation.z;
+		object->visual.transform.rotation.x += array->frames[frame_id].transform.rotation.x;
+		object->visual.transform.rotation.y += array->frames[frame_id].transform.rotation.y;
+		object->visual.transform.rotation.z += array->frames[frame_id].transform.rotation.z;
+		object->visual.transform.scale.x += array->frames[frame_id].transform.scale.x;
+		object->visual.transform.scale.y += array->frames[frame_id].transform.scale.y;
+		object->visual.transform.scale.z += array->frames[frame_id].transform.scale.z;
+	} else if (array->frames[frame_id].type == 4) {
+		object->visual.billboard = array->frames[frame_id].billboard;
 	}
 }
