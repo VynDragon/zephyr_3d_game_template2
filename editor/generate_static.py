@@ -48,6 +48,7 @@ with open(Path(args.output_folder).joinpath(args.name), "wt") as static_file:
 			static_file.write("\t\t.visual.transform.rotation.z = " + str(obj["transform"]["rotation"]["z"]) + ",\n")
 			static_file.write("\t\t.visual.transform.rotation.w = " + str(obj["transform"]["rotation"]["w"]) + ",\n")
 			static_file.write("\t\t.visual.config.backfaceCulling = " + str(obj["backfaceCulling"]) + ",\n")
+			static_file.write("\t\t.visual.solid_color = " + str(obj["solid_color"]) + ",\n")
 			static_file.write("\t\t.visual.config.visible = " + str(obj["visible"]) + ",\n")
 			if obj["visible"] & (1 << 4):
 				static_file.write("\t\t.visual.billboard = &" + str(obj["visual_i"]) + ",\n")

@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <math.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(L3);
@@ -1938,6 +1939,8 @@ uint32_t L3_drawScene(L3_Scene scene)
 
 			L3_BILLBOARD_FUNCTION(*transformed, scene.objects[objectIndex]);
 			continue;
+		} else {
+			L3_MODEL_FUNCTION(scene.objects[objectIndex]);
 		}
 
 #if L3_SORT != 0
@@ -2089,17 +2092,13 @@ uint32_t L3_drawScene(L3_Scene scene)
 /* Zephyr Code -----------------------------------------------------------------------------------*/
 
 static int L3_zephyr_putpixel_current_render_mode = 0;
+static L3_Vec4	triangleNormal;
 L3_PERFORMANCE_FUNCTION
 inline void zephyr_putpixel(L3_PixelInfo *p)
 {
 	float depthmul = 1.0;
 	const L3_Object *object = engine_global_scene.objects[p->objectIndex];
-
-	if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_DISTANCELIGHT) {
-		depthmul = p->depth / 512;
-		depthmul = 1 / (depthmul != 0 ? depthmul : 1);
-		depthmul = depthmul > 1 ? 1 : depthmul;
-	}
+	L3_COLORTYPE color;
 
 	if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_TEXTURED) {
 		if (object->model->triangleTextureIndex[p->triangleIndex] < 0) {
@@ -2111,18 +2110,28 @@ inline void zephyr_putpixel(L3_PixelInfo *p)
 
 		uv[0] = abs(L3_interpolateBarycentric(uvs[0], uvs[2], uvs[4], p->barycentric) % L3_TEXTURE_WH);
 		uv[1] = abs(L3_interpolateBarycentric(uvs[1], uvs[3], uvs[5], p->barycentric) % L3_TEXTURE_WH);
-		if (unlikely(0 > p->x && L3_RESOLUTION_X <= p->x && 0 > p->y && L3_RESOLUTION_Y <= p->y)) return;
-		if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_DISTANCELIGHT)
-			L3_video_buffer[p->x + p->y * L3_RESOLUTION_X] = object->model->triangleTextures[object->model->triangleTextureIndex[p->triangleIndex]][(uv[0] >> 0) + (uv[1] >> 0) * L3_TEXTURE_WH] * depthmul;
-		else
-			L3_video_buffer[p->x + p->y * L3_RESOLUTION_X] = object->model->triangleTextures[object->model->triangleTextureIndex[p->triangleIndex]][(uv[0] >> 0) + (uv[1] >> 0) * L3_TEXTURE_WH];
-	} else if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_SOLID) {
-		if (unlikely(0 > p->x && L3_RESOLUTION_X <= p->x && 0 > p->y && L3_RESOLUTION_Y <= p->y)) return;
-		if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_DISTANCELIGHT)
-			L3_video_buffer[p->x + p->y * L3_RESOLUTION_X] = (L3_COLORTYPE)((float)255 * depthmul);
-		else
-			L3_video_buffer[p->x + p->y * L3_RESOLUTION_X] = 255;
+		color = object->model->triangleTextures[object->model->triangleTextureIndex[p->triangleIndex]][(uv[0] >> 0) + (uv[1] >> 0) * L3_TEXTURE_WH];
+	} else {
+		color = object->solid_color;
 	}
+	if (unlikely(0 > p->x && L3_RESOLUTION_X <= p->x && 0 > p->y && L3_RESOLUTION_Y <= p->y)) return;
+	if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_DISTANCELIGHT) {
+		//depthmul = (p->depth * p->depth) / 524288;
+		depthmul = sqrt(p->depth) / 64;
+		depthmul = 1 / (depthmul != 0 ? depthmul : 1);
+		depthmul = depthmul > 1 ? 1 : depthmul;
+		color *= depthmul;
+	}
+	if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_NORMALLIGHT)
+	{
+		L3_Vec4 down = {0,L3_F,0,L3_F};
+		L3_Unit dot = L3_vec3Dot(triangleNormal, down);
+		if (dot > 0)
+			color = color / 4 + (color * dot) / L3_F * 3/4;
+		else
+			color /= 4;
+	}
+	L3_video_buffer[p->x + p->y * L3_RESOLUTION_X] = color;
 }
 
 L3_PERFORMANCE_FUNCTION
@@ -2136,6 +2145,22 @@ inline int zephyr_drawtriangle(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
 		L3_plot_line(255, point2.x, point2.y, point0.x, point0.y);
 		if (!(L3_zephyr_putpixel_current_render_mode & ~L3_VISIBLE_WIREFRAME))
 			return 0;
+	}
+	if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_NORMALLIGHT) {
+		const L3_Object *object = engine_global_scene.objects[objectIndex];
+		L3_Mat4 matFinal;
+		L3_Index v1 = object->model->triangles[triangleIndex * 3];
+		L3_Index v2 = object->model->triangles[triangleIndex * 3 + 1];
+		L3_Index v3 = object->model->triangles[triangleIndex * 3 + 2];
+		L3_Vec4 a1 = {object->model->vertices[v1 * 3], object->model->vertices[v1 * 3 + 1], object->model->vertices[v1 * 3 + 2], L3_F};
+		L3_Vec4 a2 = {object->model->vertices[v2 * 3], object->model->vertices[v2 * 3 + 1], object->model->vertices[v2 * 3 + 2], L3_F};
+		L3_Vec4 a3 = {object->model->vertices[v3 * 3], object->model->vertices[v3 * 3 + 1], object->model->vertices[v3 * 3 + 2], L3_F};
+
+		L3_makeWorldMatrix(engine_global_scene.objects[objectIndex]->transform, matFinal);
+		L3_vec3Xmat4(&a1, matFinal);
+		L3_vec3Xmat4(&a2, matFinal);
+		L3_vec3Xmat4(&a3, matFinal);
+		L3_triangleNormal(a1, a2, a3, &triangleNormal);
 	}
 	return 1;
 }
@@ -2169,5 +2194,11 @@ inline int zephyr_drawbillboard(L3_Vec4 point, const L3_Object *billboard)
 			}
 		}
 	}
+	return 0;
+}
+
+L3_PERFORMANCE_FUNCTION
+int zephyr_model(const L3_Object *object)
+{
 	return 0;
 }

@@ -8,6 +8,7 @@ typedef struct Engine_Object_Serialize_s {
 	int			view_range;
 	int			backfaceCulling;
 	int			visible;
+	int 		solid_color;
 	L3_Transform3D	transform;
 	const char		*visual_i;
 	const char		*collisions;
@@ -32,6 +33,7 @@ static const struct json_obj_descr Engine_Object_Serialize_descr[] = {
 	JSON_OBJ_DESCR_PRIM(Engine_Object_Serialize, view_range, JSON_TOK_INT),
 	JSON_OBJ_DESCR_PRIM(Engine_Object_Serialize, backfaceCulling, JSON_TOK_INT),
 	JSON_OBJ_DESCR_PRIM(Engine_Object_Serialize, visible, JSON_TOK_INT),
+	JSON_OBJ_DESCR_PRIM(Engine_Object_Serialize, solid_color, JSON_TOK_INT),
 	JSON_OBJ_DESCR_OBJECT(Engine_Object_Serialize, transform, L3_Transform3D_descr),
 	JSON_OBJ_DESCR_PRIM(Engine_Object_Serialize, visual_i, JSON_TOK_STRING),
 	JSON_OBJ_DESCR_PRIM(Engine_Object_Serialize, collisions, JSON_TOK_STRING),
@@ -49,6 +51,7 @@ static void objects_to_serialize()
 		engine_objects_serialize[i].backfaceCulling = objects[i].visual.config.backfaceCulling;
 		engine_objects_serialize[i].visible = objects[i].visual.config.visible;
 		engine_objects_serialize[i].transform = objects[i].visual.transform;
+		engine_objects_serialize[i].solid_color = objects[i].visual.solid_color;
 		int j = 0;
 		bool found = false;
 		for (; j < ARRAY_SIZE(generated_object_list); j++) {
@@ -80,6 +83,7 @@ static void serialize_to_objects(int cnt)
 		obj.visual.config.backfaceCulling = engine_objects_serialize[i].backfaceCulling;
 		obj.visual.config.visible = engine_objects_serialize[i].visible;
 		obj.visual.transform = engine_objects_serialize[i].transform;
+		obj.visual.solid_color = engine_objects_serialize[i].solid_color;
 		int j = 0;
 		bool found = false;
 		for (; j < ARRAY_SIZE(generated_object_list); j++) {

@@ -252,7 +252,7 @@ E_Particle *engine_create_particle(L3_Transform3D transform, Engine_Particle_pf 
 static void build_render_list(void)
 {
 	const L3_Object **render_o = L3_OBJECTS;
-	int o_cnt = 0;
+	size_t o_cnt = 0;
 	L3_Vec4 forward = {0, 0, L3_F, L3_F};
 	L3_Mat4 transMat;
 	L3_Vec4 dir;

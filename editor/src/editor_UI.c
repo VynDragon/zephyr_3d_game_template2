@@ -53,6 +53,7 @@ typedef struct Object_edit_data_t {
 	lv_obj_t *view_range;
 	lv_obj_t *backfaceCulling;
 	lv_obj_t *visible_tag;
+	lv_obj_t *solid_color;
 	bool inhibit_override;
 } Object_edit_data;
 
@@ -95,6 +96,8 @@ void update_object_edit()
 	lv_textarea_set_text(object_edit_data.view_range, buffer);
 	snprintf(buffer, 63, "%d", selected_object->visual.config.backfaceCulling);
 	lv_textarea_set_text(object_edit_data.backfaceCulling, buffer);
+	snprintf(buffer, 63, "%d", selected_object->visual.solid_color);
+	lv_textarea_set_text(object_edit_data.solid_color, buffer);
 
 	int i = 0;
 	for (; i < 16; i++) {
@@ -201,6 +204,7 @@ static void object_edit_changed(lv_event_t * e)
 
 	selected_object->view_range = atoi(lv_textarea_get_text(object_edit_data.view_range));
 	selected_object->visual.config.backfaceCulling = atoi(lv_textarea_get_text(object_edit_data.backfaceCulling));
+	selected_object->visual.solid_color = atoi(lv_textarea_get_text(object_edit_data.solid_color));
 
 	const char * visible_tag = lv_textarea_get_text(object_edit_data.visible_tag);
 	for (int i = 0; i < strlen(visible_tag); i++) {
@@ -428,6 +432,19 @@ void object_edit_initialize()
 	lv_obj_add_event_cb(object_edit_data.visible_tag, object_edit_focused, LV_EVENT_FOCUSED , object_edit_data.visible_tag);
 	lv_obj_add_event_cb(object_edit_data.visible_tag, object_edit_defocused, LV_EVENT_DEFOCUSED , object_edit_data.visible_tag);
 	lv_obj_set_pos(object_edit_data.visible_tag, 34, 62);
+
+	label = lv_label_create(object_edit);
+	lv_label_set_text(label, "Color");
+	lv_obj_set_pos(label, 0, 76);
+	object_edit_data.solid_color = lv_textarea_create(object_edit);
+	lv_textarea_set_one_line(object_edit_data.solid_color, true);
+	lv_textarea_set_accepted_chars(object_edit_data.solid_color, "0123456789");
+	lv_obj_set_size(object_edit_data.solid_color, 32, 8);
+	lv_obj_add_style(object_edit_data.solid_color, &style_transp, 0);
+	lv_obj_add_event_cb(object_edit_data.solid_color, object_edit_changed, LV_EVENT_VALUE_CHANGED, NULL);
+	lv_obj_add_event_cb(object_edit_data.solid_color, object_edit_focused, LV_EVENT_FOCUSED , object_edit_data.solid_color);
+	lv_obj_add_event_cb(object_edit_data.solid_color, object_edit_defocused, LV_EVENT_DEFOCUSED , object_edit_data.solid_color);
+	lv_obj_set_pos(object_edit_data.solid_color, 24, 74);
 
 
 	object_edit_data.delete = lv_button_create(object_edit);

@@ -12,6 +12,7 @@
 #define L3_PIXEL_FUNCTION		zephyr_putpixel
 #define L3_TRIANGLE_FUNCTION	zephyr_drawtriangle
 #define L3_BILLBOARD_FUNCTION	zephyr_drawbillboard
+#define L3_MODEL_FUNCTION		zephyr_model
 
 #define L3_COLORTYPE uint8_t
 
@@ -28,8 +29,10 @@
 #define L3_VISIBLE_TEXTURED			BIT(0)
 #define L3_VISIBLE_WIREFRAME		BIT(1)
 #define L3_VISIBLE_SOLID			BIT(2)
-#define L3_VISIBLE_DISTANCELIGHT	BIT(3)
-#define L3_VISIBLE_BILLBOARD    	BIT(4)
+#define L3_VISIBLE_BILLBOARD		BIT(4)
+
+#define L3_VISIBLE_NORMALLIGHT		BIT(15)
+#define L3_VISIBLE_DISTANCELIGHT	BIT(14)
 
 #define L3_PERFORMANCE_FUNCTION	__attribute__((optimize(3))) __attribute__((hot))
 //#define L3_PERFORMANCE_FUNCTION
@@ -439,7 +442,7 @@ typedef struct
 																	- 0 none
 																	- 1 clock-wise
 																	- 2 counter clock-wise */
-	int8_t visible;             /**< Can be used to easily hide the model. */
+	uint16_t visible;             /**< Can be used to easily hide the model. */
 } L3_DrawConfig;
 
 void L3_drawConfigInit(L3_DrawConfig *config);
@@ -469,8 +472,9 @@ typedef struct
 
 typedef struct
 {
-	L3_Transform3D transform;
-	L3_DrawConfig config;
+	L3_Transform3D	transform;
+	L3_DrawConfig	config;
+	L3_COLORTYPE	solid_color;
 	union {
 		const L3_Model3D		*model;
 		const L3_Billboard	*billboard;
@@ -784,11 +788,14 @@ m/2,  m/2,  m/2,\
 #ifndef L3_BILLBOARD_FUNCTION
 	#error Billboard rendering function (L3_BILLBOARD_FUNCTION) not specified!
 #endif
-
+#ifndef L3_MODEL_FUNCTION
+	#error model processing function (L3_MODEL_FUNCTION) not specified!
+#endif
 void L3_PIXEL_FUNCTION(L3_PixelInfo *pixel); // forward decl
 int L3_TRIANGLE_FUNCTION(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
 	L3_Index modelIndex, L3_Index triangleIndex);
 int L3_BILLBOARD_FUNCTION(L3_Vec4 point, const L3_Object *billboard);
+int L3_MODEL_FUNCTION(const L3_Object *object);
 
 /** Serves to accelerate linear interpolation for performance-critical
 	code. Functions such as L3_interpolate require division to compute each

@@ -22,4 +22,8 @@ config MAX_OBJECTS
 	int "Maximum amount of objects"
 	default 512
 
+config MAX_LIGHTS
+	int "Maximum amount of object lights"
+	default 16
+
 rsource "lib/Kconfig"

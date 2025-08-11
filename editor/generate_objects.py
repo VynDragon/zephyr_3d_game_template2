@@ -9,11 +9,11 @@ def generate_obj_header(tool_path, obj_path):
 	out_name = os.path.join(args.output_folder, rel_path.parent.joinpath(rel_path.stem))
 	out_real_name = str(rel_path.parent.joinpath(rel_path.stem)).replace('/','_')
 	if not Path(args.output_folder).joinpath(rel_path.parent).exists() :
-		Path(args.output_folder).joinpath(rel_path.parent).mkdir()
+		Path(args.output_folder).joinpath(rel_path.parent).mkdir(parents=True)
 	try:
 		os.remove(out_name + ".h")
 	except:
-		print("File not need cleaned")
+		pass
 	return os.system("python3 " + tool_path + " " + obj_path + " " + out_name + ".h" + " -n " + out_real_name)
 
 def generate_billboard_header(tool_path, bill_path, width: int, height: int):
@@ -21,7 +21,7 @@ def generate_billboard_header(tool_path, bill_path, width: int, height: int):
 	out_name = os.path.join(args.output_folder, rel_path.parent.joinpath(rel_path.stem))
 	out_real_name = str(rel_path.parent.joinpath(rel_path.stem)).replace('/','_')
 	if not Path(args.output_folder).joinpath(rel_path.parent).exists() :
-		Path(args.output_folder).joinpath(rel_path.parent).mkdir()
+		Path(args.output_folder).joinpath(rel_path.parent).mkdir(parents=True)
 	return os.system("python3 " + tool_path + " " + bill_path + " " + out_name + ".h" + " -n " + out_real_name + " " + str(width) + " " + str(height))
 
 def generate_obj(obj_path, col_file, output_path, obj_name):
@@ -110,12 +110,15 @@ for conf_path in glob.glob(os.path.join(glob.escape(args.data_folder), "**/*.jso
 	conf_name_es = conf_name.replace('/','_')
 	with open(conf_path, "rt") as conf_file:
 		conf = json.load(conf_file)
+		output_path = os.path.join(args.output_folder, conf_name + ".h")
+		if not Path(output_path).parent.exists():
+			Path(output_path).parent.mkdir(parents=True)
 		if conf.get("obj") != None:
 			if conf.get("col") != None:
 				with open(os.path.join(glob.escape(args.data_folder), conf["col"]), "rt") as col_file:
-					generate_obj(os.path.join(glob.escape(args.data_folder), conf["obj"]), col_file, os.path.join(args.output_folder, conf_name + ".h"), conf_name_es)
+					generate_obj(os.path.join(glob.escape(args.data_folder), conf["obj"]), col_file, output_path, conf_name_es)
 			else:
-				generate_obj_nocol(os.path.join(glob.escape(args.data_folder), conf["obj"]), os.path.join(args.output_folder, conf_name + ".h"), conf_name_es)
+				generate_obj_nocol(os.path.join(glob.escape(args.data_folder), conf["obj"]), output_path, conf_name_es)
 		elif conf.get("billboard") != None:
 			bill_path = os.path.join(glob.escape(args.data_folder), conf["billboard"])
 			generate_billboard_header(os.path.join(args.tools_path, "texture2billboard.py"), bill_path, conf["width"], conf["height"])
@@ -123,7 +126,7 @@ for conf_path in glob.glob(os.path.join(glob.escape(args.data_folder), "**/*.jso
 			bill_path_name = str(rel_path.parent.joinpath(rel_path.stem))
 			index_header.write("#include \"" + bill_path_name + ".h\"\n")
 			list_header.write("#include \"" + bill_path_name + ".h\"\n")
-			generate_billboard(bill_path, os.path.join(args.output_folder, conf_name + ".h"), conf_name_es)
+			generate_billboard(bill_path, output_path, conf_name_es)
 	obj_names.append(conf_name_es)
 	if conf.get("col") != None:
 		collision_names.append(conf_name_es + "_collisions")

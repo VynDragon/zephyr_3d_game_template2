@@ -61,7 +61,7 @@ static const E_Collider demo_scene_colliders[][1] = {
 	{
 		{
 		.sphere.bouncyness = 128,
-		.sphere.size = 2*L3_F,
+		.sphere.size = 1*L3_F,
 		.type = ENGINE_COLLIDER_SPHERE,
 		},
 	},
