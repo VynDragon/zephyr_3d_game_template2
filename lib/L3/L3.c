@@ -66,8 +66,9 @@ __attribute__((section("ITCM"))) uint8_t L3_zBuffer[L3_MAX_PIXELS];
 		L3_min(255,(depth) >> L3_REDUCED_Z_BUFFER_GRANULARITY)
 #endif
 
-const L3_Object *engine_global_objects[L3_MAX_OBJECTS] = {0};
-L3_Scene engine_global_scene = {0};
+const L3_Object	*engine_global_objects[L3_MAX_OBJECTS] = {0};
+L3_Index		engine_objectCount = 0;
+L3_Camera		engine_camera = {0};
 
 /* Code ------------------------------------------------------------------------------------------*/
 
@@ -974,16 +975,6 @@ void L3_rotationToDirections(
 		up->z = 0;
 		L3_vec3Xmat4(up,m);
 	}
-}
-
-void L3_sceneInit(
-	const L3_Object **objects,
-	L3_Index objectCount,
-	L3_Scene *scene)
-{
-	scene->objects = objects;
-	scene->objectCount = objectCount;
-	L3_cameraInit(&(scene->camera));
 }
 
 void L3_drawConfigInit(L3_DrawConfig *config)
@@ -1896,7 +1887,7 @@ void _L3_projectTriangle(
 /* returns triangles drawn */
 __attribute__((flatten))
 L3_PERFORMANCE_FUNCTION
-uint32_t L3_drawScene(L3_Scene scene)
+uint32_t L3_draw(L3_Camera camera, const L3_Object **objects, L3_Index objectCount)
 {
 	uint32_t drawnTriangles = 0;
 	L3_Mat4 matFinal, matCamera;
@@ -1905,21 +1896,21 @@ uint32_t L3_drawScene(L3_Scene scene)
 	const L3_Object *object;
 	L3_Index objectIndex, triangleIndex;
 
-	L3_makeCameraMatrix(scene.camera.transform,matCamera);
+	L3_makeCameraMatrix(camera.transform,matCamera);
 
 #if L3_SORT != 0
 	uint16_t previousModel = 0;
 	L3_sortArrayLength = 0;
 #endif
 
-	for (objectIndex = 0; objectIndex < scene.objectCount; ++objectIndex)
+	for (objectIndex = 0; objectIndex < objectCount; ++objectIndex)
 	{
-		if (!scene.objects[objectIndex]->config.visible)
+		if (!objects[objectIndex]->config.visible)
 			continue;
 
-		if(scene.objects[objectIndex]->config.visible & L3_VISIBLE_BILLBOARD)
+		if(objects[objectIndex]->config.visible & L3_VISIBLE_BILLBOARD)
 		{
-			L3_makeWorldMatrix(scene.objects[objectIndex]->transform,matFinal);
+			L3_makeWorldMatrix(objects[objectIndex]->transform,matFinal);
 			L3_mat4Xmat4(matFinal,matCamera);
 
 			transformed->x = 0;
@@ -1931,16 +1922,16 @@ uint32_t L3_drawScene(L3_Scene scene)
 
 			transformed->w = transformed->z;
 
-			_L3_mapProjectedVertexToScreen(transformed, scene.camera.focalLength);
+			_L3_mapProjectedVertexToScreen(transformed, camera.focalLength);
 			if (transformed->x < 0 || transformed->x >= L3_RESOLUTION_X || transformed->y < 0 || transformed->y >= L3_RESOLUTION_Y || transformed->z <= L3_NEAR)
 			{
 				continue;
 			}
 
-			L3_BILLBOARD_FUNCTION(*transformed, scene.objects[objectIndex]);
+			L3_BILLBOARD_FUNCTION(*transformed, objects[objectIndex], camera);
 			continue;
 		} else {
-			L3_MODEL_FUNCTION(scene.objects[objectIndex]);
+			L3_MODEL_FUNCTION(objects[objectIndex]);
 		}
 
 #if L3_SORT != 0
@@ -1950,14 +1941,14 @@ uint32_t L3_drawScene(L3_Scene scene)
 		previousModel = objectIndex;
 #endif
 
-		L3_makeWorldMatrix(scene.objects[objectIndex]->transform,matFinal);
+		L3_makeWorldMatrix(objects[objectIndex]->transform,matFinal);
 		L3_mat4Xmat4(matFinal,matCamera);
 
-		L3_Index triangleCount = scene.objects[objectIndex]->model->triangleCount;
+		L3_Index triangleCount = objects[objectIndex]->model->triangleCount;
 
 		triangleIndex = 0;
 
-		object = scene.objects[objectIndex];
+		object = objects[objectIndex];
 
 		while (triangleIndex < triangleCount)
 		{
@@ -1966,7 +1957,7 @@ uint32_t L3_drawScene(L3_Scene scene)
 				no gain was seen. */
 
 			_L3_projectTriangle(object,triangleIndex,matFinal,
-				scene.camera.focalLength,transformed);
+				camera.focalLength,transformed);
 
 			if (L3_triangleIsVisible(transformed[0],transformed[1],transformed[2],
 				object->config.backfaceCulling))
@@ -2051,7 +2042,7 @@ uint32_t L3_drawScene(L3_Scene scene)
 		objectIndex = L3_sortArray[i].objectIndex;
 		triangleIndex = L3_sortArray[i].triangleIndex;
 
-		object = &(scene.objects[objectIndex]);
+		object = &(objects[objectIndex]);
 
 		if (objectIndex != previousModel)
 		{
@@ -2066,7 +2057,7 @@ uint32_t L3_drawScene(L3_Scene scene)
 			require a lot of memory, which for small resolutions could be even
 			worse than z-bufer. So this seems to be the best way memory-wise. */
 
-		_L3_projectTriangle(object,triangleIndex,matFinal,scene.camera.focalLength,
+		_L3_projectTriangle(object,triangleIndex,matFinal, camera.focalLength,
 			transformed);
 
 		L3_drawTriangle(transformed[0],transformed[1],transformed[2],objectIndex,
@@ -2097,7 +2088,7 @@ L3_PERFORMANCE_FUNCTION
 inline void zephyr_putpixel(L3_PixelInfo *p)
 {
 	float depthmul = 1.0;
-	const L3_Object *object = engine_global_scene.objects[p->objectIndex];
+	const L3_Object *object = engine_global_objects[p->objectIndex];
 	L3_COLORTYPE color;
 
 	if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_TEXTURED) {
@@ -2138,7 +2129,7 @@ L3_PERFORMANCE_FUNCTION
 inline int zephyr_drawtriangle(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
 								L3_Index objectIndex, L3_Index triangleIndex)
 {
-	L3_zephyr_putpixel_current_render_mode = engine_global_scene.objects[objectIndex]->config.visible;
+	L3_zephyr_putpixel_current_render_mode = engine_global_objects[objectIndex]->config.visible;
 	if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_WIREFRAME) {
 		L3_plot_line(255, point0.x, point0.y, point1.x, point1.y);
 		L3_plot_line(255, point2.x, point2.y, point1.x, point1.y);
@@ -2147,7 +2138,7 @@ inline int zephyr_drawtriangle(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
 			return 0;
 	}
 	if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_NORMALLIGHT) {
-		const L3_Object *object = engine_global_scene.objects[objectIndex];
+		const L3_Object *object = engine_global_objects[objectIndex];
 		L3_Mat4 matFinal;
 		L3_Index v1 = object->model->triangles[triangleIndex * 3];
 		L3_Index v2 = object->model->triangles[triangleIndex * 3 + 1];
@@ -2156,7 +2147,7 @@ inline int zephyr_drawtriangle(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
 		L3_Vec4 a2 = {object->model->vertices[v2 * 3], object->model->vertices[v2 * 3 + 1], object->model->vertices[v2 * 3 + 2], L3_F};
 		L3_Vec4 a3 = {object->model->vertices[v3 * 3], object->model->vertices[v3 * 3 + 1], object->model->vertices[v3 * 3 + 2], L3_F};
 
-		L3_makeWorldMatrix(engine_global_scene.objects[objectIndex]->transform, matFinal);
+		L3_makeWorldMatrix(engine_global_objects[objectIndex]->transform, matFinal);
 		L3_vec3Xmat4(&a1, matFinal);
 		L3_vec3Xmat4(&a2, matFinal);
 		L3_vec3Xmat4(&a3, matFinal);
@@ -2166,12 +2157,12 @@ inline int zephyr_drawtriangle(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
 }
 
 L3_PERFORMANCE_FUNCTION
-inline int zephyr_drawbillboard(L3_Vec4 point, const L3_Object *billboard)
+inline int zephyr_drawbillboard(L3_Vec4 point, const L3_Object *billboard, L3_Camera camera)
 {
 	if (!L3_zTest(point.x,point.y,point.z))
 		return 0;
 
-	int focal = L3_SCENE.camera.focalLength != 0 ? L3_SCENE.camera.focalLength : 1;
+	int focal = camera.focalLength != 0 ? camera.focalLength : 1;
 	float scale_x = ((float)(billboard->transform.scale.x * focal) / (float)point.z) * ((float)billboard->billboard->scale/0x4000) * L3_RESOLUTION_X / L3_F;
 	float scale_y = ((float)(billboard->transform.scale.y * focal) / (float)point.z) * ((float)billboard->billboard->scale/0x4000) * L3_RESOLUTION_X / L3_F;
 	int scaled_width = billboard->billboard->width * scale_x;

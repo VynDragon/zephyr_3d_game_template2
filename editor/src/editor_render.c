@@ -111,14 +111,14 @@ static L3_Object build_collider_representation(const Engine_Object *object, cons
 
 static void build_render_list(void)
 {
-	const L3_Object **render_o = L3_OBJECTS;
+	const L3_Object **render_o = engine_global_objects;
 	int o_cnt = 0;
 	L3_Vec4 forward = {0, 0, L3_F, L3_F};
 	L3_Mat4 transMat;
 
-	L3_makeRotationMatrixZXY(L3_SCENE.camera.transform.rotation.x,
-							L3_SCENE.camera.transform.rotation.y,
-							L3_SCENE.camera.transform.rotation.z,
+	L3_makeRotationMatrixZXY(engine_camera.transform.rotation.x,
+							engine_camera.transform.rotation.y,
+							engine_camera.transform.rotation.z,
 							transMat);
 
 	L3_vec3Xmat4(&forward, transMat);
@@ -126,7 +126,7 @@ static void build_render_list(void)
 	for (int i = 0; i < engine_object_getcnt(); i++) {
 		if (engine_getobjects()[i].visual_type > ENGINE_VISUAL_UNUSED) {
 			if (o_cnt >= L3_MAX_OBJECTS) break;
-			if (engine_getobjects()[i].view_range + 32000 <= L3_distanceManhattan(engine_getobjects()[i].visual.transform.translation, L3_SCENE.camera.transform.translation)) continue;
+			if (engine_getobjects()[i].view_range + 32000 <= L3_distanceManhattan(engine_getobjects()[i].visual.transform.translation, engine_camera.transform.translation)) continue;
 			if (engine_getobjects()[i].collisions != 0) {
 				for (int j = 0; j < engine_getobjects()[i].collisions->colliderCount; j++) {
 					editor_colliders_objects_inst[o_cnt] = build_collider_representation(&(engine_getobjects()[i]), &(engine_getobjects()[i].collisions->colliders[j]));
@@ -137,7 +137,7 @@ static void build_render_list(void)
 			}
 		}
 	}
-	L3_SCENE.objectCount = o_cnt;
+	engine_objectCount = o_cnt;
 }
 
 static void render_colliders_function(void *, void *, void *)
@@ -152,7 +152,7 @@ static void render_colliders_function(void *, void *, void *)
 
 		build_render_list();
 
-		/*uint32_t drawnTriangles = */L3_drawScene(L3_SCENE);
+		L3_draw(engine_camera, engine_global_objects, engine_objectCount);
 
 
 		blit_display2(L3_video_buffer, L3_RESOLUTION_X, L3_RESOLUTION_Y);

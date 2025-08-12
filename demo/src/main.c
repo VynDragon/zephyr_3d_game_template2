@@ -16,6 +16,7 @@ LOG_MODULE_REGISTER(main);
 #define ENGINE_BLIT_FUNCTION blit_display
 
 #include "engine.h"
+#include "default_scene.h"
 
 #include "demo.h"
 
@@ -56,19 +57,6 @@ int blit_display(L3_COLORTYPE *buffer, uint16_t size_x, uint16_t size_y)
 	return 0;
 }
 
-typedef struct {
-	L3_Unit vx;
-	L3_Unit vy;
-	L3_Unit z;
-	L3_Unit x;
-	L3_Unit jump;
-	L3_Unit xrot;
-} Controls;
-
-static Engine_Object* player = 0;
-static L3_Vec4 player_colpoint[2] = {{.x = 0, .y = 0, .z = 0, .w = L3_F }, {.x = 0, .y = L3_F, .z = 0, .w = L3_F }};
-static Controls controls = {0};
-
 void particle_fire(E_Particle *self)
 {
 	self->transform.translation.y += 24;
@@ -88,39 +76,13 @@ void particle_smoke(E_Particle *self)
 	self->transform.scale.y *= 0.98;
 }
 
+static Controls controls = {0};
+
 static void process() {
-	if (player != 0) {
-		player->visual.transform.rotation.y += controls.vy;
-		if (player->visual.transform.rotation.y > 256) player->visual.transform.rotation.y = -256;
-		if (player->visual.transform.rotation.y < -256) player->visual.transform.rotation.y = 256;
-		controls.xrot += controls.vx;
-		L3_Unit x = (controls.z * L3_cos(player->visual.transform.rotation.y + L3_F/4)) / L3_F;
-		L3_Unit z = (controls.z * L3_sin(player->visual.transform.rotation.y + L3_F/4)) / L3_F;
-		x -= (controls.x * L3_cos(player->visual.transform.rotation.y)) / L3_F;
-		z -= (controls.x * L3_sin(player->visual.transform.rotation.y)) / L3_F;
+	struct Default_scene_data *scene_data = (struct Default_scene_data*)default_scene.data;
 
-
-		engine_dynamic_objects[0].physics.speeds.translation.z += z;
-		engine_dynamic_objects[0].physics.speeds.translation.x += x;
-		engine_dynamic_objects[0].physics.speeds.translation.x *= 0.85;
-		engine_dynamic_objects[0].physics.speeds.translation.z *= 0.85;
-		engine_dynamic_objects[0].physics.speeds.translation.y *= 0.95;
-		//engine_dynamic_objects[0].physics.speeds.translation.x -= 1;
-		//player->visual.transform.translation.z += z;
-		//player->visual.transform.translation.x += x;
-		engine_dynamic_objects[0].physics.speeds.translation.y -= E_SPEED(5*L3_F);
-
-		engine_dynamic_objects[0].physics.speeds.translation.y += controls.jump;
-
-		L3_Camera *camera = engine_getcamera();
-		camera->transform = player->visual.transform;
-		camera->transform.translation.y += L3_F;
-		if (controls.xrot > 100) controls.xrot = 100;
-		if (controls.xrot < -100) controls.xrot = -100;
-		camera->transform.rotation.x = controls.xrot;
-		//printf("ppos: %d, %d, %d\n", player->visual.transform.translation.x, player->visual.transform.translation.y, player->visual.transform.translation.z);
-	}
-
+	/* in a real game this would be in the scene's pf */
+	scene_data->controls = controls;
 	L3_Transform3D transform;
 	transform.scale.x = 192;
 	transform.scale.y = 192;
@@ -134,39 +96,39 @@ static void process() {
 	engine_create_particle(transform, &particle_fire, flame.billboard, E_LIFESPAN(0.4));
 	transform.scale.x = 128;
 	transform.scale.y = 128;
-	transform.translation.x = player->visual.transform.translation.x + sys_rand16_get() / 0x10 - 0x7ff;
-	transform.translation.y = player->visual.transform.translation.y + 3 * L3_F;
-	transform.translation.z = player->visual.transform.translation.z + sys_rand16_get() / 0x10 - 0x7ff;
+	transform.translation.x = scene_data->player->visual.transform.translation.x + sys_rand16_get() / 0x10 - 0x7ff;
+	transform.translation.y = scene_data->player->visual.transform.translation.y + 3 * L3_F;
+	transform.translation.z = scene_data->player->visual.transform.translation.z + sys_rand16_get() / 0x10 - 0x7ff;
 	engine_create_particle(transform, &particle_rain, rain.billboard, E_LIFESPAN(0.3));
-	transform.translation.x = player->visual.transform.translation.x + sys_rand16_get() / 0x10 - 0x7ff;
-	transform.translation.z = player->visual.transform.translation.z + sys_rand16_get() / 0x10 - 0x7ff;
+	transform.translation.x = scene_data->player->visual.transform.translation.x + sys_rand16_get() / 0x10 - 0x7ff;
+	transform.translation.z = scene_data->player->visual.transform.translation.z + sys_rand16_get() / 0x10 - 0x7ff;
 	engine_create_particle(transform, &particle_rain, rain.billboard, E_LIFESPAN(0.3));
-	transform.translation.x = player->visual.transform.translation.x + sys_rand16_get() / 0x10 - 0x7ff;
-	transform.translation.z = player->visual.transform.translation.z + sys_rand16_get() / 0x10 - 0x7ff;
+	transform.translation.x = scene_data->player->visual.transform.translation.x + sys_rand16_get() / 0x10 - 0x7ff;
+	transform.translation.z = scene_data->player->visual.transform.translation.z + sys_rand16_get() / 0x10 - 0x7ff;
 	engine_create_particle(transform, &particle_rain, rain.billboard, E_LIFESPAN(0.3));
-	transform.translation.x = player->visual.transform.translation.x + sys_rand16_get() / 0x10 - 0x7ff;
-	transform.translation.z = player->visual.transform.translation.z + sys_rand16_get() / 0x10 - 0x7ff;
+	transform.translation.x = scene_data->player->visual.transform.translation.x + sys_rand16_get() / 0x10 - 0x7ff;
+	transform.translation.z = scene_data->player->visual.transform.translation.z + sys_rand16_get() / 0x10 - 0x7ff;
 	engine_create_particle(transform, &particle_rain, rain.billboard, E_LIFESPAN(0.3));
-	transform.translation.x = player->visual.transform.translation.x + sys_rand16_get() / 0x10 - 0x7ff;
-	transform.translation.z = player->visual.transform.translation.z + sys_rand16_get() / 0x10 - 0x7ff;
+	transform.translation.x = scene_data->player->visual.transform.translation.x + sys_rand16_get() / 0x10 - 0x7ff;
+	transform.translation.z = scene_data->player->visual.transform.translation.z + sys_rand16_get() / 0x10 - 0x7ff;
 	engine_create_particle(transform, &particle_rain, rain.billboard, E_LIFESPAN(0.3));
-	transform.translation.x = player->visual.transform.translation.x + sys_rand16_get() / 0x10 - 0x7ff;
-	transform.translation.z = player->visual.transform.translation.z + sys_rand16_get() / 0x10 - 0x7ff;
+	transform.translation.x = scene_data->player->visual.transform.translation.x + sys_rand16_get() / 0x10 - 0x7ff;
+	transform.translation.z = scene_data->player->visual.transform.translation.z + sys_rand16_get() / 0x10 - 0x7ff;
 	engine_create_particle(transform, &particle_rain, rain.billboard, E_LIFESPAN(0.3));
-	transform.translation.x = player->visual.transform.translation.x + sys_rand16_get() / 0x10 - 0x7ff;
-	transform.translation.z = player->visual.transform.translation.z + sys_rand16_get() / 0x10 - 0x7ff;
+	transform.translation.x = scene_data->player->visual.transform.translation.x + sys_rand16_get() / 0x10 - 0x7ff;
+	transform.translation.z = scene_data->player->visual.transform.translation.z + sys_rand16_get() / 0x10 - 0x7ff;
 	engine_create_particle(transform, &particle_rain, rain.billboard, E_LIFESPAN(0.3));
-	transform.translation.x = player->visual.transform.translation.x + sys_rand16_get() / 0x10 - 0x7ff;
-	transform.translation.z = player->visual.transform.translation.z + sys_rand16_get() / 0x10 - 0x7ff;
+	transform.translation.x = scene_data->player->visual.transform.translation.x + sys_rand16_get() / 0x10 - 0x7ff;
+	transform.translation.z = scene_data->player->visual.transform.translation.z + sys_rand16_get() / 0x10 - 0x7ff;
 	engine_create_particle(transform, &particle_rain, rain.billboard, E_LIFESPAN(0.3));
-	transform.translation.x = player->visual.transform.translation.x + sys_rand16_get() / 0x10 - 0x7ff;
-	transform.translation.z = player->visual.transform.translation.z + sys_rand16_get() / 0x10 - 0x7ff;
+	transform.translation.x = scene_data->player->visual.transform.translation.x + sys_rand16_get() / 0x10 - 0x7ff;
+	transform.translation.z = scene_data->player->visual.transform.translation.z + sys_rand16_get() / 0x10 - 0x7ff;
 	engine_create_particle(transform, &particle_rain, rain.billboard, E_LIFESPAN(0.3));
-	transform.translation.x = player->visual.transform.translation.x + sys_rand16_get() / 0x10 - 0x7ff;
-	transform.translation.z = player->visual.transform.translation.z + sys_rand16_get() / 0x10 - 0x7ff;
+	transform.translation.x = scene_data->player->visual.transform.translation.x + sys_rand16_get() / 0x10 - 0x7ff;
+	transform.translation.z = scene_data->player->visual.transform.translation.z + sys_rand16_get() / 0x10 - 0x7ff;
 	engine_create_particle(transform, &particle_rain, rain.billboard, E_LIFESPAN(0.3));
-	transform.translation.x = player->visual.transform.translation.x + sys_rand16_get() / 0x10 - 0x7ff;
-	transform.translation.z = player->visual.transform.translation.z + sys_rand16_get() / 0x10 - 0x7ff;
+	transform.translation.x = scene_data->player->visual.transform.translation.x + sys_rand16_get() / 0x10 - 0x7ff;
+	transform.translation.z = scene_data->player->visual.transform.translation.z + sys_rand16_get() / 0x10 - 0x7ff;
 	engine_create_particle(transform, &particle_rain, rain.billboard, E_LIFESPAN(0.3));
 	transform.scale.x = 128;
 	transform.scale.y = 128;
@@ -257,51 +219,13 @@ int main()
 
 	init_engine(&process);
 
-	/* 'player' object */
-	Engine_Object tmp = {0};
-	L3_transform3DSet(0 * L3_F,0,-3*L3_F,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));
-	tmp.view_range = 16 * L3_F;
-	tmp.visual_type = ENGINE_VISUAL_NOTHING;
-	player = engine_add_object(tmp);
-	engine_dynamic_objects[0].object = player;
-	engine_dynamic_objects[0].physics.transform = &(player->visual.transform);
-	engine_dynamic_objects[0].physics.last_transform = player->visual.transform;
-	engine_dynamic_objects_count = 1;
-	engine_dynamic_objects[0].physics.pointOffsetsCount = 2;
-	engine_dynamic_objects[0].physics.pointOffsets = player_colpoint;
+	default_scene.statics = demo_scene;
+	default_scene.statics_count = sizeof(demo_scene) / sizeof(*demo_scene);
+	engine_switchscene(&default_scene);
 
-	engine_set_statics(demo_scene, sizeof(demo_scene) / sizeof(*demo_scene));
-	engine_statics_enabled(true);
+	/*engine_set_statics(demo_scene, sizeof(demo_scene) / sizeof(*demo_scene));
+	engine_statics_enabled(true);*/
 
-	/*for (int i = 0; i < 1000; i++) {
-		tmp.visual = cat;
-		int x, y, z;
-		x = sys_rand8_get() / 4 - 32;
-		y = sys_rand8_get() / 8 - 16;
-		z = sys_rand8_get() / 4 - 32;
-		L3_transform3DSet(x*L3_F,y*L3_F,z*L3_F,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));
-		tmp.view_range = 50 * L3_F;
-		tmp.visual_type = ENGINE_VISUAL_BILLBOARD;
-		tmp.process = 0;
-		engine_add_object(tmp);
-	}*/
-/*
-#define aG 45
-	for (int i = 0; i < aG; i++) {
-		for (int j = 0; j < aG; j++) {
-			tmp.visual = building_01;
-			tmp.visual.config.visible = L3_VISIBLE_TEXTURED;
-			int x, y, z;
-			x = -200 + i * 30;
-			y = 180;
-			z = -200 + j * 30;
-			L3_transform3DSet(x*L3_F,y,z*L3_F,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));
-			tmp.view_range = 70 * L3_F;
-			tmp.visual_type = ENGINE_VISUAL_MODEL;
-			tmp.process = 0;
-			engine_add_object(tmp);
-		}
-	}*/
 
 	printf("obj cnt: %d\n", engine_object_getcnt() + engine_statics_getcnt());
 

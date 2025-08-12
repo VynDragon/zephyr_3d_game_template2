@@ -36,13 +36,19 @@ int ENGINE_BLIT_FUNCTION(L3_COLORTYPE *buffer, uint16_t size_x, uint16_t size_y)
 
 typedef struct Engine_Object_s Engine_Object;
 typedef struct E_Particle_s E_Particle;
+typedef struct Engine_Scene_s Engine_Scene;
 
 /* functions ran each tick for associated object */
 typedef void (*Engine_Object_pf)(Engine_Object *self, void * data);
 /* functions ran each tick for associated particle */
 typedef void (*Engine_Particle_pf)(E_Particle *self);
+/* function ran each tick for scene*/
+typedef void (*Engine_Scene_pf)(Engine_Scene *self);
 /* function ran each tick engine */
 typedef void (*Engine_pf)(void);
+
+/* function to initialize a scene (spawn dynamic objects etc) */
+typedef void (*Engine_Scene_inf)(void *data);
 
 /* Basic cuboid collider */
 typedef struct E_C_Cuboid_s {
@@ -130,6 +136,14 @@ typedef struct E_Particle_s {
 	uint32_t			life;
 } E_Particle;
 
+typedef struct Engine_Scene_s {
+	Engine_Scene_pf		pf;
+	const Engine_Object	*statics;
+	size_t				statics_count;
+	Engine_Scene_inf	inf;
+	void				*data;
+} Engine_Scene;
+
 int init_engine(Engine_pf pf);
 
 int init_engine_UI(void);
@@ -160,6 +174,15 @@ Engine_Object *engine_getobjects(void);
 size_t engine_statics_getcnt(void);
 
 L3_Camera *engine_getcamera(void);
+
+/* Scene Management */
+/* Blank slate the engine scene */
+int	engine_cleanscene(void);
+/* Load scene as the engine scene */
+int	engine_initscene(Engine_Scene *scene);
+/* Blank engine scene then load scene as the engine scene */
+int	engine_switchscene(Engine_Scene *scene);
+
 
 /* sets const renderlist, can be from XIP */
 void engine_set_statics(const Engine_Object *objects, uint32_t count);

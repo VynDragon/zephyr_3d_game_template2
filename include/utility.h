@@ -39,5 +39,4 @@ typedef struct ObjectProcess_FrameArray_s {
 	ObjectProcess_FrameArray_Frame	*frames;
 } ObjectProcess_FrameArray;
 
-
 void utility_animation_objectprocess_framearray(Engine_Object *object, void* data, uint64_t frame_id);

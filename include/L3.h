@@ -22,9 +22,6 @@
 
 #define L3_MAX_OBJECTS 0x2FF
 
-#define L3_SCENE		engine_global_scene
-#define L3_OBJECTS		engine_global_objects
-
 #define L3_VISIBLE_INVISIBLE		0
 #define L3_VISIBLE_TEXTURED			BIT(0)
 #define L3_VISIBLE_WIREFRAME		BIT(1)
@@ -483,18 +480,6 @@ typedef struct
 
 typedef struct
 {
-	const L3_Object **objects;
-	L3_Index objectCount;
-	L3_Camera camera;
-} L3_Scene;                  ///< Represent the 3D scene to be rendered.
-
-void L3_sceneInit(
-	const L3_Object **objects,
-	L3_Index objectCount,
-	L3_Scene *scene);
-
-typedef struct
-{
 	L3_ScreenCoord x;          ///< Screen X coordinate.
 	L3_ScreenCoord y;          ///< Screen Y coordinate.
 
@@ -794,7 +779,7 @@ m/2,  m/2,  m/2,\
 void L3_PIXEL_FUNCTION(L3_PixelInfo *pixel); // forward decl
 int L3_TRIANGLE_FUNCTION(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
 	L3_Index modelIndex, L3_Index triangleIndex);
-int L3_BILLBOARD_FUNCTION(L3_Vec4 point, const L3_Object *billboard);
+int L3_BILLBOARD_FUNCTION(L3_Vec4 point, const L3_Object *billboard, L3_Camera camera);
 int L3_MODEL_FUNCTION(const L3_Object *object);
 
 /** Serves to accelerate linear interpolation for performance-critical
@@ -815,8 +800,7 @@ typedef struct
 	L3_Unit stepScaled;
 } L3_FastLerpState;
 
-
-uint32_t L3_drawScene(L3_Scene scene);
+uint32_t L3_draw(L3_Camera camera, const L3_Object **objects, L3_Index objectCount);
 void L3_clearScreen(L3_COLORTYPE color);
 void L3_plot_line(L3_COLORTYPE color, int x0, int y0, int x1, int y1);
 
@@ -848,4 +832,5 @@ int8_t L3_zTest(L3_ScreenCoord x, L3_ScreenCoord y, L3_Unit depth);
 
 extern L3_COLORTYPE L3_video_buffer[L3_RESOLUTION_X * L3_RESOLUTION_Y];
 extern const L3_Object *engine_global_objects[L3_MAX_OBJECTS];
-extern L3_Scene engine_global_scene;
+extern L3_Index engine_objectCount;
+extern L3_Camera engine_camera;
