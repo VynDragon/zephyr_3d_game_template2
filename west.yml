@@ -20,3 +20,6 @@ manifest:
         name-allowlist:
           - hal_bouffalolab
           - lvgl
+          - cmsis
+          - hal_rpi_pico
+          - cmsis_6

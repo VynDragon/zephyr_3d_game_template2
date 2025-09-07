@@ -81,6 +81,14 @@ typedef struct E_C_AxisPlane_s {
 	bool traverseable;
 } E_C_AxisPlane;
 
+typedef struct E_C_Terrain_s {
+	const L3_Vec4	*points;
+	size_t			points_cnt;
+	L3_Unit			bouncyness;
+	/* determine if we need to be >= than its limit for it to affect */
+	bool traverseable;
+} E_C_Terrain;
+
 #define ENGINE_COLLIDER_NOTHING	0
 #define ENGINE_COLLIDER_CUBE	1
 #define ENGINE_COLLIDER_SPHERE	2
@@ -88,6 +96,7 @@ typedef struct E_C_AxisPlane_s {
 #define ENGINE_COLLIDER_APLANEX	4
 #define ENGINE_COLLIDER_APLANEY	5
 #define ENGINE_COLLIDER_APLANEZ	6
+#define ENGINE_COLLIDER_TERRAIN	7
 
 typedef struct E_Collider_s {
 	union {
@@ -95,6 +104,7 @@ typedef struct E_Collider_s {
 		E_C_Sphere		sphere;
 		E_C_Capsule		capsule;
 		E_C_AxisPlane	axisplane;
+		E_C_Terrain		terrain;
 	};
 	uint8_t			type;
 } E_Collider;
@@ -176,6 +186,7 @@ size_t engine_statics_getcnt(void);
 L3_Camera *engine_getcamera(void);
 
 /* Scene Management */
+Engine_Scene *engine_getscene(void);
 /* Blank slate the engine scene */
 int	engine_cleanscene(void);
 /* Load scene as the engine scene */

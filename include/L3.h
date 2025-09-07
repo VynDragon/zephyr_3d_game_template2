@@ -283,6 +283,11 @@ static inline L3_Unit L3_vec3Dot(L3_Vec4 a, L3_Vec4 b)
 	return (a.x * b.x + a.y * b.y + a.z * b.z) / L3_F;
 }
 
+static inline L3_Unit L3_vec2Dot_xz(L3_Vec4 a, L3_Vec4 b)
+{
+	return (a.x * b.x + a.z * b.z) / L3_F;
+}
+
 /** Computes a reflection direction (typically used e.g. for specular component
 	in Phong illumination). The input vectors must be normalized. The result will
 	be normalized as well. */

@@ -2,15 +2,50 @@
 
 #include "cat2.h"
 
-#include "cube.h"
+#include "models/cube.h"
 
-#include "plane.h"
+#include "models/plane.h"
 
-#include "sphere.h"
+#include "models/sphere.h"
 
 #include "wood.h"
 
+#include "terrain.h"
+
 static const Engine_Object demo_scene[];
+
+static const L3_Vec4 terrain_points[] = {
+	{
+		.x = 5*L3_F,
+		.y = 0,
+		.z = 10*L3_F,
+	},
+	{
+		.x = -5*L3_F,
+		.y = 0,
+		.z = 10*L3_F,
+	},
+	{
+		.x = 5*L3_F,
+		.y = 2048,
+		.z = -10*L3_F,
+	},
+	{
+		.x = -5*L3_F,
+		.y = 2048,
+		.z = -10*L3_F,
+	},
+	{
+		.x = 5*L3_F,
+		.y = 2048,
+		.z = -30*L3_F,
+	},
+	{
+		.x = -5*L3_F,
+		.y = 2048,
+		.z = -30*L3_F,
+	},
+};
 
 static const E_Collider demo_scene_colliders[][1] = {
 	{
@@ -74,6 +109,15 @@ static const E_Collider demo_scene_colliders[][1] = {
 		.type = ENGINE_COLLIDER_APLANEY,
 		},
 	},
+	{
+		{
+		.terrain.bouncyness = 0xFF,
+		.terrain.traverseable = true,
+		.type = ENGINE_COLLIDER_TERRAIN,
+		.terrain.points_cnt = ARRAY_SIZE(terrain_points),
+		.terrain.points = terrain_points,
+		},
+	},
 };
 
 static const Engine_Collisions demo_scene_collisions[] = {
@@ -103,6 +147,10 @@ static const Engine_Collisions demo_scene_collisions[] = {
 	},
 	{
 		.colliders = demo_scene_colliders[6],
+		.colliderCount = 1,
+	},
+	{
+		.colliders = demo_scene_colliders[7],
 		.colliderCount = 1,
 	},
 };
@@ -195,6 +243,7 @@ static const Engine_Object demo_scene[] = {
 		.process = 0,
 		.data = 0,
 		.collisions = &(demo_scene_collisions[3]),
+		.visual.solid_color = 0x90,
 	},
 	{
 		.visual.model = &cube_model,
@@ -215,6 +264,7 @@ static const Engine_Object demo_scene[] = {
 		.view_range = 8192 * L3_F,
 		.visual_type = ENGINE_VISUAL_MODEL,
 		.process = 0,
+		.visual.solid_color = 0x40,
 		.data = 0,
 		.collisions = &(demo_scene_collisions[4]),
 	},
@@ -237,6 +287,7 @@ static const Engine_Object demo_scene[] = {
 		.view_range = 8192 * L3_F,
 		.visual_type = ENGINE_VISUAL_MODEL,
 		.process = 0,
+		.visual.solid_color = 0x40,
 		.data = 0,
 		.collisions = &(demo_scene_collisions[5]),
 	},
@@ -302,6 +353,30 @@ static const Engine_Object demo_scene[] = {
 		.visual.transform.rotation.w = L3_F,
 		.view_range = 8192 * L3_F,
 		.visual_type = ENGINE_VISUAL_MODEL,
+		.visual.solid_color = 0xA0,
+		.process = 0,
+		.data = 0,
+	},
+	{
+		.visual.model = &terrain_model,
+		.visual.config.backfaceCulling = 0,
+		.visual.config.visible = L3_VISIBLE_WIREFRAME,
+		.visual.transform.scale.x = L3_F * 1,
+		.visual.transform.scale.y = L3_F * 1,
+		.visual.transform.scale.z = L3_F * 1,
+		.visual.transform.scale.w = 0,
+		.visual.transform.translation.x = 0,
+		.visual.transform.translation.y = 0,
+		.visual.transform.translation.z = -16*L3_F,
+		.visual.transform.translation.w = L3_F,
+		.visual.transform.rotation.x = 0,
+		.visual.transform.rotation.y = 0,
+		.visual.transform.rotation.z = 0,
+		.visual.transform.rotation.w = L3_F,
+		.view_range = 32768 * L3_F,
+		.visual_type = ENGINE_VISUAL_MODEL,
+		.visual.solid_color = 0xA0,
+		.collisions = &(demo_scene_collisions[7]),
 		.process = 0,
 		.data = 0,
 	},

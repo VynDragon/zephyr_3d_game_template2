@@ -11,7 +11,6 @@
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(engine);
-
 #include "engine.h"
 
 /* ------------------------------------------------------------------------------------------- */
@@ -606,6 +605,99 @@ static void do_collision_axisplane_x(const Engine_Object *collider_object, Engin
 	object->physics.speeds.translation.x = -object->physics.speeds.translation.x * collider->axisplane.bouncyness / L3_F;
 }
 
+/* HOW MANY POINTS IN A TRIANGLE BRO? */
+#define INTRP_NB 3
+
+static size_t get_furthest(L3_Unit *distances)
+{
+	int furthest_saved = 0;
+	size_t furthest_id;
+	for (int j = 0; j < INTRP_NB; j++) {
+		if (distances[j] > furthest_saved)
+		{
+			furthest_saved = distances[j];
+			furthest_id = j;
+		}
+	}
+	return furthest_id;
+}
+
+static L3_Vec4 to_barycentric_2d(L3_Vec4 *t_points, L3_Vec4 point)
+{
+	L3_Vec4 v0, v1, v2, out;
+	v0.x = t_points[1].x - t_points[0].x;
+	v0.z = t_points[1].z - t_points[0].z;
+	v1.x = t_points[2].x - t_points[0].x;
+	v1.z = t_points[2].z - t_points[0].z;
+	v2.x = point.x - t_points[0].x;
+	v2.z = point.z - t_points[0].z;
+	L3_Unit d00 = L3_vec2Dot_xz(v0, v0);
+	L3_Unit d01 = L3_vec2Dot_xz(v0, v1);
+	L3_Unit d11 = L3_vec2Dot_xz(v1, v1);
+	L3_Unit d20 = L3_vec2Dot_xz(v2, v0);
+	L3_Unit d21 = L3_vec2Dot_xz(v2, v1);
+	float denom = (float)d00 * (float)d11 - (float)d01 * (float)d01;
+
+	float v = ((float)d11 * (float)d20 - (float)d01 * (float)d21) / denom;
+	float w = ((float)d00 * (float)d21 - (float)d01 * (float)d20) / denom;
+	float u = 1.0f - v - w;
+	out.x = u * L3_F;
+	out.y = v * L3_F;
+	out.z = w * L3_F;
+	return out;
+
+}
+
+static void do_collision_terrain(const Engine_Object *collider_object, Engine_DObject *object, const E_Collider *collider, L3_Vec4 point)
+{
+	L3_Vec4 pos = collider_object->visual.transform.translation;
+	L3_Vec4 points[3] = {0};
+	L3_Unit distance[3];
+	size_t last_furthest = 0;
+	L3_Unit final_y = 0;
+	L3_Unit furthest;
+
+	distance[0] = 0xFFFFFF;
+	distance[1] = 0xFFFFFF;
+	distance[2] = 0xFFFFFF;
+	//distance[3] = 0xFFFFFF;
+
+	for (int i = 0; i < collider->terrain.points_cnt; i++) {
+		L3_Vec4 t_point = collider->terrain.points[i];
+		t_point.x *= collider_object->visual.transform.scale.x / L3_F;
+		t_point.y *= collider_object->visual.transform.scale.y / L3_F;
+		t_point.z *= collider_object->visual.transform.scale.z / L3_F;
+		t_point.x += pos.x;
+		t_point.y += pos.y;
+		t_point.z += pos.z;
+		//L3_Unit cur_distance = L3_distanceManhattan(point_noy, t_point);
+		L3_Unit cur_distance = sqrt((t_point.x - point.x) * (t_point.x - point.x)
+								+ (t_point.z - point.z) * (t_point.z - point.z));
+
+		if (cur_distance < distance[last_furthest])
+		{
+			distance[last_furthest] = cur_distance;
+			points[last_furthest] = t_point;
+			last_furthest = get_furthest(distance);
+		}
+	}
+
+	L3_Vec4 barycentric = to_barycentric_2d(points, point);
+
+	final_y += (float)points[0].y * (float)barycentric.x / (float)L3_F;
+	final_y += (float)points[1].y * (float)barycentric.y / (float)L3_F;
+	final_y += (float)points[2].y * (float)barycentric.z / (float)L3_F;
+
+	if (point.y > final_y) {
+		return;
+	}
+	if (object->physics.last_transform.translation.y < final_y && collider->axisplane.traverseable) {
+		return;
+	}
+	object->physics.transform->translation.y = final_y;
+	object->physics.speeds.translation.y = -object->physics.speeds.translation.y * collider->axisplane.bouncyness / L3_F;
+}
+
 static void do_collision(Engine_DObject *object, const E_Collider_pair *collider, L3_Vec4 point)
 {
 	switch (collider->collider->type)
@@ -627,6 +719,9 @@ static void do_collision(Engine_DObject *object, const E_Collider_pair *collider
 		break;
 		case ENGINE_COLLIDER_CAPSULE:
 			do_collision_capsule(collider->parent, object, collider->collider, point);
+		break;
+		case ENGINE_COLLIDER_TERRAIN:
+			do_collision_terrain(collider->parent, object, collider->collider, point);
 		break;
 	}
 }
@@ -665,6 +760,11 @@ static void run_all_DObjects(void)
 		}
 		engine_dynamic_objects[i].physics.last_transform = *engine_dynamic_objects[i].physics.transform;
 	}
+}
+
+Engine_Scene *engine_getscene(void)
+{
+	return engine_current_scene;
 }
 
 int	engine_cleanscene(void)

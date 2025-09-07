@@ -12,6 +12,8 @@
 #include <lvgl_mem.h>
 #include <lvgl_zephyr.h>
 
+#include <zephyr/timing/timing.h>
+
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(engine_UI);
 
@@ -22,6 +24,8 @@ static lv_display_t *lvgl_display;
 static lv_style_t engine_default_transparency;
 
 static lv_obj_t *engine_trianglecount;
+static lv_obj_t *engine_FPS;
+static timing_t engine_FPS_last_time;
 
 LV_FONT_DECLARE(four_pixel_font);
 
@@ -74,12 +78,24 @@ int init_engine_UI(void)
 	engine_trianglecount = lv_label_create(lv_screen_active());
 	lv_label_set_text_fmt(engine_trianglecount, "Tris: %d", engine_drawnTriangles);
 	lv_obj_align(engine_trianglecount, LV_ALIGN_TOP_LEFT, 0, 0);
+
+	engine_FPS = lv_label_create(lv_screen_active());
+	lv_label_set_text_fmt(engine_FPS, "FPS: %d", 0);
+	lv_obj_align(engine_FPS, LV_ALIGN_TOP_LEFT, 40, 0);
+
+	engine_FPS_last_time = timing_counter_get();
+
 	return 0;
 }
 
 int engine_render_UI(void)
 {
+	timing_t fps_time = timing_counter_get();
+	uint32_t total_time_us = timing_cycles_to_ns(timing_cycles_get(&engine_FPS_last_time, &fps_time)) / 1000;
+	engine_FPS_last_time = fps_time;
+
 	lv_label_set_text_fmt(engine_trianglecount, "Tris: %d", engine_drawnTriangles);
+	lv_label_set_text_fmt(engine_FPS, "FPS: %d", 1000000 / (total_time_us != 0 ? total_time_us : 1));
 	lv_obj_invalidate(lv_screen_active());
 	lv_timer_handler();
 	return 0;
