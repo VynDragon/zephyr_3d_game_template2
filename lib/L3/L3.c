@@ -552,7 +552,7 @@ L3_Unit L3_sin(L3_Unit x)
 	}
 
 	return positive ? L3_sinTable[x] : -1 * L3_sinTable[x];
-#else
+#elif L3_SIN_METHOD == 1
 	int8_t sign = 1;
 
 	if (x < 0) // odd function
@@ -613,7 +613,7 @@ L3_Unit L3_asin(L3_Unit x)
 	middle *= L3_SIN_TABLE_UNIT_STEP;
 
 	return sign * middle;
-#else
+#elif L3_SIN_METHOD == 1
 	L3_Unit low = -1 * L3_F / 4,
 					high = L3_F / 4,
 					middle;
@@ -2099,9 +2099,11 @@ inline void zephyr_putpixel(L3_PixelInfo *p)
 
 		const L3_Unit *uvs = &(object->model->triangleUVs[p->triangleIndex * 6]);
 
-		uv[0] = abs(L3_interpolateBarycentric(uvs[0], uvs[2], uvs[4], p->barycentric) % L3_TEXTURE_WH);
-		uv[1] = abs(L3_interpolateBarycentric(uvs[1], uvs[3], uvs[5], p->barycentric) % L3_TEXTURE_WH);
-		color = object->model->triangleTextures[object->model->triangleTextureIndex[p->triangleIndex]][(uv[0] >> 0) + (uv[1] >> 0) * L3_TEXTURE_WH];
+		L3_Index tex_index = object->model->triangleTextureIndex[p->triangleIndex];
+
+		uv[0] = abs(L3_interpolateBarycentric(uvs[0], uvs[2], uvs[4], p->barycentric)) / 1 % object->model->triangleTextureWidth[tex_index];
+		uv[1] = abs(L3_interpolateBarycentric(uvs[1], uvs[3], uvs[5], p->barycentric)) / 1 % object->model->triangleTextureHeight[tex_index];
+		color = object->model->triangleTextures[tex_index][(uv[0] >> 0) + (uv[1] >> 0) * object->model->triangleTextureWidth[tex_index]];
 	} else {
 		color = object->solid_color;
 	}
@@ -2131,9 +2133,11 @@ inline int zephyr_drawtriangle(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
 {
 	L3_zephyr_putpixel_current_render_mode = engine_global_objects[objectIndex]->config.visible;
 	if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_WIREFRAME) {
-		L3_plot_line(255, point0.x, point0.y, point1.x, point1.y);
-		L3_plot_line(255, point2.x, point2.y, point1.x, point1.y);
-		L3_plot_line(255, point2.x, point2.y, point0.x, point0.y);
+		L3_COLORTYPE color = engine_global_objects[objectIndex]->solid_color;
+		color = MIN(255, color + 16);
+		L3_plot_line(color, point0.x, point0.y, point1.x, point1.y);
+		L3_plot_line(color, point2.x, point2.y, point1.x, point1.y);
+		L3_plot_line(color, point2.x, point2.y, point0.x, point0.y);
 		if (!(L3_zephyr_putpixel_current_render_mode & ~L3_VISIBLE_WIREFRAME))
 			return 0;
 	}

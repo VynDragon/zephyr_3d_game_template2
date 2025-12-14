@@ -91,7 +91,7 @@ Possible values:
 2: Use reduced-size z-buffer (of bytes). This is fast and somewhat accurate,
 	but inaccuracies can occur and a considerable amount of memory is
 	needed. */
-#define L3_Z_BUFFER 1
+#define L3_Z_BUFFER 2
 
 /** Whether to use stencil buffer for drawing -- with this a pixel that would
 be resterized over an already rasterized pixel (within a frame) will be
@@ -154,7 +154,7 @@ likely be a tiny bit faster, but artifacts can occur for bigger tris, while
 higher values can fix this -- in theory all higher values will have the same
 speed (it is a shift value), but it mustn't be too high to prevent
 overflow. */
-#define L3_FAST_LERP_QUALITY 11
+#define L3_FAST_LERP_QUALITY 10
 
 /** Units of measurement in 3D space. There is L3_FRACTIONS_PER_UNIT in one
 spatial unit. By dividing the unit into fractions we effectively achieve a
@@ -457,7 +457,9 @@ typedef struct
 	L3_Index triangleCount;
 	const L3_Unit *triangleUVs;
 	const L3_Index *triangleTextureIndex;
-	const L3_Unit **triangleTextures;
+	const L3_COLORTYPE **triangleTextures;
+	const L3_Unit *triangleTextureWidth;
+	const L3_Unit *triangleTextureHeight;
 } L3_Model3D;
 
 typedef struct

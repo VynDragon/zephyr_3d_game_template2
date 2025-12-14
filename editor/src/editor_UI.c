@@ -143,6 +143,10 @@ static void add_obj(lv_event_t * e)
 		forward.y += camera->transform.translation.y;
 		forward.z += camera->transform.translation.z;
 
+		forward.x = (forward.x >> 9) << 9;
+		forward.y = (forward.y >> 10) << 10;
+		forward.z = (forward.z >> 9) << 9;
+
 		L3_transform3DSet(forward.x, forward.y, forward.z,0,0,0,L3_F,L3_F,L3_F,&(engine_obj->visual.transform));
 		if (engine_obj->collisions != NULL) {
 		}
@@ -650,6 +654,29 @@ static void main_key(struct input_event *evt, void *user_data)
 		if (!evt->value)
 			update_selection();
 	}
+
+	if (evt->type == INPUT_EV_KEY && selected_object!= NULL) {
+		if (!evt->value)
+			switch(evt->code) {
+				case INPUT_KEY_J:
+					selected_object->visual.transform.translation.x += L3_F;
+					update_object_edit();
+				break;
+				case INPUT_KEY_L:
+					selected_object->visual.transform.translation.x -= L3_F;
+					update_object_edit();
+				break;
+				case INPUT_KEY_I:
+					selected_object->visual.transform.translation.z += L3_F;
+					update_object_edit();
+				break;
+				case INPUT_KEY_K:
+					selected_object->visual.transform.translation.z -= L3_F;
+					update_object_edit();
+				break;
+			}
+	}
+
 	if (evt->type == INPUT_EV_KEY && object_edit_data.focused != NULL) {
 		if (!evt->value)
 			switch(evt->code) {

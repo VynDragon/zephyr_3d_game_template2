@@ -28,7 +28,7 @@ int ENGINE_BLIT_FUNCTION(L3_COLORTYPE *buffer, uint16_t size_x, uint16_t size_y)
 #define ENGINE_MAX_PARTICLES	0x100
 
 /* do product to determine if object is behind camera limit */
-#define ENGINE_REAR_OBJECT_CUTOFF 1 * L3_F
+#define ENGINE_REAR_OBJECT_CUTOFF 8 * L3_F
 
 #if DT_ZEPHYR_DISPLAYS_COUNT > 1
 #warning UI Display may end up being wrong, display > 1

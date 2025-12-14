@@ -12,7 +12,9 @@ parser.add_argument('filename_out')
 parser.add_argument('--scale', '-s', default=512, type=int)
 parser.add_argument('--name', '-n', default=None, type=str)
 parser.add_argument('--backface', '-bf', default=1, type=int, help="Set backface culling (0,1,2)")
-TEXSQUARE_SIZE = 32
+parser.add_argument('--texture_width', '-tw', default=32, type=int, help="Texture width")
+parser.add_argument('--texture_height', '-th', default=32, type=int, help="Texture height")
+parser.add_argument('--texture_name', '-tn', default=None, type=str, help="Override Textures names")
 
 args = parser.parse_args()
 
@@ -26,6 +28,8 @@ data_vertices_name = data_name + "_vertices"
 #data_polys_name = data_name + "_polys"
 data_index_name = data_name + "_indexes"
 data_texture_name = data_name + "_textures"
+data_texture_name_width = data_name + "_textures_width"
+data_texture_name_height = data_name + "_textures_height"
 data_uv_name = data_name + "_UVs"
 data_texindex_name = data_name + "texindex"
 data_model_name = data_name + "_model"
@@ -56,18 +60,31 @@ index = 0
 for name, value in object_in.materials.items():
 	if value.texture:
 		tex = Image.open(value.texture.find())
-		tex = tex.resize((TEXSQUARE_SIZE, TEXSQUARE_SIZE))
+		tex = tex.resize((args.texture_width, args.texture_height))
 		tex = tex.convert("L")
-		file_out.write("static const L3_Unit " +  data_name + name + "texturedata[" + str(TEXSQUARE_SIZE * TEXSQUARE_SIZE) + "] = {\n")
+		file_out.write("static const L3_COLORTYPE " +  data_name + name + "texturedata[" + str(args.texture_width * args.texture_height) + "] = {\n")
 		for p in list(tex.getdata()):
 			file_out.write(str(p) + ",")
 		file_out.write("};\n")
 		textures[data_name + name + "texturedata"] = index
 		index = index +1
 
-file_out.write("static const L3_Unit *" +  data_texture_name + "[] = {\n")
+file_out.write("static const L3_COLORTYPE *" +  data_texture_name + "[] = {\n")
 for i, n in textures.items():
-	file_out.write(i + ",\n")
+	if args.texture_name != None:
+		file_out.write(args.texture_name + ",\n")
+	else:
+		file_out.write(i + ",\n")
+file_out.write("};\n")
+
+file_out.write("static const L3_Unit " + data_texture_name_width + "[] = {\n")
+for i, n in textures.items():
+	file_out.write(str(args.texture_width) + ",\n")
+file_out.write("};\n")
+
+file_out.write("static const L3_Unit " + data_texture_name_height + "[] = {\n")
+for i, n in textures.items():
+	file_out.write(str(args.texture_height) + ",\n")
 file_out.write("};\n")
 
 file_out.write("static const L3_Unit " +  data_uv_name + "[] = {\n")
@@ -76,9 +93,10 @@ for mesh in object_in.mesh_list:
 		face0uv = (mesh.materials[0].vertices[faceid * 5 * 3], mesh.materials[0].vertices[faceid * 5 * 3+ 1])
 		face1uv = (mesh.materials[0].vertices[faceid * 5 * 3 + 5], mesh.materials[0].vertices[faceid * 5 * 3 + 6])
 		face2uv = (mesh.materials[0].vertices[faceid * 5 * 3 + 10], mesh.materials[0].vertices[faceid * 5 * 3 + 11])
-		file_out.write(str(int(face0uv[0] * TEXSQUARE_SIZE)) + ", " + str(int(face0uv[1] * TEXSQUARE_SIZE)) + ",\n")
-		file_out.write(str(int(face1uv[0] * TEXSQUARE_SIZE)) + ", " + str(int(face1uv[1] * TEXSQUARE_SIZE)) + ",\n")
-		file_out.write(str(int(face2uv[0] * TEXSQUARE_SIZE)) + ", " + str(int(face2uv[1] * TEXSQUARE_SIZE)) + ",\n")
+		# with fix for UV being the wrong way for some reason
+		file_out.write(str(int(face0uv[0] * args.texture_width)) + ", " + str(int(args.texture_height - face0uv[1] * args.texture_height)) + ",\n")
+		file_out.write(str(int(face1uv[0] * args.texture_width)) + ", " + str(int(args.texture_height - face1uv[1] * args.texture_height)) + ",\n")
+		file_out.write(str(int(face2uv[0] * args.texture_width)) + ", " + str(int(args.texture_height - face2uv[1] * args.texture_height)) + ",\n")
 file_out.write("};\n")
 
 file_out.write("static const L3_Index " +  data_texindex_name + "[] = {\n")
@@ -100,6 +118,8 @@ file_out.write(".triangles = " + data_index_name + ",\n")
 file_out.write(".triangleTextures = " + data_texture_name + ",\n")
 file_out.write(".triangleUVs = " + data_uv_name + ",\n")
 file_out.write(".triangleTextureIndex = " + data_texindex_name + ",\n")
+file_out.write(".triangleTextureWidth = " + data_texture_name_width + ",\n")
+file_out.write(".triangleTextureHeight = " + data_texture_name_height + ",\n")
 file_out.write("};\n")
 
 file_out.write("static const L3_Object " +  data_name + " = {\n")

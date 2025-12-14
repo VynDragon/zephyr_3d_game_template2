@@ -121,6 +121,8 @@ __attribute__((weak)) int engine_render_hook(void) {
 	return 0;
 }
 
+static uint8_t render_delayed_count = 0;
+
 static void render_function(void *, void *, void *)
 {
 #if	CONFIG_LOG_PERFORMANCE
@@ -130,7 +132,10 @@ static void render_function(void *, void *, void *)
 	k_timepoint_t timing = L3_FPS_TIMEPOINT(CONFIG_TARGET_RENDER_FPS);
 
 	while (1) {
-		timing = L3_FPS_TIMEPOINT(CONFIG_TARGET_RENDER_FPS);
+		if (render_delayed_count < CONFIG_TARGET_RENDER_FPS) {
+			timing = L3_FPS_TIMEPOINT(CONFIG_TARGET_RENDER_FPS - render_delayed_count);
+		} else
+			timing = L3_FPS_TIMEPOINT(CONFIG_TARGET_RENDER_FPS);
 #if	CONFIG_LOG_PERFORMANCE
 		start_time = timing_counter_get();
 #endif
@@ -162,6 +167,13 @@ static void render_function(void *, void *, void *)
 		LOG_INF("display us:%u render us:%u render fps: %u", draw_time_us, render_time_us, 1000000 / (render_time_us != 0 ? render_time_us : 1));
 		LOG_INF("rendered %u Polygons, %u polygons per second", engine_drawnTriangles, engine_drawnTriangles * 1000000 / (render_time_us != 0 ? render_time_us : 1));
 #endif
+		if (sys_timepoint_expired(timing)) {
+			render_delayed_count+=4;
+		}
+		else if (render_delayed_count > 0)
+		{
+			render_delayed_count--;
+		}
 		while (!sys_timepoint_expired(timing)) {
 			k_sleep(K_NSEC(100));
 			k_yield();
