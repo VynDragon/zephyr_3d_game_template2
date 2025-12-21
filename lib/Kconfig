@@ -3,5 +3,13 @@ config RENDER_THREAD_STACK
 	default 4096
 
 config PROCESS_THREAD_STACK
-	int "size of render thread's stack size"
+	int "size of processing thread's stack size"
 	default 2048
+
+config BLIT_THREAD_STACK
+	int "size of blitting thread's stack size"
+	default 2048
+
+config BLIT_THREAD
+	bool "Blit in separate thread"
+	default y

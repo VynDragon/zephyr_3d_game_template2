@@ -12,11 +12,11 @@
 
 #include "engine.h"
 
-#include "cube.h"
+#include "models/cube.h"
 
-#include "plane.h"
+#include "models/plane.h"
 
-#include "sphere.h"
+#include "models/sphere.h"
 
 #define ENUMERATE_DISPLAY_DEVS(node_id, prop, idx) DEVICE_DT_GET(DT_PROP_BY_IDX(node_id, prop, idx)),
 

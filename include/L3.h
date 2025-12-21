@@ -16,8 +16,6 @@
 
 #define L3_COLORTYPE uint8_t
 
-#define L3_TEXTURE_WH 32
-
 #define L3_FPS_TIMEPOINT(fps) sys_timepoint_calc(K_MSEC(1000 / fps))
 
 #define L3_MAX_OBJECTS 0x2FF
@@ -130,13 +128,16 @@ native integer. */
 /** Says which method should be used for computing sin/cos functions, possible
 values: 0 (lookup table, takes more program memory), 1 (Bhaskara's
 approximation, slower). This may cause the trigonometric functions give
-slightly different results. */
-#define L3_SIN_METHOD 0
+slightly different results.
+2: math.h sin
+3: sin lookup that doesnt fail stupidly
+*/
+#define L3_SIN_METHOD 3
 
 /** For L3_PERSPECTIVE_CORRECTION == 2, this specifies after how many pixels
 PC is recomputed. Should be a power of two to keep up the performance.
 Smaller is nicer but slower. */
-#define L3_PC_APPROX_LENGTH 96
+#define L3_PC_APPROX_LENGTH 64
 
 /** For L3_Z_BUFFER == 2 this sets the reduced z-buffer granularity. */
 #define L3_REDUCED_Z_BUFFER_GRANULARITY 5

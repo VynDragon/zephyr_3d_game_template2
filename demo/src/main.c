@@ -28,7 +28,7 @@ LOG_MODULE_REGISTER(main);
 
 static const struct device *display_device = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
 
-int blit_display(L3_COLORTYPE *buffer, uint16_t size_x, uint16_t size_y)
+int blit_display(L3_COLORTYPE *buffer, uint16_t x, uint16_t y, uint16_t size_x, uint16_t size_y)
 {
 	struct display_buffer_descriptor buf_desc;
 	buf_desc.buf_size = size_x * size_y;
@@ -52,9 +52,8 @@ int blit_display(L3_COLORTYPE *buffer, uint16_t size_x, uint16_t size_y)
 		display_write(display_device, 0, j, &buf_desc, buf);
 	}*/
 
+	display_write(display_device, x, y, &buf_desc, buffer);
 
-
-	display_write(display_device, 0, 0, &buf_desc, buffer);
 	return 0;
 }
 
@@ -211,8 +210,6 @@ int main()
 		}
 	}
 
-	display_set_contrast(engine_display_devices[0], 255);
-
 	timing_init();
 	timing_start();
 
@@ -220,7 +217,6 @@ int main()
 	display_blanking_on(display_device);
 	//display_set_pixel_format(display_device, PIXEL_FORMAT_L_8);
 	display_blanking_off(display_device);
-	//display_set_contrast(display_device, 32);
 
 	init_engine(&process);
 

@@ -44,8 +44,8 @@ static void default_scene_pf(Engine_Scene *self)
 	struct Default_scene_data *scene_data = (struct Default_scene_data*)self->data;
 	if (scene_data->player != 0) {
 		scene_data->player->visual.transform.rotation.y += scene_data->controls.vy;
-		if (scene_data->player->visual.transform.rotation.y > 256) scene_data->player->visual.transform.rotation.y = -256;
-		if (scene_data->player->visual.transform.rotation.y < -256) scene_data->player->visual.transform.rotation.y = 256;
+		if (scene_data->player->visual.transform.rotation.y > L3_F/2) scene_data->player->visual.transform.rotation.y = -L3_F/2;
+		if (scene_data->player->visual.transform.rotation.y < -L3_F/2) scene_data->player->visual.transform.rotation.y = L3_F/2;
 		scene_data->player_xrot += scene_data->controls.vx;
 		L3_Unit x = (scene_data->controls.z * L3_cos(scene_data->player->visual.transform.rotation.y + L3_F/4)) / L3_F;
 		L3_Unit z = (scene_data->controls.z * L3_sin(scene_data->player->visual.transform.rotation.y + L3_F/4)) / L3_F;

@@ -1,0 +1,13 @@
+&sdl_dc {
+	compatible = "zephyr,sdl-dc";
+	height = <512>;
+	width = <1024>;
+};
+
+/ {
+	soc {
+		evdev {
+			compatible = "zephyr,native-linux-evdev";
+		};
+	};
+};

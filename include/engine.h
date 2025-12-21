@@ -12,7 +12,7 @@
 #endif
 
 #define ENGINE_BLIT_FUNCTION blit_display
-int ENGINE_BLIT_FUNCTION(L3_COLORTYPE *buffer, uint16_t size_x, uint16_t size_y);
+int ENGINE_BLIT_FUNCTION(L3_COLORTYPE *buffer, uint16_t x, uint16_t y, uint16_t size_x, uint16_t size_y);
 
 #define E_SPEED(speed) (speed / CONFIG_TARGET_PROCESS_FPS)
 /* returns a lifespan from value in seconds */
@@ -26,6 +26,8 @@ int ENGINE_BLIT_FUNCTION(L3_COLORTYPE *buffer, uint16_t size_x, uint16_t size_y)
 #define ENGINE_MAX_COLLIDERS	 0xFF
 #define ENGINE_MAX_DOBJECTS		0xF
 #define ENGINE_MAX_PARTICLES	0x100
+
+#define ENGINE_MAX_BLIT_QUEUED	6
 
 /* do product to determine if object is behind camera limit */
 #define ENGINE_REAR_OBJECT_CUTOFF 8 * L3_F

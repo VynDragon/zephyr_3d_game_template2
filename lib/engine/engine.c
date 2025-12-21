@@ -37,6 +37,9 @@ uint32_t					engine_dynamic_objects_count = 0;
 
 K_MUTEX_DEFINE(engine_objects_lock);
 K_MUTEX_DEFINE(engine_render_lock);
+#ifdef CONFIG_BLIT_THREAD
+K_SEM_DEFINE(engine_blit_cnt, 0, ENGINE_MAX_BLIT_QUEUED * 2);
+#endif
 
 static Engine_pf	engine_pf;
 static Engine_Scene	*engine_current_scene = NULL;
@@ -121,19 +124,70 @@ __attribute__((weak)) int engine_render_hook(void) {
 	return 0;
 }
 
+#ifdef CONFIG_BLIT_THREAD
+static void blit_function(void *, void *, void *)
+{
+#if	CONFIG_LOG_PERFORMANCE
+	timing_t start_time, end_time;
+	uint32_t total_time_us;
+#endif
+	uint16_t offset = 0;
+	uint16_t size = L3_RESOLUTION_Y;
+	uint16_t missed_seq = L3_RESOLUTION_Y;
+
+	while (1) {
+
+		k_sem_take(&engine_blit_cnt, K_FOREVER);
+
+#if	CONFIG_LOG_PERFORMANCE
+		start_time = timing_counter_get();
+#endif
+		if (k_sem_count_get(&engine_blit_cnt) * 4 < ENGINE_MAX_BLIT_QUEUED) {
+			missed_seq = L3_RESOLUTION_Y;
+		} else if (k_sem_count_get(&engine_blit_cnt) * 4 > ENGINE_MAX_BLIT_QUEUED) {
+			missed_seq = L3_RESOLUTION_Y / 2;
+		} else if (k_sem_count_get(&engine_blit_cnt) * 2 > ENGINE_MAX_BLIT_QUEUED) {
+			missed_seq = L3_RESOLUTION_Y / 4;
+		} else if (k_sem_count_get(&engine_blit_cnt) > ENGINE_MAX_BLIT_QUEUED) {
+			missed_seq = L3_RESOLUTION_Y / 8;
+		}
+
+		offset += missed_seq;
+		size = missed_seq;
+
+		if (offset >= L3_RESOLUTION_Y) {
+			offset = 0;
+		}
+		if (offset + size > L3_RESOLUTION_Y) {
+			size = L3_RESOLUTION_Y - offset;
+		}
+		ENGINE_BLIT_FUNCTION(L3_video_buffer + offset * L3_RESOLUTION_X, 0, offset, L3_RESOLUTION_X, size);
+#if	CONFIG_LOG_PERFORMANCE
+		end_time = timing_counter_get();
+		total_time_us = timing_cycles_to_ns(timing_cycles_get(&start_time, &end_time)) / 1000;
+		LOG_INF_RATELIMIT_RATE(1000, "blit us: %u ms:%u fps:%u", total_time_us, (total_time_us) / 1000, 1000000 / (total_time_us != 0 ? total_time_us : 1));
+#endif
+	}
+}
+
+#endif
 static uint8_t render_delayed_count = 0;
 
 static void render_function(void *, void *, void *)
 {
 #if	CONFIG_LOG_PERFORMANCE
-	timing_t start_time, end_time, dstart_time, rend_time, rstart_time;
-	uint32_t total_time_us, render_time_us, draw_time_us;
+	timing_t start_time, end_time, rstart_time;
+	uint32_t total_time_us, render_time_us;
 #endif
 	k_timepoint_t timing = L3_FPS_TIMEPOINT(CONFIG_TARGET_RENDER_FPS);
 
 	while (1) {
 		if (render_delayed_count < CONFIG_TARGET_RENDER_FPS) {
-			timing = L3_FPS_TIMEPOINT(CONFIG_TARGET_RENDER_FPS - render_delayed_count);
+			if (render_delayed_count >= CONFIG_TARGET_RENDER_FPS) {
+				timing = L3_FPS_TIMEPOINT(1);
+			} else {
+				timing = L3_FPS_TIMEPOINT(CONFIG_TARGET_RENDER_FPS - render_delayed_count);
+			}
 		} else
 			timing = L3_FPS_TIMEPOINT(CONFIG_TARGET_RENDER_FPS);
 #if	CONFIG_LOG_PERFORMANCE
@@ -152,20 +206,23 @@ static void render_function(void *, void *, void *)
 		engine_render_UI();
 		engine_render_hook();
 		k_mutex_unlock(&engine_render_lock);
-
-#if	CONFIG_LOG_PERFORMANCE
-		rend_time = timing_counter_get();
-		dstart_time = timing_counter_get();
+#ifdef CONFIG_BLIT_THREAD
+		if (k_sem_count_get(&engine_blit_cnt) > ENGINE_MAX_BLIT_QUEUED) {
+			render_delayed_count+=CONFIG_TARGET_RENDER_FPS/4;
+			LOG_ERR_RATELIMIT_RATE(2000, "Blit cant keep up!");
+		}
+		k_sem_give(&engine_blit_cnt);
+#else
+		ENGINE_BLIT_FUNCTION(L3_video_buffer, 0, 0, L3_RESOLUTION_X, L3_RESOLUTION_Y);
 #endif
-		ENGINE_BLIT_FUNCTION(L3_video_buffer, L3_RESOLUTION_X, L3_RESOLUTION_Y);
+
 #if	CONFIG_LOG_PERFORMANCE
 		end_time = timing_counter_get();
 		total_time_us = timing_cycles_to_ns(timing_cycles_get(&start_time, &end_time)) / 1000;
-		render_time_us = timing_cycles_to_ns(timing_cycles_get(&rstart_time, &rend_time)) / 1000;
-		draw_time_us = timing_cycles_to_ns(timing_cycles_get(&dstart_time, &end_time)) / 1000;
-		LOG_INF("total us: %u ms:%u fps:%u", total_time_us, (total_time_us) / 1000, 1000000 / (total_time_us != 0 ? total_time_us : 1));
-		LOG_INF("display us:%u render us:%u render fps: %u", draw_time_us, render_time_us, 1000000 / (render_time_us != 0 ? render_time_us : 1));
-		LOG_INF("rendered %u Polygons, %u polygons per second", engine_drawnTriangles, engine_drawnTriangles * 1000000 / (render_time_us != 0 ? render_time_us : 1));
+		render_time_us = timing_cycles_to_ns(timing_cycles_get(&rstart_time, &end_time)) / 1000;
+		LOG_INF_RATELIMIT_RATE(1000, "total render us: %u ms:%u fps:%u", total_time_us, (total_time_us) / 1000, 1000000 / (total_time_us != 0 ? total_time_us : 1));
+		LOG_INF_RATELIMIT_RATE(1000, "exclusively render us:%u render fps: %u", render_time_us, 1000000 / (render_time_us != 0 ? render_time_us : 1));
+		LOG_INF_RATELIMIT_RATE(1000, "rendered %u Polygons, %u polygons per second", engine_drawnTriangles, engine_drawnTriangles * 1000000 / (render_time_us != 0 ? render_time_us : 1));
 #endif
 		if (sys_timepoint_expired(timing)) {
 			render_delayed_count+=4;
@@ -175,7 +232,7 @@ static void render_function(void *, void *, void *)
 			render_delayed_count--;
 		}
 		while (!sys_timepoint_expired(timing)) {
-			k_sleep(K_NSEC(100));
+			k_sleep(K_USEC(1));
 			k_yield();
 		}
 		/* force unready thread to avoid monopolization of CPU time */
@@ -309,7 +366,7 @@ static void build_render_list(void)
 		}
 	}
 #if	CONFIG_LOG_PERFORMANCE
-	LOG_INF("selected %d objects", o_cnt);
+	//LOG_INF("selected %d objects", o_cnt);
 #endif
 	engine_objectCount = o_cnt;
 }
@@ -382,7 +439,7 @@ static void build_collider_list(void)
 		}
 	}
 #if	CONFIG_LOG_PERFORMANCE
-	LOG_INF("selected %d colliders", engine_colliders_count);
+	//LOG_INF("selected %d colliders", engine_colliders_count);
 #endif
 }
 
@@ -863,11 +920,11 @@ static void process_function(void *, void *, void *)
 #if	CONFIG_LOG_PERFORMANCE
 		end_time = timing_counter_get();
 		total_time_us = timing_cycles_to_ns(timing_cycles_get(&start_time, &end_time)) / 1000;
-		LOG_INF("total process us: %u ms:%u fps:%u", total_time_us, (total_time_us) / 1000, 1000000 / (total_time_us != 0 ? total_time_us : 1));
+		LOG_INF_RATELIMIT_RATE(1000, "total process us: %u ms:%u fps:%u", total_time_us, (total_time_us) / 1000, 1000000 / (total_time_us != 0 ? total_time_us : 1));
 #endif
 
 		while (!sys_timepoint_expired(timing)) {
-			k_sleep(K_NSEC(100));
+			k_sleep(K_USEC(1));
 			k_yield();
 		}
 		/* force unready thread to avoid monopolization of CPU time */
@@ -888,6 +945,11 @@ void engine_statics_enabled(bool yes)
 	static_engine_objects_enabled = yes;
 }
 
+#ifdef CONFIG_BLIT_THREAD
+static struct k_thread blit_thread;
+K_THREAD_STACK_DEFINE(blit_thread_stack, CONFIG_BLIT_THREAD_STACK);
+#endif
+
 static struct k_thread render_thread;
 K_THREAD_STACK_DEFINE(render_thread_stack, CONFIG_RENDER_THREAD_STACK);
 
@@ -907,6 +969,11 @@ int init_engine(Engine_pf pf)
 		return ret;
 	}
 
+#ifdef CONFIG_BLIT_THREAD
+	k_thread_create(&blit_thread, blit_thread_stack, CONFIG_BLIT_THREAD_STACK,
+                blit_function, NULL, NULL, NULL,
+                30, 0, K_NO_WAIT);
+#endif
 
 	k_thread_create(&render_thread, render_thread_stack, CONFIG_RENDER_THREAD_STACK,
                 render_function, NULL, NULL, NULL,

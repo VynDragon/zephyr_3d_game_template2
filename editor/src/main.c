@@ -15,18 +15,16 @@ LOG_MODULE_REGISTER(main);
 
 #include "engine.h"
 
-#include "building.h"
-
 L3_COLORTYPE blit_lvgl_buffer[L3_RESOLUTION_X * L3_RESOLUTION_Y];
 
-int blit_display(L3_COLORTYPE *buffer, uint16_t size_x, uint16_t size_y)
+int blit_display(L3_COLORTYPE *buffer, uint16_t x, uint16_t y, uint16_t size_x, uint16_t size_y)
 {	/*struct display_buffer_descriptor buf_desc;
 	buf_desc.buf_size = size_x * size_y;
 		buf_desc.width = size_x;
 	buf_desc.height = size_y;
 	buf_desc.pitch = size_x;
 		display_write(display_devices[0], 0, 0, &buf_desc, buffer);*/
-	memcpy(blit_lvgl_buffer, buffer, size_x*size_y);
+	memcpy(blit_lvgl_buffer + x + y * L3_RESOLUTION_X, buffer, size_x*size_y);
 	return 0;
 }
 
@@ -47,10 +45,10 @@ static void process() {
 	if (player != 0) {
 		player->visual.transform.rotation.y += controls.vy;
 		player->visual.transform.rotation.x += controls.vx;
-		if (player->visual.transform.rotation.y > 256) player->visual.transform.rotation.y = -256;
-		if (player->visual.transform.rotation.y < -256) player->visual.transform.rotation.y = 256;
-		if (player->visual.transform.rotation.x > 256) player->visual.transform.rotation.x = -256;
-		if (player->visual.transform.rotation.x < -256) player->visual.transform.rotation.x = 256;
+		if (player->visual.transform.rotation.y > L3_F/2) player->visual.transform.rotation.y = -L3_F/2;
+		if (player->visual.transform.rotation.y < -L3_F/2) player->visual.transform.rotation.y = L3_F/2;
+		if (player->visual.transform.rotation.x > L3_F/2) player->visual.transform.rotation.x = -L3_F/2;
+		if (player->visual.transform.rotation.x < -L3_F/2) player->visual.transform.rotation.x = L3_F/2;
 
 		L3_Vec4 forward = {0, 0, L3_F, L3_F};
 		L3_Vec4 left = {-L3_F, 0, 0, L3_F};
@@ -156,7 +154,6 @@ int main()
 	display_blanking_off(display_devices[0]);
 	display_blanking_off(display_devices[1]);
 	//display_blanking_off(display_devices[2]);
-	//display_set_contrast(display_device, 32);
 
 	init_engine(&process);
 	engine_UI_set_area(0, 0, L3_RESOLUTION_X, L3_RESOLUTION_Y);
