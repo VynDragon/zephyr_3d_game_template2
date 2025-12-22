@@ -1,20 +1,20 @@
 #include <zephyr/dt-bindings/input/keymap.h>
 
-&clk_bclk {
-	divider = <4>;
-};
-
-&clk_root {
-	clocks = <&clk_wifipll BL61X_WIFIPLL_OC_480MHz>;
-};
-
-&clk_flash {
-		clocks = <&clk_bclk>;
-		// clock-invert;
-		read-delay = <1>;
-		divider = <1>;
-		//rx-clock-invert;
-};
+// &clk_bclk {
+// 	divider = <4>;
+// };
+//
+// &clk_root {
+// 	clocks = <&clk_wifipll BL61X_WIFIPLL_OC_480MHz>;
+// };
+//
+// &clk_flash {
+// 		clocks = <&clk_bclk>;
+// 		// clock-invert;
+// 		read-delay = <1>;
+// 		divider = <1>;
+// 		//rx-clock-invert;
+// };
 
 &pinctrl {
 	dbi0_default: dbi0_default {
@@ -40,7 +40,7 @@
 
 	ssd1327: ssd1327@0 {
 		compatible = "solomon,ssd1327fb";
-		mipi-max-frequency = <10000000>;
+		mipi-max-frequency = <20000000>;
 		reg = <0>;
 		width = <128>;
 		height = <64>;

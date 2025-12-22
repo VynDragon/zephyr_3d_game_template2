@@ -9,9 +9,11 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include <zephyr/logging/log_ctrl.h>
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(engine);
 #include "engine.h"
+#include "filters.h"
 
 /* ------------------------------------------------------------------------------------------- */
 
@@ -21,6 +23,8 @@ static uint32_t				engine_objects_count = 0;
 static const Engine_Object	*static_engine_objects;
 static uint32_t				static_engine_objects_count;
 static bool					static_engine_objects_enabled = false;
+static const Filter_f		*static_engine_filters;
+size_t						static_engine_filters_count;
 
 typedef struct E_Collider_pair_t {
 	const E_Collider	*collider;
@@ -133,6 +137,7 @@ static void blit_function(void *, void *, void *)
 #endif
 	uint16_t offset = 0;
 	uint16_t size = L3_RESOLUTION_Y;
+	uint16_t size_filter_ui;
 	uint16_t missed_seq = L3_RESOLUTION_Y;
 
 	while (1) {
@@ -161,7 +166,12 @@ static void blit_function(void *, void *, void *)
 		if (offset + size > L3_RESOLUTION_Y) {
 			size = L3_RESOLUTION_Y - offset;
 		}
-		ENGINE_BLIT_FUNCTION(L3_video_buffer + offset * L3_RESOLUTION_X, 0, offset, L3_RESOLUTION_X, size);
+		size_filter_ui = size;
+		if (offset + size_filter_ui > L3_RESOLUTION_Y - 4) {
+			size_filter_ui = L3_RESOLUTION_Y - offset - 4;
+		}
+		filter_apply_all(0, offset, L3_RESOLUTION_X, size_filter_ui, static_engine_filters, static_engine_filters_count, NULL);
+		ENGINE_BLIT_FUNCTION(&(L3_video_buffer[offset * L3_RESOLUTION_X]), 0, offset, L3_RESOLUTION_X, size);
 #if	CONFIG_LOG_PERFORMANCE
 		end_time = timing_counter_get();
 		total_time_us = timing_cycles_to_ns(timing_cycles_get(&start_time, &end_time)) / 1000;
@@ -171,7 +181,7 @@ static void blit_function(void *, void *, void *)
 }
 
 #endif
-static uint8_t render_delayed_count = 0;
+static uint64_t render_delayed_count = 0;
 
 static void render_function(void *, void *, void *)
 {
@@ -183,13 +193,11 @@ static void render_function(void *, void *, void *)
 
 	while (1) {
 		if (render_delayed_count < CONFIG_TARGET_RENDER_FPS) {
-			if (render_delayed_count >= CONFIG_TARGET_RENDER_FPS) {
-				timing = L3_FPS_TIMEPOINT(1);
-			} else {
-				timing = L3_FPS_TIMEPOINT(CONFIG_TARGET_RENDER_FPS - render_delayed_count);
-			}
-		} else
-			timing = L3_FPS_TIMEPOINT(CONFIG_TARGET_RENDER_FPS);
+			timing = L3_FPS_TIMEPOINT((uint64_t)CONFIG_TARGET_RENDER_FPS - render_delayed_count);
+		} else {
+			render_delayed_count = (uint64_t)CONFIG_TARGET_RENDER_FPS;
+			timing = L3_FPS_TIMEPOINT((uint64_t)1);
+		}
 #if	CONFIG_LOG_PERFORMANCE
 		start_time = timing_counter_get();
 #endif
@@ -208,8 +216,8 @@ static void render_function(void *, void *, void *)
 		k_mutex_unlock(&engine_render_lock);
 #ifdef CONFIG_BLIT_THREAD
 		if (k_sem_count_get(&engine_blit_cnt) > ENGINE_MAX_BLIT_QUEUED) {
-			render_delayed_count+=CONFIG_TARGET_RENDER_FPS/4;
-			LOG_ERR_RATELIMIT_RATE(2000, "Blit cant keep up!");
+			render_delayed_count+=2;
+			//LOG_ERR_RATELIMIT_RATE(2000, "Blit cant keep up!");
 		}
 		k_sem_give(&engine_blit_cnt);
 #else
@@ -225,7 +233,7 @@ static void render_function(void *, void *, void *)
 		LOG_INF_RATELIMIT_RATE(1000, "rendered %u Polygons, %u polygons per second", engine_drawnTriangles, engine_drawnTriangles * 1000000 / (render_time_us != 0 ? render_time_us : 1));
 #endif
 		if (sys_timepoint_expired(timing)) {
-			render_delayed_count+=4;
+			render_delayed_count+=2;
 		}
 		else if (render_delayed_count > 0)
 		{
@@ -233,10 +241,8 @@ static void render_function(void *, void *, void *)
 		}
 		while (!sys_timepoint_expired(timing)) {
 			k_sleep(K_USEC(1));
-			k_yield();
 		}
 		/* force unready thread to avoid monopolization of CPU time */
-		k_sleep(K_NSEC(10));
 		k_yield();
 	}
 }
@@ -862,6 +868,8 @@ int	engine_cleanscene(void)
 	static_engine_objects = NULL;
 	static_engine_objects_count = 0;
 	static_engine_objects_enabled = false;
+	static_engine_filters = NULL;
+	static_engine_filters_count = 0;
 	engine_dynamic_objects_count = 0;
 	for (int i = 0; i < ENGINE_MAX_PARTICLES; i++) {
 		engine_particles[i].life  = 0;
@@ -876,6 +884,10 @@ int	engine_initscene(Engine_Scene *scene)
 		static_engine_objects = scene->statics;
 		static_engine_objects_count = scene->statics_count;
 		static_engine_objects_enabled = true;
+	}
+	if (scene->filters_count > 0) {
+		static_engine_filters_count = scene->filters_count;
+		static_engine_filters = scene->filters;
 	}
 	(*scene->inf)(scene->data);
 	engine_current_scene = scene;
@@ -969,19 +981,19 @@ int init_engine(Engine_pf pf)
 		return ret;
 	}
 
+	k_thread_create(&render_thread, render_thread_stack, CONFIG_RENDER_THREAD_STACK,
+					render_function, NULL, NULL, NULL,
+					15, 0, K_NO_WAIT);
+
 #ifdef CONFIG_BLIT_THREAD
 	k_thread_create(&blit_thread, blit_thread_stack, CONFIG_BLIT_THREAD_STACK,
-                blit_function, NULL, NULL, NULL,
-                30, 0, K_NO_WAIT);
+					blit_function, NULL, NULL, NULL,
+					50, 0, K_NO_WAIT);
 #endif
 
-	k_thread_create(&render_thread, render_thread_stack, CONFIG_RENDER_THREAD_STACK,
-                render_function, NULL, NULL, NULL,
-                15, 0, K_NO_WAIT);
-
 	k_thread_create(&process_thread, process_thread_stack, CONFIG_PROCESS_THREAD_STACK,
-                process_function, NULL, NULL, NULL,
-                5, 0, K_NO_WAIT);
+					process_function, NULL, NULL, NULL,
+					5, 0, K_NO_WAIT);
 
 	return 0;
 }

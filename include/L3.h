@@ -16,7 +16,17 @@
 
 #define L3_COLORTYPE uint8_t
 
-#define L3_FPS_TIMEPOINT(fps) sys_timepoint_calc(K_MSEC(1000 / fps))
+
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
+/* fucking idiot gcc */
+static k_timepoint_t inline L3_FPS_TIMEPOINT(uint64_t fps)
+{
+	return sys_timepoint_calc(K_MSEC(1000 / fps));
+}
+
+#pragma GCC pop_options
+
 
 #define L3_MAX_OBJECTS 0x2FF
 
@@ -90,6 +100,14 @@ Possible values:
 	but inaccuracies can occur and a considerable amount of memory is
 	needed. */
 #define L3_Z_BUFFER 2
+
+#if L3_Z_BUFFER == 2
+#define L3_ZBUFTYPE uint8_t
+#elif L3_Z_BUFFER == 1
+#define L3_ZBUFTYPE L3_Unit
+#else
+#define L3_ZBUFTYPE L3_Unit
+#endif
 
 /** Whether to use stencil buffer for drawing -- with this a pixel that would
 be resterized over an already rasterized pixel (within a frame) will be
@@ -210,6 +228,10 @@ typedef
 
 #if L3_NEAR <= 0
 #define L3_NEAR 1 // Can't be <= 0.
+#endif
+
+#ifndef L3_MAX_PIXELS
+#define L3_MAX_PIXELS L3_RESOLUTION_X * L3_RESOLUTION_Y
 #endif
 
 /** Vector that consists of four scalars and can represent homogenous
@@ -839,6 +861,9 @@ int8_t L3_zTest(L3_ScreenCoord x, L3_ScreenCoord y, L3_Unit depth);
 };
 
 extern L3_COLORTYPE L3_video_buffer[L3_RESOLUTION_X * L3_RESOLUTION_Y];
+#if L3_Z_BUFFER
+extern L3_ZBUFTYPE L3_zBuffer[L3_MAX_PIXELS];
+#endif
 extern const L3_Object *engine_global_objects[L3_MAX_OBJECTS];
 extern L3_Index engine_objectCount;
 extern L3_Camera engine_camera;

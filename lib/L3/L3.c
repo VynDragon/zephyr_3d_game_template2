@@ -23,10 +23,6 @@ LOG_MODULE_REGISTER(L3);
 #define L3_PROJECTION_PLANE_HEIGHT\
 	((L3_RESOLUTION_Y * L3_F * 2) / L3_RESOLUTION_X)
 
-#ifndef L3_MAX_PIXELS
-#define L3_MAX_PIXELS L3_RESOLUTION_X * L3_RESOLUTION_Y
-#endif
-
 #if L3_SORT != 0
 typedef struct
 {
@@ -42,41 +38,24 @@ uint16_t L3_sortArrayLength;
 /* Data ------------------------------------------------------------------------------------------*/
 
 #if DT_HAS_CHOSEN(zephyr_dtcm)
-#define L3_RENDER_BUFFER __GENERIC_SECTION(DTCM) __aligned(32)
+#define L3_RENDER_BUFFER __GENERIC_SECTION(DTCM) __aligned(128)
 #elif DT_HAS_CHOSEN(zephyr_itcm)
-#define L3_RENDER_BUFFER __GENERIC_SECTION(ITCM) __aligned(32)
+#define L3_RENDER_BUFFER __GENERIC_SECTION(ITCM) __aligned(128)
 #else
-#define L3_RENDER_BUFFER __aligned(32)
+#define L3_RENDER_BUFFER __aligned(128)
 #endif
 
-#if DT_HAS_CHOSEN(zephyr_dtcm)
-	L3_RENDER_BUFFER L3_COLORTYPE L3_video_buffer[L3_RESOLUTION_X * L3_RESOLUTION_Y];
-/* why not? After all... */
-#elif DT_HAS_CHOSEN(zephyr_itcm)
-	L3_RENDER_BUFFER L3_COLORTYPE L3_video_buffer[L3_RESOLUTION_X * L3_RESOLUTION_Y];
-#else
-	L3_RENDER_BUFFER L3_COLORTYPE L3_video_buffer[L3_RESOLUTION_X * L3_RESOLUTION_Y];
+L3_RENDER_BUFFER L3_COLORTYPE L3_video_buffer[L3_RESOLUTION_X * L3_RESOLUTION_Y];
+
+#if L3_Z_BUFFER
+L3_RENDER_BUFFER L3_ZBUFTYPE L3_zBuffer[L3_MAX_PIXELS];
 #endif
 
 #if L3_Z_BUFFER == 1
 	#define L3_MAX_DEPTH 2147483647
-#if DT_HAS_CHOSEN(zephyr_dtcm)
-	L3_RENDER_BUFFER L3_Unit L3_zBuffer[L3_MAX_PIXELS];
-#elif DT_HAS_CHOSEN(zephyr_itcm)
-	L3_RENDER_BUFFER L3_Unit L3_zBuffer[L3_MAX_PIXELS];
-#else
-	L3_RENDER_BUFFER L3_Unit L3_zBuffer[L3_MAX_PIXELS];
-#endif
 	#define L3_zBufferFormat(depth) (depth)
 #elif L3_Z_BUFFER == 2
 	#define L3_MAX_DEPTH 255
-#if DT_HAS_CHOSEN(zephyr_dtcm)
-	L3_RENDER_BUFFER uint8_t L3_zBuffer[L3_MAX_PIXELS];
-#elif DT_HAS_CHOSEN(zephyr_itcm)
-	L3_RENDER_BUFFER uint8_t L3_zBuffer[L3_MAX_PIXELS];
-#else
-	L3_RENDER_BUFFER uint8_t L3_zBuffer[L3_MAX_PIXELS];
-#endif
 	#define L3_zBufferFormat(depth)\
 		L3_min(255,(depth) >> L3_REDUCED_Z_BUFFER_GRANULARITY)
 #endif

@@ -20,6 +20,8 @@ LOG_MODULE_REGISTER(main);
 
 #include "map.h"
 
+#include "filters.h"
+
 static const struct device *display_device = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
 
 int blit_display(L3_COLORTYPE *buffer, uint16_t x, uint16_t y, uint16_t size_x, uint16_t size_y)
@@ -69,10 +71,10 @@ static void process() {
 	if (player != 0) {
 		player->visual.transform.rotation.y += controls.vy;
 		player->visual.transform.rotation.x += controls.vx;
-		if (player->visual.transform.rotation.y > 256) player->visual.transform.rotation.y = -256;
-		if (player->visual.transform.rotation.y < -256) player->visual.transform.rotation.y = 256;
-		if (player->visual.transform.rotation.x > 256) player->visual.transform.rotation.x = -256;
-		if (player->visual.transform.rotation.x < -256) player->visual.transform.rotation.x = 256;
+		if (player->visual.transform.rotation.y > L3_F/2) player->visual.transform.rotation.y = -L3_F/2;
+		if (player->visual.transform.rotation.y < -L3_F/2) player->visual.transform.rotation.y = L3_F/2;
+		if (player->visual.transform.rotation.x > L3_F/2) player->visual.transform.rotation.x = -L3_F/2;
+		if (player->visual.transform.rotation.x < -L3_F/2) player->visual.transform.rotation.x = L3_F/2;
 
 		L3_Vec4 forward = {0, 0, L3_F, L3_F};
 		L3_Vec4 left = {-L3_F, 0, 0, L3_F};
@@ -177,6 +179,10 @@ void scene_pf(Engine_Scene *self)
 
 Engine_Scene scene = {0};
 
+static Filter_f default_scene_filters[] = {
+	filter_fixgap,
+};
+
 int main()
 {
 
@@ -204,10 +210,11 @@ int main()
 	scene.pf = scene_pf;
 	scene.statics = map;
 	scene.statics_count = sizeof(map) / sizeof(*map);
+	scene.filters_count = 1,
+	scene.filters = default_scene_filters,
 
 	engine_switchscene(&logo_scene);
 	k_msleep(2000);
-
 
 	engine_switchscene(&scene);
 	engine_statics_enabled(true);

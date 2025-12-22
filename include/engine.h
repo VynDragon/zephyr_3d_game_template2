@@ -52,6 +52,26 @@ typedef void (*Engine_pf)(void);
 /* function to initialize a scene (spawn dynamic objects etc) */
 typedef void (*Engine_Scene_inf)(void *data);
 
+/* function given each pixel in buffer every frame, z stuffs might be nil,
+ * function allowed to browse pixels before and after the one it was given
+ * function expected to edit the c and z as well
+ */
+typedef struct Filterable_Pixel_s Filterable_Pixel;
+typedef void (*Filter_f)(Filterable_Pixel *p, void *data);
+typedef struct Filterable_Pixel_s {
+	uint16_t		x;
+	uint16_t		y;
+	L3_COLORTYPE	*vpx;
+	L3_ZBUFTYPE		*zpx;
+	L3_COLORTYPE	*vbuf;
+	L3_ZBUFTYPE		*zbuf;
+	uint16_t		size_x;
+	uint16_t		size_y;
+} Filterable_Pixel;
+
+void filter_apply(uint16_t x, uint16_t y, uint16_t size_x, uint16_t size_y, Filter_f filter, void *data);
+void filter_apply_all(uint16_t x, uint16_t y, uint16_t size_x, uint16_t size_y, const Filter_f *filters, size_t len, void *data);
+
 /* Basic cuboid collider */
 typedef struct E_C_Cuboid_s {
 	L3_Vec4	offset;
@@ -153,6 +173,8 @@ typedef struct Engine_Scene_s {
 	const Engine_Object	*statics;
 	size_t				statics_count;
 	Engine_Scene_inf	inf;
+	const Filter_f		*filters;
+	size_t				filters_count;
 	void				*data;
 } Engine_Scene;
 

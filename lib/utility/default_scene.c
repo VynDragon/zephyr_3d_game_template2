@@ -1,11 +1,16 @@
 #include <zephyr/kernel.h>
 #include "engine.h"
 #include "default_scene.h"
+#include "filters.h"
 
 static void default_scene_init(void *data);
 static void default_scene_pf(Engine_Scene *self);
 
 static struct Default_scene_data default_scene_data = {0};
+
+static Filter_f default_scene_filters[] = {
+	filter_blur,
+};
 
 Engine_Scene default_scene = {
 	.pf = default_scene_pf,
@@ -13,6 +18,8 @@ Engine_Scene default_scene = {
 	.statics_count = 0,
 	.inf = default_scene_init,
 	.data = &default_scene_data,
+	.filters_count = 1,
+	.filters = default_scene_filters,
 };
 
 static L3_Vec4 player_colpoint[2] = {{.x = 0, .y = 0, .z = 0, .w = L3_F }, {.x = 0, .y = L3_F, .z = 0, .w = L3_F }};
