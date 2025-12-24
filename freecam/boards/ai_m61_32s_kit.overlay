@@ -38,7 +38,7 @@
 	#address-cells = <1>;
 	#size-cells = <0>;
 
-	ssd1327: ssd1327@0 {
+	display: ssd1327@0 {
 		compatible = "solomon,ssd1327fb";
 		mipi-max-frequency = <20000000>;
 		reg = <0>;
@@ -66,10 +66,50 @@
 	status = "disabled";
 };
 
+// &i2c0 {
+// 	status = "okay";
+// 	
+// 	clock-frequency = <I2C_BITRATE_FAST_PLUS>;
+// 
+// 	display: ssd1306@3c {
+// 		compatible = "sinowealth,sh1106";
+// 		reg = <0x3c>;
+// 		width = <128>;
+// 		height = <64>;
+// 		segment-offset = <0>;
+// 		page-offset = <0>;
+// 		display-offset = <0>;
+// 		multiplex-ratio = <63>;
+// 		segment-remap;
+// 		com-invdir;
+// 		prechargep = <0x22>;
+// 	};	
+// };
+
+// &i2c0 {
+// 	status = "okay";
+// 	
+// 	clock-frequency = <I2C_BITRATE_FAST_PLUS>;
+// 
+// 	display: ssd1309@3c {
+// 		compatible = "solomon,ssd1309fb";
+// 		reg = <0x3c>;
+// 		width = <128>;
+// 		height = <64>;
+// 		segment-offset = <0>;
+// 		page-offset = <0>;
+// 		display-offset = <0>;
+// 		multiplex-ratio = <63>;
+// 		segment-remap;
+// 		com-invdir;
+// 		prechargep = <0x22>;
+// 	};	
+// };
+
 
 / {
 	chosen {
-		zephyr,display = &ssd1327;
+		zephyr,display = &display;
 	};
 };
 

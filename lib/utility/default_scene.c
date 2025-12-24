@@ -9,7 +9,7 @@ static void default_scene_pf(Engine_Scene *self);
 static struct Default_scene_data default_scene_data = {0};
 
 static Filter_f default_scene_filters[] = {
-	filter_blur,
+	filter_fixgap,
 };
 
 Engine_Scene default_scene = {

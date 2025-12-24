@@ -1,3 +1,12 @@
+config L3
+	bool "Enable L3 Library"
+	default n
+
+config ENGINE
+	bool "Enable Engine"
+	default n
+	select L3
+
 config RENDER_THREAD_STACK
 	int "size of render thread's stack size"
 	default 4096
