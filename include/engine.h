@@ -209,6 +209,9 @@ size_t engine_statics_getcnt(void);
 
 L3_Camera *engine_getcamera(void);
 
+/* remove all objects (object_cnt = cnt) */
+int engine_remove_all_objects_past(int cnt);
+
 /* Scene Management */
 Engine_Scene *engine_getscene(void);
 /* Blank slate the engine scene */

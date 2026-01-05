@@ -157,8 +157,9 @@ int main()
 
 	init_engine(&process);
 	engine_UI_set_area(0, 0, L3_RESOLUTION_X, L3_RESOLUTION_Y);
-	init_editor_render();
 	init_editor_UI();
+
+	//engine_getcamera()->focalLength = 12;
 
 	/* 'player' object */
 	Engine_Object tmp = {0};

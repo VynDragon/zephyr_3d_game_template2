@@ -124,7 +124,10 @@ static void E_drawParticles(L3_Camera camera)
 	}
 }
 
-__attribute__((weak)) int engine_render_hook(void) {
+__attribute__((weak)) int engine_render_hook_pre(void) {
+	return 0;
+}
+__attribute__((weak)) int engine_render_hook_post(void) {
 	return 0;
 }
 
@@ -209,10 +212,11 @@ static void render_function(void *, void *, void *)
 #endif
 
 		k_mutex_lock(&engine_render_lock, K_FOREVER);
+		engine_render_hook_pre();
 		engine_drawnTriangles = L3_draw(engine_camera, engine_global_objects, engine_objectCount);
 		E_drawParticles(engine_camera);
 		engine_render_UI();
-		engine_render_hook();
+		engine_render_hook_post();
 		k_mutex_unlock(&engine_render_lock);
 #ifdef CONFIG_BLIT_THREAD
 		if (k_sem_count_get(&engine_blit_cnt) > ENGINE_MAX_BLIT_QUEUED) {
@@ -835,6 +839,12 @@ static void run_all_DObjects(void)
 		}
 		engine_dynamic_objects[i].physics.last_transform = *engine_dynamic_objects[i].physics.transform;
 	}
+}
+
+int engine_remove_all_objects_past(int cnt)
+{
+	engine_objects_count = cnt;
+	return 0;
 }
 
 Engine_Scene *engine_getscene(void)

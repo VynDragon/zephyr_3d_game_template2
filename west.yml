@@ -8,7 +8,7 @@ manifest:
   projects:
     - name: zephyr
       remote: zephyrproject-rtos
-      revision: c960d0ed0f9ad1b3f11372e271c8f80b0d1e221e
+      revision: 9d9529f0dbce88c1446759beff6944089d44bff6
       import:
         name-allowlist:
           - hal_bouffalolab
@@ -16,3 +16,4 @@ manifest:
           - cmsis
           - hal_rpi_pico
           - cmsis_6
+          - hal_espressif

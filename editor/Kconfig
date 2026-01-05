@@ -2,6 +2,6 @@ menu "Zephyr"
 source "Kconfig.zephyr"
 endmenu
 
-module = DEMO
-module-str = DEMO
+module = EDITOR
+module-str = EDITOR
 source "subsys/logging/Kconfig.template.log_config"

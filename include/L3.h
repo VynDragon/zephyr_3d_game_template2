@@ -39,8 +39,11 @@ static k_timepoint_t inline L3_FPS_TIMEPOINT(uint64_t fps)
 #define L3_VISIBLE_NORMALLIGHT		BIT(15)
 #define L3_VISIBLE_DISTANCELIGHT	BIT(14)
 
-#define L3_PERFORMANCE_FUNCTION	__attribute__((optimize(3))) __attribute__((hot))
-//#define L3_PERFORMANCE_FUNCTION
+#if 1
+	#define L3_PERFORMANCE_FUNCTION	__attribute__((optimize(3))) __attribute__((hot))
+#else
+	#define L3_PERFORMANCE_FUNCTION
+#endif
 
 /** Specifies how the library will handle triangles that partially cross the
 near plane. These are problematic and require special handling. Possible
@@ -109,6 +112,12 @@ Possible values:
 #define L3_ZBUFTYPE L3_Unit
 #endif
 
+/* Limit on the on-screen triangle rendering size (not in-model size) to prevent rendering errors
+ * trying to draw ludicrously big triangles, resulting in flashing display at certain angles.
+ * Also theorically increases performance
+ */
+#define L3_TRI_OVRFL L3_F * 24
+
 /** Whether to use stencil buffer for drawing -- with this a pixel that would
 be resterized over an already rasterized pixel (within a frame) will be
 discarded. This is mostly for front-to-back sorted drawing. */
@@ -135,7 +144,7 @@ the maximum number of triangles that can be drawn in a single frame
 
 /** Distance of the near clipping plane. Points in front or EXATLY ON this
 plane are considered outside the frustum. This must be >= 0. */
-#define L3_NEAR 64 * L3_RESOLUTION_X / 256
+#define L3_NEAR 32 * L3_RESOLUTION_X / 256
 
 /** If true, the library will use wider data types which will largely supress
 many rendering bugs and imprecisions happening due to overflows, but this will
@@ -158,7 +167,7 @@ Smaller is nicer but slower. */
 #define L3_PC_APPROX_LENGTH 64
 
 /** For L3_Z_BUFFER == 2 this sets the reduced z-buffer granularity. */
-#define L3_REDUCED_Z_BUFFER_GRANULARITY 5
+#define L3_REDUCED_Z_BUFFER_GRANULARITY 7
 
 /** Maximum number of triangles that can be drawn in sorted modes. This
 affects the size of the cache used for triangle sorting. */

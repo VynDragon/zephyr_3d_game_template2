@@ -11,6 +11,9 @@
 #include <lvgl_mem.h>
 #include <lvgl_zephyr.h>
 
+#include <zephyr/logging/log.h>
+LOG_MODULE_REGISTER(editor_ui);
+
 #include "editor.h"
 
 #include "engine.h"
@@ -176,6 +179,7 @@ static void save_it(lv_event_t * e)
 
 static void load_it(lv_event_t * e)
 {
+	engine_remove_all_objects_past(1);
 	int fd = open("map.json", O_RDONLY, S_IRUSR | S_IWUSR);
 	read(fd, saveloadbuffer, 1048575);
 	deserialize_objects(saveloadbuffer, strlen(saveloadbuffer));
@@ -654,7 +658,6 @@ static void main_key(struct input_event *evt, void *user_data)
 		if (!evt->value)
 			update_selection();
 	}
-
 	if (evt->type == INPUT_EV_KEY && selected_object!= NULL) {
 		if (!evt->value)
 			switch(evt->code) {
@@ -784,7 +787,7 @@ void draw_selector()
 	L3_plot_line(0xFF, out.x, out.y, out.x -32 , out.y + 32);
 }
 
-int engine_render_hook(void) {
+int engine_render_hook_post(void) {
 	if (selected_object != NULL) {
 		draw_selector();
 	}
