@@ -25,6 +25,7 @@ static lv_style_t engine_default_transparency;
 
 static lv_obj_t *engine_trianglecount;
 static lv_obj_t *engine_FPS;
+static lv_obj_t *render_FPS;
 static timing_t engine_FPS_last_time;
 static uint32_t engine_FPS_total_time_avg = 0;
 
@@ -82,7 +83,11 @@ int init_engine_UI(void)
 
 	engine_FPS = lv_label_create(lv_screen_active());
 	lv_label_set_text_fmt(engine_FPS, "FPS: %d", 0);
-	lv_obj_align(engine_FPS, LV_ALIGN_TOP_LEFT, 40, 0);
+	lv_obj_align(engine_FPS, LV_ALIGN_TOP_LEFT, 48, 0);
+
+	render_FPS = lv_label_create(lv_screen_active());
+	lv_label_set_text_fmt(render_FPS, "RFPS: %d", 0);
+	lv_obj_align(render_FPS, LV_ALIGN_TOP_LEFT, 76, 0);
 
 	engine_FPS_last_time = timing_counter_get();
 
@@ -99,6 +104,11 @@ int engine_render_UI(void)
 
 	lv_label_set_text_fmt(engine_trianglecount, "Tris: %d", engine_drawnTriangles);
 	lv_label_set_text_fmt(engine_FPS, "FPS: %d", 1000000 / (engine_FPS_total_time_avg != 0 ? engine_FPS_total_time_avg : 1));
+#if defined(__XTENSA__) || defined(CONFIG_SOC_SERIES_RP2350)
+	lv_label_set_text_fmt(render_FPS, "RFPS: %d", (int)engine_rFPS);
+#else
+	lv_label_set_text_fmt(render_FPS, "RFPS: %0.1f", (double)engine_rFPS);
+#endif
 	lv_obj_invalidate(lv_screen_active());
 	lv_timer_handler();
 	return 0;

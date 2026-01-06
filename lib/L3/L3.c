@@ -78,6 +78,16 @@ void L3_clearScreen(L3_COLORTYPE color)
 }
 
 L3_PERFORMANCE_FUNCTION
+void L3_clearScreen_with(L3_ClearPixFunc func)
+{
+	for (uint16_t x = 0; x < L3_RESOLUTION_X; x++) {
+		for (uint16_t y = 0; y < L3_RESOLUTION_Y; y++) {
+			L3_video_buffer[x + y * L3_RESOLUTION_X] = func(x, y);
+		}
+	}
+}
+
+L3_PERFORMANCE_FUNCTION
 void L3_plot_line (L3_COLORTYPE color, int x0, int y0, int x1, int y1)
 {
 	int dx =  abs (x1 - x0), sx = x0 < x1 ? 1 : -1;
@@ -2257,6 +2267,9 @@ static inline int8_t L3_triangleIsVisible(
 {
 	#define clipTest(c,cmp,v)\
 		(p0.c cmp (v) && p1.c cmp (v) && p2.c cmp (v))
+	/* Prevent triangle overflow rendering errors */
+	#define sizeTest(c, v)\
+		(abs(p0.c - p1.c) > (v) || abs(p1.c - p2.c) > (v) || abs(p2.c - p0.c) > (v))
 
 	if ( // outside frustum?
 #if L3_NEAR_CROSS_STRATEGY == 0
@@ -2268,20 +2281,13 @@ static inline int8_t L3_triangleIsVisible(
 			clipTest(x,<,0) ||
 			clipTest(x,>=,L3_RESOLUTION_X) ||
 			clipTest(y,<,0) ||
-			clipTest(y,>,L3_RESOLUTION_Y)
+			clipTest(y,>,L3_RESOLUTION_Y) ||
+			sizeTest(x,L3_TRI_OVRFL) ||
+			sizeTest(y,L3_TRI_OVRFL)
 		)
 		return 0;
 
 	#undef clipTest
-
-/* Prevent triangle overflow rendering errors */
-#define sizeTest(c, v)\
-		(abs(p0.c - p1.c) > (v) || abs(p1.c - p2.c) > (v) || abs(p0.c - p2.c) > (v))
-		if (
-			sizeTest(x,L3_TRI_OVRFL) ||
-			sizeTest(y,L3_TRI_OVRFL))
-		return 0;
-
 	#undef sizeTest
 
 	if (backfaceCulling != 0)

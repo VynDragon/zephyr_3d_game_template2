@@ -144,7 +144,7 @@ the maximum number of triangles that can be drawn in a single frame
 
 /** Distance of the near clipping plane. Points in front or EXATLY ON this
 plane are considered outside the frustum. This must be >= 0. */
-#define L3_NEAR 32 * L3_RESOLUTION_X / 256
+#define L3_NEAR 48 * L3_RESOLUTION_X / 256
 
 /** If true, the library will use wider data types which will largely supress
 many rendering bugs and imprecisions happening due to overflows, but this will
@@ -841,6 +841,9 @@ typedef struct
 
 uint32_t L3_draw(L3_Camera camera, const L3_Object **objects, L3_Index objectCount);
 void L3_clearScreen(L3_COLORTYPE color);
+/* functions to clear background */
+typedef L3_COLORTYPE (*L3_ClearPixFunc)(L3_Unit x, L3_Unit y);
+void L3_clearScreen_with(L3_ClearPixFunc func);
 void L3_plot_line(L3_COLORTYPE color, int x0, int y0, int x1, int y1);
 
 void _L3_mapProjectedVertexToScreen(L3_Vec4 *vertex, L3_Unit focalLength);
@@ -876,3 +879,4 @@ extern L3_ZBUFTYPE L3_zBuffer[L3_MAX_PIXELS];
 extern const L3_Object *engine_global_objects[L3_MAX_OBJECTS];
 extern L3_Index engine_objectCount;
 extern L3_Camera engine_camera;
+

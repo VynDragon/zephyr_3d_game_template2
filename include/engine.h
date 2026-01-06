@@ -175,6 +175,7 @@ typedef struct Engine_Scene_s {
 	Engine_Scene_inf	inf;
 	const Filter_f		*filters;
 	size_t				filters_count;
+	L3_ClearPixFunc		clear_pix_func;
 	void				*data;
 } Engine_Scene;
 
@@ -231,6 +232,7 @@ extern Engine_DObject engine_dynamic_objects[ENGINE_MAX_DOBJECTS];
 extern uint32_t engine_dynamic_objects_count;
 extern const struct device *engine_display_devices[DT_ZEPHYR_DISPLAYS_COUNT];
 extern uint32_t engine_drawnTriangles;
+extern float engine_rFPS;
 
 E_Particle *engine_create_particle(L3_Transform3D transform, Engine_Particle_pf process, const L3_Billboard *billboard, uint32_t lifespan);
 

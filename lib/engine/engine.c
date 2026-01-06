@@ -49,6 +49,7 @@ static Engine_pf	engine_pf;
 static Engine_Scene	*engine_current_scene = NULL;
 
 uint32_t engine_drawnTriangles = 0;
+float engine_rFPS = 0;
 
 /* ------------------------------------------------------------------------------------------- */
 
@@ -189,9 +190,11 @@ static uint64_t render_delayed_count = 0;
 static void render_function(void *, void *, void *)
 {
 #if	CONFIG_LOG_PERFORMANCE
-	timing_t start_time, end_time, rstart_time;
-	uint32_t total_time_us, render_time_us;
+	timing_t start_time;
+	uint32_t total_time_us,;
 #endif
+	timing_t end_time, rstart_time;
+	uint32_t render_time_us;
 	k_timepoint_t timing = L3_FPS_TIMEPOINT(CONFIG_TARGET_RENDER_FPS);
 
 	while (1) {
@@ -206,10 +209,15 @@ static void render_function(void *, void *, void *)
 #endif
 		/* clear viewport to black */
 		L3_newFrame();
-		L3_clearScreen(0);
-#if	CONFIG_LOG_PERFORMANCE
+		if (engine_current_scene != NULL)
+			if (engine_current_scene->clear_pix_func != NULL)
+				L3_clearScreen_with(engine_current_scene->clear_pix_func);
+			else
+				L3_clearScreen(0);
+		else
+			L3_clearScreen(0);
+
 		rstart_time = timing_counter_get();
-#endif
 
 		k_mutex_lock(&engine_render_lock, K_FOREVER);
 		engine_render_hook_pre();
@@ -228,14 +236,17 @@ static void render_function(void *, void *, void *)
 		ENGINE_BLIT_FUNCTION(L3_video_buffer, 0, 0, L3_RESOLUTION_X, L3_RESOLUTION_Y);
 #endif
 
-#if	CONFIG_LOG_PERFORMANCE
 		end_time = timing_counter_get();
-		total_time_us = timing_cycles_to_ns(timing_cycles_get(&start_time, &end_time)) / 1000;
 		render_time_us = timing_cycles_to_ns(timing_cycles_get(&rstart_time, &end_time)) / 1000;
+		engine_rFPS = 1000000.0 / (render_time_us != 0 ? render_time_us : 1.0);
+
+#if	CONFIG_LOG_PERFORMANCE
+		total_time_us = timing_cycles_to_ns(timing_cycles_get(&start_time, &end_time)) / 1000;
 		LOG_INF_RATELIMIT_RATE(1000, "total render us: %u ms:%u fps:%u", total_time_us, (total_time_us) / 1000, 1000000 / (total_time_us != 0 ? total_time_us : 1));
-		LOG_INF_RATELIMIT_RATE(1000, "exclusively render us:%u render fps: %u", render_time_us, 1000000 / (render_time_us != 0 ? render_time_us : 1));
-		LOG_INF_RATELIMIT_RATE(1000, "rendered %u Polygons, %u polygons per second", engine_drawnTriangles, engine_drawnTriangles * 1000000 / (render_time_us != 0 ? render_time_us : 1));
+		LOG_INF_RATELIMIT_RATE(1000, "exclusively render us:%u render fps: %u", render_time_us, engine_rFPS);
+		LOG_INF_RATELIMIT_RATE(1000, "rendered %u Polygons, %u polygons per second", engine_drawnTriangles, engine_drawnTriangles * engine_rFPS);
 #endif
+
 		if (sys_timepoint_expired(timing)) {
 			render_delayed_count+=2;
 		}

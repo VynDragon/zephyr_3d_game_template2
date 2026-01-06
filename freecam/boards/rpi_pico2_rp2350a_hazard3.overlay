@@ -1,0 +1,157 @@
+#include <zephyr/dt-bindings/input/keymap.h>
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+#include <zephyr/dt-bindings/spi/spi.h>
+
+&clk_hstx {
+	compatible = "raspberrypi,pico-clock";
+	clocks = <&pll_sys>;
+	clock-names = "pll_sys";
+	clock-frequency = <375000000>;
+	#clock-cells = <0>;
+};
+
+&clk_ref {
+	compatible = "raspberrypi,pico-clock";
+	clocks = <&xosc>;
+	clock-names = "xosc";
+	clock-frequency = <12000000>;
+	#clock-cells = <0>;
+};
+
+&clk_sys {
+	compatible = "raspberrypi,pico-clock";
+	clocks = <&pll_sys>;
+	clock-names = "pll_sys";
+	clock-frequency = <375000000>;
+	#clock-cells = <0>;
+};
+
+&clk_usb {
+	compatible = "raspberrypi,pico-clock";
+	clocks = <&pll_usb>;
+	clock-names = "pll_usb";
+	clock-frequency = <48000000>;
+	#clock-cells = <0>;
+};
+
+&clk_adc {
+	compatible = "raspberrypi,pico-clock";
+	clocks = <&pll_usb>;
+	clock-names = "pll_usb";
+	clock-frequency = <48000000>;
+	#clock-cells = <0>;
+};
+
+&clk_peri {
+	compatible = "raspberrypi,pico-clock";
+	clocks = <&clk_sys>;
+	clock-names = "clk_sys";
+	clock-frequency = <375000000>;
+	#clock-cells = <0>;
+};
+
+&pll_sys {
+	compatible = "raspberrypi,pico-pll";
+	clocks = <&xosc>;
+	clock-names = "xosc";
+	clock-div = <1>;
+	fb-div = <125>;
+	post-div1 = <4>;
+	post-div2 = <1>;
+	#clock-cells = <0>;
+};
+
+&pll_usb {
+	compatible = "raspberrypi,pico-pll";
+	clocks = <&xosc>;
+	clock-names = "xosc";
+	clock-div = <1>;
+	fb-div = <100>;
+	post-div1 = <5>;
+	post-div2 = <5>;
+	#clock-cells = <0>;
+};
+
+
+/ {
+	chosen {
+		zephyr,display = &ssd1327;
+	};
+
+};
+
+/ {
+
+	mipi_dbi_ssd1327 {
+		compatible = "zephyr,mipi-dbi-spi";
+		spi-dev = <&spi0>;
+		dc-gpios = <&gpio0 20 GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&gpio0 21 GPIO_ACTIVE_LOW>;
+		write-only;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		ssd1327: ssd1327@0 {
+			compatible = "solomon,ssd1327fb";
+			mipi-max-frequency = <20000000>;
+			reg = <0>;
+			width = <128>;
+			height = <64>;
+			prechargep = <0x5>;
+			precharge-voltage = <0x7>;
+			remap-value = <0x53>;
+			oscillator-freq = <0xA1>;
+			display-offset = <0x40>;
+			start-line = <0>;
+			multiplex-ratio = <0x3f>;
+			phase-length = <0x29>;
+			mipi-mode = "MIPI_DBI_MODE_SPI_4WIRE";
+			grayscale-table = [04 06 08 0A 0C 0D 10 12 14 16 18 1C 20 24 3C];
+		};
+	};
+};
+
+&spi0 {
+	status = "okay";
+};
+
+
+&i2c0 {
+	status = "disabled";
+};
+
+&i2c1 {
+	status = "disabled";
+};
+
+// / {
+// 	kbd-matrix {
+// 		compatible = "gpio-kbd-matrix";
+// 		row-gpios = <&gpio0 8 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
+// 					<&gpio0 18 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
+// 					<&gpio0 17 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
+// 					<&gpio0 16 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
+// 					<&gpio0 15 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+// 		col-gpios = <&gpio0 4 GPIO_ACTIVE_LOW>,
+// 					<&gpio0 5 GPIO_ACTIVE_LOW>,
+// 					<&gpio0 6 GPIO_ACTIVE_LOW>,
+// 					<&gpio0 7 GPIO_ACTIVE_LOW>;
+// 		keymap {
+// 			compatible = "input-keymap";
+// 			keymap = <
+// 				MATRIX_KEY(3, 1, INPUT_KEY_W)
+// 				MATRIX_KEY(4, 1, INPUT_KEY_S)
+// 				MATRIX_KEY(4, 0, INPUT_KEY_A)
+// 				MATRIX_KEY(4, 2, INPUT_KEY_D)
+// 				MATRIX_KEY(3, 0, INPUT_KEY_LEFT)
+// 				MATRIX_KEY(3, 2, INPUT_KEY_RIGHT)
+// 				MATRIX_KEY(1, 3, INPUT_KEY_UP)
+// 				MATRIX_KEY(2, 3, INPUT_KEY_DOWN)
+// 				MATRIX_KEY(3, 3, INPUT_KEY_LEFTSHIFT)
+// 				MATRIX_KEY(4, 3, INPUT_KEY_SPACE)
+// 			>;
+// 			row-size = <5>;
+// 			col-size = <4>;
+// 		};
+// 	};
+// };

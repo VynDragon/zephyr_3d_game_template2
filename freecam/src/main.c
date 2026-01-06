@@ -274,15 +274,13 @@ INPUT_CALLBACK_DEFINE(0, update_controls, &controls);
 void scene_init(void *data)
 {
 	Engine_Object tmp = {0};
-	L3_transform3DSet(0 * L3_F,0,-3*L3_F,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));
+	L3_transform3DSet(0 * L3_F,1.5*L3_F,-20*L3_F,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));
 	tmp.view_range = 16 * L3_F;
 	tmp.visual_type = ENGINE_VISUAL_NOTHING;
 	player = engine_add_object(tmp);
 
 	L3_Camera *camera = engine_getcamera();
-	camera->transform.translation.y = 1 * L3_F;
-	camera->transform.translation.z = -1.5 * L3_F;
-	camera->focalLength = 196;
+	camera->focalLength = 192;
 }
 void scene_pf(Engine_Scene *self)
 {
@@ -294,8 +292,18 @@ static Filter_f default_scene_filters[] = {
 	filter_fixgap,
 };
 
+L3_COLORTYPE sky_clearpix(L3_Unit x, L3_Unit y)
+{
+	return ((L3_RESOLUTION_Y - y) * 0x48) / L3_RESOLUTION_Y + (abs(L3_RESOLUTION_X / 2 - x) * 0x48) / (L3_RESOLUTION_X / 2);
+}
+
 int main()
 {
+
+#if defined(CONFIG_SOC_SERIES_RP2350)
+	int get_rp2350_v(void);
+	LOG_ERR("rp2350 Volts enum: %d (15 == 1.3v and max guaranteed safe)", get_rp2350_v());
+#endif
 
 	for (int i = 0; i < DT_ZEPHYR_DISPLAYS_COUNT; i++) {
 		if (!device_is_ready(engine_display_devices[i])) {
@@ -323,6 +331,7 @@ int main()
 	scene.statics_count = sizeof(map) / sizeof(*map);
 	scene.filters_count = 1,
 	scene.filters = default_scene_filters,
+	scene.clear_pix_func = sky_clearpix;
 
 	engine_switchscene(&logo_scene);
 	k_msleep(2000);
