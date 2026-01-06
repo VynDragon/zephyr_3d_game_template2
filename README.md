@@ -34,5 +34,13 @@ Luxury displays (harder to render for!): https://www.alibaba.com/product-detail/
 Any greyscale display will do fine, ST75256 for LCD, SSD132x and SSD136x for OLED etc...
 Conversion code with dithering for mono is provided (recommended high resolution display), you can add conversion code for color displays in the same way, or adapt to render in color.
 
+And remember, monochrome OLEDs look much worse in pictures than in real life. 
+
+### Images
+![IMG_20260106_054926](https://github.com/user-attachments/assets/e0ce7ff1-6fe0-42fc-b6b9-3553f3d02dae)
+Freecam on RP2350 M33 Overclocked
+![IMG_20260106_055710~2](https://github.com/user-attachments/assets/be7034f4-2140-45a2-a0d3-89270ec84bde)
+Freecam on BL616 Overclocked
+
 https://github.com/user-attachments/assets/a37e6746-3824-4c60-988b-bdd37998c26b
 
