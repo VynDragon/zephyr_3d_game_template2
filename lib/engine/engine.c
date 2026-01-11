@@ -745,7 +745,6 @@ static void do_collision_terrain(const Engine_Object *collider_object, Engine_DO
 	L3_Unit distance[3];
 	size_t last_furthest = 0;
 	L3_Unit final_y = 0;
-	L3_Unit furthest;
 
 	distance[0] = 0xFFFFFF;
 	distance[1] = 0xFFFFFF;

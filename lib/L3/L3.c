@@ -2749,19 +2749,19 @@ inline int zephyr_drawtriangle(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
 	}
 	return 1;
 }
-/*
-L3_PERFORMANCE_FUNCTION
-inline int zephyr_drawtriangle(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
-								L3_Index objectIndex, L3_Index triangleIndex)
-{
-	L3_COLORTYPE color = engine_global_objects[objectIndex]->solid_color;
-	color = MIN(255, color + 16);
-	LOG_ERR("x:%d, y:%d, z:%d", point0.x, point0.y, point0.z);
-	L3_plot_line(color, point0.x, point0.y, point1.x, point1.y);
-	L3_plot_line(color, point2.x, point2.y, point1.x, point1.y);
-	L3_plot_line(color, point2.x, point2.y, point0.x, point0.y);
-	return 0;
-}*/
+
+// L3_PERFORMANCE_FUNCTION
+// inline int zephyr_drawtriangle(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
+// 								L3_Index objectIndex, L3_Index triangleIndex)
+// {
+// 	L3_COLORTYPE color = engine_global_objects[objectIndex]->solid_color;
+// 	color = MIN(255, color + 16);
+// 	//LOG_ERR("x:%d, y:%d, z:%d", point0.x, point0.y, point0.z);
+// 	L3_plot_line(color, point0.x, point0.y, point1.x, point1.y);
+// 	L3_plot_line(color, point2.x, point2.y, point1.x, point1.y);
+// 	L3_plot_line(color, point2.x, point2.y, point0.x, point0.y);
+// 	return 0;
+// }
 
 L3_PERFORMANCE_FUNCTION
 inline int zephyr_drawbillboard(L3_Vec4 point, const L3_Object *billboard, L3_Camera camera)

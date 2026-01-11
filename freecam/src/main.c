@@ -280,7 +280,7 @@ void scene_init(void *data)
 	player = engine_add_object(tmp);
 
 	L3_Camera *camera = engine_getcamera();
-	camera->focalLength = 192;
+	camera->focalLength = 288;
 }
 void scene_pf(Engine_Scene *self)
 {
@@ -294,16 +294,11 @@ static Filter_f default_scene_filters[] = {
 
 L3_COLORTYPE sky_clearpix(L3_Unit x, L3_Unit y)
 {
-	return ((L3_RESOLUTION_Y - y) * 0x48) / L3_RESOLUTION_Y + (abs(L3_RESOLUTION_X / 2 - x) * 0x48) / (L3_RESOLUTION_X / 2);
+	return ((L3_RESOLUTION_Y - y) * 0x28) / L3_RESOLUTION_Y + (abs(L3_RESOLUTION_X / 2 - x) * 0x28) / (L3_RESOLUTION_X / 2);
 }
 
 int main()
 {
-
-#if defined(CONFIG_SOC_SERIES_RP2350)
-	int get_rp2350_v(void);
-	LOG_ERR("rp2350 Volts enum: %d (15 == 1.3v and max guaranteed safe)", get_rp2350_v());
-#endif
 
 	for (int i = 0; i < DT_ZEPHYR_DISPLAYS_COUNT; i++) {
 		if (!device_is_ready(engine_display_devices[i])) {
@@ -312,16 +307,12 @@ int main()
 		}
 	}
 
-	display_set_contrast(engine_display_devices[0], 255);
-
 	timing_init();
 	timing_start();
 
 	k_msleep(100);
 	display_blanking_on(display_device);
-	//display_set_pixel_format(display_device, PIXEL_FORMAT_L_8);
 	display_blanking_off(display_device);
-	//display_set_contrast(display_device, 32);
 
 	init_engine(&process);
 

@@ -2,21 +2,57 @@
 
 /* Either dont overclock and use DBI, or overclock and use SPI */
 
+/* 640Mhz, 1.20v core, AI-M61-32S-ALL with XM flash */
 &clk_bclk {
-	divider = <4>;
+	divider = <6>;
 };
 
 &clk_root {
-	clocks = <&clk_wifipll BL61X_WIFIPLL_OC_480MHz>;
+	clocks = <&clk_wifipll BL61X_WIFIPLL_OCMAX_640MHz>;
 };
 
 &clk_flash {
 		clocks = <&clk_bclk>;
-		// clock-invert;
 		read-delay = <1>;
 		divider = <1>;
-		//rx-clock-invert;
 };
+
+&reg_soc {
+         regulator-init-microvolt = <1200000>;
+};
+
+/* 640Mhz, 1.20v core, AI-M61-32S with GD flash */
+// &clk_bclk {
+// 	divider = <5>;
+// };
+//
+// &clk_root {
+// 	clocks = <&clk_wifipll BL61X_WIFIPLL_OCMAX_640MHz>;
+// };
+//
+// &clk_flash {
+// 		clocks = <&clk_bclk>;
+// 		divider = <1>;
+// };
+//
+// &reg_soc {
+//          regulator-init-microvolt = <1200000>;
+// };
+
+/* 480Mhz, any AI-M61-32S*/
+// &clk_bclk {
+// 	divider = <4>;
+// };
+//
+// &clk_root {
+// 	clocks = <&clk_wifipll BL61X_WIFIPLL_OC_480MHz>;
+// };
+//
+// &clk_flash {
+// 		clocks = <&clk_bclk>;
+// 		read-delay = <1>;
+// 		divider = <1>;
+// };
 
 // &pinctrl {
 // 	dbi0_default: dbi0_default {
