@@ -20,6 +20,7 @@ When determining what value to put in CONFIG_TARGET_RENDER_FPS, use rFPS minus 4
 |RP2350 M33 (Overclocked 375MHz)|1100|23 FPS|18 FPS|✅|
 |RP2350 Hazard3 (Overclocked 375MHz)|x|20 FPS|16 FPS|➖|
 |RP2350 M33 (Overclocked 500MHz)|1666|27 FPS|22 FPS|✅|
+|STM32H723VG (550MHz)|2777|54 FPS|30 FPS (display limited)|✅✅|
 
 Anything with coremark over 1000 will do fine (STM32H7, Pentium 3, Mimxrt, CH32H417...).
 Games should be designed and optimized to run at least 15 fps at this performance threshold.
