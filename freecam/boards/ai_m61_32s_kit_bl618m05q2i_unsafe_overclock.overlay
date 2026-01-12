@@ -1,67 +1,59 @@
 #include <zephyr/dt-bindings/input/keymap.h>
 
-/* Use 80 MHz Flash clock*/
-&clk_flash {
-	read-delay = <1>;
-	divider = <1>;
-};
-
 &pinctrl {
-	dbi0_default: dbi0_default {
+	spi0_default: spi0_default {
 		group1 {
-			pinmux = <GPIO12_DBI_C_SCL>,
-				 <GPIO14_DBI_C_SDA>;
+			pinmux = <GPIO11_SPI_MOSI>, <GPIO13_SPI_SCLK>;
 			drive-strength = <1>;
 			input-schmitt-enable;
-			bias-pull-down;
 		};
 	};
 };
 
+/ {
 
-&dbi0 {
-	status = "okay";
+	mipi_dbi_ssd1327 {
+		compatible = "zephyr,mipi-dbi-spi";
+		spi-dev = <&spi0>;
+		dc-gpios = <&gpio0 15 GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&gpio0 17 GPIO_ACTIVE_LOW>;
+		write-only;
+		#address-cells = <1>;
+		#size-cells = <0>;
 
-	cs-gpios = <&gpio0 16 GPIO_ACTIVE_LOW>;
-	dc-gpios = <&gpio0 15 GPIO_ACTIVE_LOW>;
-	reset-gpios = <&gpio0 17 GPIO_ACTIVE_LOW>;
-	#address-cells = <1>;
-	#size-cells = <0>;
-
-	display: ssd1327@0 {
-		compatible = "solomon,ssd1327fb";
-		mipi-max-frequency = <21000000>;
-		reg = <0>;
-		width = <128>;
-		height = <64>;
-		prechargep = <0x5>;
-		precharge-voltage = <0x7>;
-		remap-value = <0x53>;
-		oscillator-freq = <0xA1>;
-		display-offset = <0x40>;
-		start-line = <0>;
-		multiplex-ratio = <0x3f>;
-		phase-length = <0x29>;
-		mipi-mode = "MIPI_DBI_MODE_SPI_4WIRE";
-		grayscale-table = [04 06 08 0A 0C 0D 10 12 14 16 18 1C 20 24 3C];
+		display: ssd1327@0 {
+			compatible = "solomon,ssd1327fb";
+			mipi-max-frequency = <20000000>;
+			reg = <0>;
+			width = <128>;
+			height = <64>;
+			prechargep = <0x5>;
+			precharge-voltage = <0x7>;
+			remap-value = <0x53>;
+			oscillator-freq = <0xA1>;
+			display-offset = <0x40>;
+			start-line = <0>;
+			multiplex-ratio = <0x3f>;
+			phase-length = <0x29>;
+			mipi-mode = "MIPI_DBI_MODE_SPI_4WIRE";
+			grayscale-table = [04 06 08 0A 0C 0D 10 12 14 16 18 1C 20 24 3C];
+		};
 	};
-
-	dmas = <&dma0 0 0x14>;
-	dma-names = "tx";
-	pinctrl-names = "default";
-	pinctrl-0 = <&dbi0_default>;
 };
 
 &spi0 {
-	status = "disabled";
-};
+	status = "okay";
+	cs-gpios = <&gpio0 16 GPIO_ACTIVE_LOW>;
 
+	pinctrl-0 = <&spi0_default>;
+	pinctrl-names = "default";
+};
 
 // &i2c0 {
 // 	status = "okay";
-// 	
+//
 // 	clock-frequency = <I2C_BITRATE_FAST_PLUS>;
-// 
+//
 // 	display: ssd1306@3c {
 // 		compatible = "sinowealth,sh1106";
 // 		reg = <0x3c>;
@@ -74,14 +66,14 @@
 // 		segment-remap;
 // 		com-invdir;
 // 		prechargep = <0x22>;
-// 	};	
+// 	};
 // };
 
 // &i2c0 {
 // 	status = "okay";
-// 	
+//
 // 	clock-frequency = <I2C_BITRATE_FAST_PLUS>;
-// 
+//
 // 	display: ssd1309@3c {
 // 		compatible = "solomon,ssd1309fb";
 // 		reg = <0x3c>;
@@ -94,7 +86,7 @@
 // 		segment-remap;
 // 		com-invdir;
 // 		prechargep = <0x22>;
-// 	};	
+// 	};
 // };
 
 
