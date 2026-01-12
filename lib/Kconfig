@@ -7,6 +7,10 @@ config ENGINE
 	default n
 	select L3
 
+config HEADLESS
+	bool "Headless Mode"
+	default n
+
 config RENDER_THREAD_STACK
 	int "size of render thread's stack size"
 	default 4096

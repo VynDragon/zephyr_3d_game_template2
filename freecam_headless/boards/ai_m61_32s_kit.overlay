@@ -1,0 +1,237 @@
+#include <zephyr/dt-bindings/input/keymap.h>
+
+/* Either dont overclock and use DBI, or overclock and use SPI */
+
+/* 640Mhz, 1.20v core, AI-M61-32S-ALL with XM flash */
+&clk_bclk {
+	divider = <6>;
+};
+
+&clk_root {
+	clocks = <&clk_wifipll BL61X_WIFIPLL_OCMAX_640MHz>;
+};
+
+&clk_flash {
+		clocks = <&clk_bclk>;
+		read-delay = <1>;
+		divider = <1>;
+};
+
+&reg_soc {
+         regulator-init-microvolt = <1200000>;
+};
+
+/* 640Mhz, 1.20v core, AI-M61-32S with GD flash */
+// &clk_bclk {
+// 	divider = <5>;
+// };
+//
+// &clk_root {
+// 	clocks = <&clk_wifipll BL61X_WIFIPLL_OCMAX_640MHz>;
+// };
+//
+// &clk_flash {
+// 		clocks = <&clk_bclk>;
+// 		divider = <1>;
+// };
+//
+// &reg_soc {
+//          regulator-init-microvolt = <1200000>;
+// };
+
+/* 480Mhz, any AI-M61-32S*/
+// &clk_bclk {
+// 	divider = <4>;
+// };
+//
+// &clk_root {
+// 	clocks = <&clk_wifipll BL61X_WIFIPLL_OC_480MHz>;
+// };
+//
+// &clk_flash {
+// 		clocks = <&clk_bclk>;
+// 		read-delay = <1>;
+// 		divider = <1>;
+// };
+
+// &pinctrl {
+// 	dbi0_default: dbi0_default {
+// 		group1 {
+// 			pinmux = <GPIO12_DBI_C_SCL>,
+// 				 <GPIO14_DBI_C_SDA>;
+// 			drive-strength = <1>;
+// 			input-schmitt-enable;
+// 			bias-pull-down;
+// 		};
+// 	};
+// };
+//
+//
+// &dbi0 {
+// 	status = "okay";
+//
+// 	cs-gpios = <&gpio0 16 GPIO_ACTIVE_LOW>;
+// 	dc-gpios = <&gpio0 15 GPIO_ACTIVE_LOW>;
+// 	reset-gpios = <&gpio0 17 GPIO_ACTIVE_LOW>;
+// 	#address-cells = <1>;
+// 	#size-cells = <0>;
+//
+// 	display: ssd1327@0 {
+// 		compatible = "solomon,ssd1327fb";
+// 		mipi-max-frequency = <21000000>;
+// 		reg = <0>;
+// 		width = <128>;
+// 		height = <64>;
+// 		prechargep = <0x5>;
+// 		precharge-voltage = <0x7>;
+// 		remap-value = <0x53>;
+// 		oscillator-freq = <0xA1>;
+// 		display-offset = <0x40>;
+// 		start-line = <0>;
+// 		multiplex-ratio = <0x3f>;
+// 		phase-length = <0x29>;
+// 		mipi-mode = "MIPI_DBI_MODE_SPI_4WIRE";
+// 		grayscale-table = [04 06 08 0A 0C 0D 10 12 14 16 18 1C 20 24 3C];
+// 	};
+//
+// 	dmas = <&dma0 0 0x14>;
+// 	dma-names = "tx";
+// 	pinctrl-names = "default";
+// 	pinctrl-0 = <&dbi0_default>;
+// };
+//
+// &spi0 {
+// 	status = "disabled";
+// };
+
+&pinctrl {
+	spi0_default: spi0_default {
+		group1 {
+			pinmux = <GPIO11_SPI_MOSI>, <GPIO13_SPI_SCLK>;
+			drive-strength = <1>;
+			input-schmitt-enable;
+		};
+	};
+};
+
+/ {
+
+	mipi_dbi_ssd1327 {
+		compatible = "zephyr,mipi-dbi-spi";
+		spi-dev = <&spi0>;
+		dc-gpios = <&gpio0 15 GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&gpio0 17 GPIO_ACTIVE_LOW>;
+		write-only;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		display: ssd1327@0 {
+			compatible = "solomon,ssd1327fb";
+			mipi-max-frequency = <21000000>;
+			reg = <0>;
+			width = <128>;
+			height = <64>;
+			prechargep = <0x5>;
+			precharge-voltage = <0x7>;
+			remap-value = <0x53>;
+			oscillator-freq = <0xA1>;
+			display-offset = <0x40>;
+			start-line = <0>;
+			multiplex-ratio = <0x3f>;
+			phase-length = <0x29>;
+			mipi-mode = "MIPI_DBI_MODE_SPI_4WIRE";
+			grayscale-table = [04 06 08 0A 0C 0D 10 12 14 16 18 1C 20 24 3C];
+		};
+	};
+};
+
+&spi0 {
+	status = "okay";
+	cs-gpios = <&gpio0 16 GPIO_ACTIVE_LOW>;
+
+	pinctrl-0 = <&spi0_default>;
+	pinctrl-names = "default";
+};
+
+// &i2c0 {
+// 	status = "okay";
+// 	
+// 	clock-frequency = <I2C_BITRATE_FAST_PLUS>;
+// 
+// 	display: ssd1306@3c {
+// 		compatible = "sinowealth,sh1106";
+// 		reg = <0x3c>;
+// 		width = <128>;
+// 		height = <64>;
+// 		segment-offset = <0>;
+// 		page-offset = <0>;
+// 		display-offset = <0>;
+// 		multiplex-ratio = <63>;
+// 		segment-remap;
+// 		com-invdir;
+// 		prechargep = <0x22>;
+// 	};	
+// };
+
+// &i2c0 {
+// 	status = "okay";
+// 	
+// 	clock-frequency = <I2C_BITRATE_FAST_PLUS>;
+// 
+// 	display: ssd1309@3c {
+// 		compatible = "solomon,ssd1309fb";
+// 		reg = <0x3c>;
+// 		width = <128>;
+// 		height = <64>;
+// 		segment-offset = <0>;
+// 		page-offset = <0>;
+// 		display-offset = <0>;
+// 		multiplex-ratio = <63>;
+// 		segment-remap;
+// 		com-invdir;
+// 		prechargep = <0x22>;
+// 	};	
+// };
+
+
+/ {
+	chosen {
+		zephyr,display = &display;
+	};
+};
+
+&gpio0 {
+	status = "okay";
+};
+
+/ {
+	kbd-matrix {
+		compatible = "gpio-kbd-matrix";
+		row-gpios = <&gpio0 31 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
+					<&gpio0 30 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
+					<&gpio0 25 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
+					<&gpio0 27 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>,
+					<&gpio0 29 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+		col-gpios = <&gpio0 2 GPIO_ACTIVE_LOW>,
+					<&gpio0 24 GPIO_ACTIVE_LOW>,
+					<&gpio0 28 GPIO_ACTIVE_LOW>,
+					<&gpio0 26 GPIO_ACTIVE_LOW>;
+		keymap {
+			compatible = "input-keymap";
+			keymap = <
+				MATRIX_KEY(3, 1, INPUT_KEY_W)
+				MATRIX_KEY(4, 1, INPUT_KEY_S)
+				MATRIX_KEY(4, 0, INPUT_KEY_A)
+				MATRIX_KEY(4, 2, INPUT_KEY_D)
+				MATRIX_KEY(3, 0, INPUT_KEY_LEFT)
+				MATRIX_KEY(3, 2, INPUT_KEY_RIGHT)
+				MATRIX_KEY(1, 3, INPUT_KEY_UP)
+				MATRIX_KEY(2, 3, INPUT_KEY_DOWN)
+				MATRIX_KEY(3, 3, INPUT_KEY_LEFTSHIFT)
+				MATRIX_KEY(4, 3, INPUT_KEY_SPACE)
+			>;
+			row-size = <5>;
+			col-size = <4>;
+		};
+	};
+};

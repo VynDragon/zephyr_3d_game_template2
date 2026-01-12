@@ -54,6 +54,7 @@ float engine_rFPS = 0;
 /* ------------------------------------------------------------------------------------------- */
 
 
+#ifndef CONFIG_HEADLESS
 
 #if DT_HAS_COMPAT_STATUS_OKAY(zephyr_displays)
 #define ENUMERATE_DISPLAY_DEVS(node_id, prop, idx) DEVICE_DT_GET(DT_PROP_BY_IDX(node_id, prop, idx)),
@@ -65,6 +66,8 @@ const struct device *engine_display_devices[DT_ZEPHYR_DISPLAYS_COUNT] = {
 const struct device *engine_display_devices[] = {
 	DEVICE_DT_GET(DT_CHOSEN(zephyr_display)),
 };
+#endif
+
 #endif
 
 /* ------------------------------------------------------------------------------------------- */
@@ -191,7 +194,7 @@ static void render_function(void *, void *, void *)
 {
 #if	CONFIG_LOG_PERFORMANCE
 	timing_t start_time;
-	uint32_t total_time_us,;
+	uint32_t total_time_us;
 #endif
 	timing_t end_time, rstart_time;
 	uint32_t render_time_us;
