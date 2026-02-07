@@ -59,8 +59,6 @@ static const L3_Model3D Vertical_Scaffolding = {
 .triangleTextures = NULL,
 .triangleUVs = NULL,
 .triangleTextureIndex = NULL,
-.triangleTextureWidth = NULL,
-.triangleTextureHeight = NULL,
 };
 #pragma once
 #ifndef ARRAY_SIZE

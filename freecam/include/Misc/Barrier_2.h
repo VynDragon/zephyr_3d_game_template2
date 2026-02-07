@@ -33,14 +33,8 @@ static const L3_Index Misc_Barrier_2_indexes[] = {
 3, 9, 10,
 7, 10, 11,
 };
-static const L3_COLORTYPE *Misc_Barrier_2_textures[] = {
-tex_Road_1,
-};
-static const L3_Unit Misc_Barrier_2_textures_width[] = {
-192,
-};
-static const L3_Unit Misc_Barrier_2_textures_height[] = {
-192,
+static const L3_Texture *Misc_Barrier_2_textures[] = {
+&tex_Road_1,
 };
 static const L3_Unit Misc_Barrier_2_UVs[] = {
 156, 11,
@@ -108,8 +102,6 @@ static const L3_Model3D Misc_Barrier_2 = {
 .triangleTextures = Misc_Barrier_2_textures,
 .triangleUVs = Misc_Barrier_2_UVs,
 .triangleTextureIndex = Misc_Barrier_2_indexes_texture,
-.triangleTextureWidth = Misc_Barrier_2_textures_width,
-.triangleTextureHeight = Misc_Barrier_2_textures_height,
 };
 #pragma once
 #ifndef ARRAY_SIZE

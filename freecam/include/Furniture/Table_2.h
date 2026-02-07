@@ -87,14 +87,8 @@ static const L3_Index Furniture_Table_2_indexes[] = {
 32, 36, 38,
 35, 39, 37,
 };
-static const L3_COLORTYPE *Furniture_Table_2_textures[] = {
-tex_Aluminium,
-};
-static const L3_Unit Furniture_Table_2_textures_width[] = {
-64,
-};
-static const L3_Unit Furniture_Table_2_textures_height[] = {
-64,
+static const L3_Texture *Furniture_Table_2_textures[] = {
+&tex_Aluminium,
 };
 static const L3_Unit Furniture_Table_2_UVs[] = {
 44, 64,
@@ -240,8 +234,6 @@ static const L3_Model3D Furniture_Table_2 = {
 .triangleTextures = Furniture_Table_2_textures,
 .triangleUVs = Furniture_Table_2_UVs,
 .triangleTextureIndex = Furniture_Table_2_indexes_texture,
-.triangleTextureWidth = Furniture_Table_2_textures_width,
-.triangleTextureHeight = Furniture_Table_2_textures_height,
 };
 #pragma once
 #ifndef ARRAY_SIZE

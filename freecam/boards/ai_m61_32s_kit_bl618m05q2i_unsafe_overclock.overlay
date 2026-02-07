@@ -22,8 +22,9 @@
 		#size-cells = <0>;
 
 		display: ssd1327@0 {
-			compatible = "solomon,ssd1327fb";
-			mipi-max-frequency = <20000000>;
+			compatible = "solomon,ssd1327";
+/* 21 MHz because at 640MHz PLL is a bit unstable and causes desync when clock domain crosses from XCLK domain (SPI  <= 20MHz) and PLL domain (SPI > 20MHz using PLL divider) */
+			mipi-max-frequency = <21000000>;
 			reg = <0>;
 			width = <128>;
 			height = <64>;
@@ -38,6 +39,25 @@
 			mipi-mode = "MIPI_DBI_MODE_SPI_4WIRE";
 			grayscale-table = [04 06 08 0A 0C 0D 10 12 14 16 18 1C 20 24 3C];
 		};
+
+		// display: ssd1325@0 {
+		// 	compatible = "solomon,ssd1325";
+		// 	mipi-max-frequency = <20000000>;
+		// 	reg = <0>;
+		// 	width = <128>;
+		// 	height = <64>;
+		// 	prechargep = <0x0>;
+		// 	precharge-voltage = <0x10>;
+		// 	remap-value = <0x50>;
+		// 	oscillator-freq = <0x91>;
+		// 	display-offset = <0x4c>;
+		// 	start-line = <0>;
+		// 	multiplex-ratio = <0x3f>;
+		// 	phase-length = <0x22>;
+		// 	vcomh-voltage = <0x2>;
+		// 	mipi-mode = "MIPI_DBI_MODE_SPI_4WIRE";
+		// 	grayscale-table = [ 02 02 02 02 02 02 02 02 03 04 05 06 07 07 07 ];
+		// };
 	};
 };
 

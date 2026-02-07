@@ -88,6 +88,63 @@ void L3_clearScreen_with(L3_ClearPixFunc func)
 }
 
 L3_PERFORMANCE_FUNCTION
+void L3_clear_with_skybox(L3_Skybox *skybox)
+{
+	L3_Mat4 transMat;
+	uint8_t face;
+	const L3_Texture *facet;
+	L3_Vec4 p;
+
+	L3_makeRotationMatrixZXY(-engine_camera.transform.rotation.x,
+							engine_camera.transform.rotation.y,
+							engine_camera.transform.rotation.z,
+							transMat);
+
+	for (uint16_t x = 0; x < L3_RESOLUTION_X; x++) {
+		for (uint16_t y = 0; y < L3_RESOLUTION_Y; y++) {
+			L3_Vec4 forward = {
+				x - L3_HALF_RESOLUTION_X,
+				y - L3_HALF_RESOLUTION_Y,
+				engine_camera.focalLength * L3_HALF_RESOLUTION_X / L3_F,
+				L3_F
+			};
+			//L3_vec3Normalize(&forward);
+			L3_vec3Xmat4(&forward, transMat);
+			L3_Vec4 dirabs = {
+				L3_abs(forward.x),
+				L3_abs(forward.y),
+				L3_abs(forward.z)
+			};
+
+			if (dirabs.z >= dirabs.x && dirabs.z >= dirabs.y)
+			{
+				face = forward.z > 0 ? 0 : 1;
+				p.x = forward.z > 0 ? forward.x : -forward.x;
+				p.y = forward.y;
+				p.z = dirabs.z ? dirabs.z : 1;
+			} else if (dirabs.y >= dirabs.x) {
+				face = forward.y > 0 ? 5 : 4;
+				p.x = forward.y > 0 ? -forward.x : forward.x;
+				p.y = forward.z;
+				p.z = dirabs.y ? dirabs.y : 1;
+			} else {
+				face = forward.x > 0 ? 2 : 3;
+				p.x = forward.x > 0 ? -forward.z : forward.z;
+				p.y = forward.y;
+				p.z = dirabs.x ? dirabs.x : 1;
+			}
+
+			facet = skybox->textures[face];
+
+			p.x = clamp(((((p.x * facet->width - 1) / p.z) + facet->width) * 50 / 100) % facet->width, 0, facet->width);
+			p.y = clamp(((((p.y * facet->height - 1) / p.z) + facet->height) * 50 / 100) % facet->height, 0, facet->height);
+
+			L3_video_buffer[x + y * L3_RESOLUTION_X] = facet->data[p.x + p.y * facet->width];
+		}
+	}
+}
+
+L3_PERFORMANCE_FUNCTION
 void L3_plot_line (L3_COLORTYPE color, int x0, int y0, int x1, int y1)
 {
 	int dx =  abs (x1 - x0), sx = x0 < x1 ? 1 : -1;
@@ -2691,9 +2748,9 @@ inline void zephyr_putpixel(L3_PixelInfo *p)
 
 		L3_Index tex_index = object->model->triangleTextureIndex[p->triangleIndex];
 
-		uv[0] = abs(L3_interpolateBarycentric(uvs[0], uvs[2], uvs[4], p->barycentric)) / 1 % object->model->triangleTextureWidth[tex_index];
-		uv[1] = abs(L3_interpolateBarycentric(uvs[1], uvs[3], uvs[5], p->barycentric)) / 1 % object->model->triangleTextureHeight[tex_index];
-		color = object->model->triangleTextures[tex_index][(uv[0] >> 0) + (uv[1] >> 0) * object->model->triangleTextureWidth[tex_index]];
+		uv[0] = (abs(L3_interpolateBarycentric(uvs[0], uvs[2], uvs[4], p->barycentric)) / 1) % object->model->triangleTextures[tex_index]->width;
+		uv[1] = (abs(L3_interpolateBarycentric(uvs[1], uvs[3], uvs[5], p->barycentric)) / 1) % object->model->triangleTextures[tex_index]->height;
+		color = object->model->triangleTextures[tex_index]->data[(uv[0] >> 0) + (uv[1] >> 0) * object->model->triangleTextures[tex_index]->width];
 	} else {
 		color = object->solid_color;
 	}
@@ -2772,8 +2829,8 @@ inline int zephyr_drawbillboard(L3_Vec4 point, const L3_Object *billboard, L3_Ca
 	int focal = camera.focalLength != 0 ? camera.focalLength : 1;
 	float scale_x = ((float)(billboard->transform.scale.x * focal) / (float)point.z) * ((float)billboard->billboard->scale/0x4000) * L3_RESOLUTION_X / L3_F;
 	float scale_y = ((float)(billboard->transform.scale.y * focal) / (float)point.z) * ((float)billboard->billboard->scale/0x4000) * L3_RESOLUTION_X / L3_F;
-	int scaled_width = billboard->billboard->width * scale_x;
-	int scaled_height = billboard->billboard->height * scale_y;
+	int scaled_width = billboard->billboard->texture->width * scale_x;
+	int scaled_height = billboard->billboard->texture->height * scale_y;
 
 	int startx = point.x - scaled_width / 2;
 	int endx =  MIN(point.x + scaled_width / 2, L3_RESOLUTION_X);
@@ -2784,8 +2841,8 @@ inline int zephyr_drawbillboard(L3_Vec4 point, const L3_Object *billboard, L3_Ca
 		int m = (float)(i - startx) / scale_x;
 		for (int j = MAX(0, starty); j < endy; j++) {
 			int n = (float)(j - starty) / scale_y;
-			if (billboard->billboard->texture[m + n * billboard->billboard->width] > billboard->billboard->transparency_threshold) {
-				L3_video_buffer[j * L3_RESOLUTION_X + i] = billboard->billboard->texture[m + n * billboard->billboard->width];
+			if (billboard->billboard->texture->data[m + n * billboard->billboard->texture->width] > billboard->billboard->transparency_threshold) {
+				L3_video_buffer[j * L3_RESOLUTION_X + i] = billboard->billboard->texture->data[m + n * billboard->billboard->texture->width];
 				#if L3_Z_BUFFER
 				L3_zBuffer[j * L3_RESOLUTION_X + i] = z;
 				#endif

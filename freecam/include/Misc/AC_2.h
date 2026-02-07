@@ -33,14 +33,8 @@ static const L3_Index Misc_AC_2_indexes[] = {
 11, 9, 8,
 9, 6, 5,
 };
-static const L3_COLORTYPE *Misc_AC_2_textures[] = {
-tex_AC,
-};
-static const L3_Unit Misc_AC_2_textures_width[] = {
-96,
-};
-static const L3_Unit Misc_AC_2_textures_height[] = {
-96,
+static const L3_Texture *Misc_AC_2_textures[] = {
+&tex_AC,
 };
 static const L3_Unit Misc_AC_2_UVs[] = {
 21, 74,
@@ -108,8 +102,6 @@ static const L3_Model3D Misc_AC_2 = {
 .triangleTextures = Misc_AC_2_textures,
 .triangleUVs = Misc_AC_2_UVs,
 .triangleTextureIndex = Misc_AC_2_indexes_texture,
-.triangleTextureWidth = Misc_AC_2_textures_width,
-.triangleTextureHeight = Misc_AC_2_textures_height,
 };
 #pragma once
 #ifndef ARRAY_SIZE

@@ -13,8 +13,6 @@ def generate_model_header(name, model_path, texture_name, texture_width, texture
 	data_vertices_name = name + "_vertices"
 	data_index_name = name + "_indexes"
 	data_texture_name = name + "_textures"
-	data_texture_name_width = name + "_textures_width"
-	data_texture_name_height = name + "_textures_height"
 	data_uv_name = name + "_UVs"
 	data_texindex_name = name + "_indexes_texture"
 	data_model_name = name
@@ -41,16 +39,8 @@ def generate_model_header(name, model_path, texture_name, texture_width, texture
 
 	if not notexture:
 
-		file_out.write("static const L3_COLORTYPE *" +  data_texture_name + "[] = {\n")
-		file_out.write(texture_name + ",\n")
-		file_out.write("};\n")
-
-		file_out.write("static const L3_Unit " + data_texture_name_width + "[] = {\n")
-		file_out.write(str(texture_width) + ",\n")
-		file_out.write("};\n")
-
-		file_out.write("static const L3_Unit " + data_texture_name_height + "[] = {\n")
-		file_out.write(str(texture_height) + ",\n")
+		file_out.write("static const L3_Texture *" +  data_texture_name + "[] = {\n")
+		file_out.write("&" + texture_name + ",\n")
 		file_out.write("};\n")
 
 		file_out.write("static const L3_Unit " +  data_uv_name + "[] = {\n")
@@ -83,14 +73,10 @@ def generate_model_header(name, model_path, texture_name, texture_width, texture
 		file_out.write(".triangleTextures = " + data_texture_name + ",\n")
 		file_out.write(".triangleUVs = " + data_uv_name + ",\n")
 		file_out.write(".triangleTextureIndex = " + data_texindex_name + ",\n")
-		file_out.write(".triangleTextureWidth = " + data_texture_name_width + ",\n")
-		file_out.write(".triangleTextureHeight = " + data_texture_name_height + ",\n")
 	else:
 		file_out.write(".triangleTextures = NULL,\n")
 		file_out.write(".triangleUVs = NULL,\n")
 		file_out.write(".triangleTextureIndex = NULL,\n")
-		file_out.write(".triangleTextureWidth = NULL,\n")
-		file_out.write(".triangleTextureHeight = NULL,\n")
 	file_out.write("};\n")
 	file_out.close()
 
@@ -198,9 +184,14 @@ for conf_path in glob.glob(os.path.join(glob.escape(args.data_folder), "**/*.jso
 			tex = tex.resize((conf["width"], conf["height"]))
 			tex = tex.convert("L")
 			with open(conf_out_path_h, "tx") as file_out:
-				file_out.write("static const L3_COLORTYPE " + conf_name + "[" + str(conf["width"] * conf["height"]) + "] = {\n")
+				file_out.write("static const L3_COLORTYPE " + conf_name + "_data[" + str(conf["width"] * conf["height"]) + "] = {\n")
 				for p in list(tex.getdata()):
 					file_out.write(str(p) + ",")
+				file_out.write("};\n")
+				file_out.write("static const L3_Texture " + conf_name + "= {\n")
+				file_out.write(".width = " + str(conf["width"]) + ",\n")
+				file_out.write(".height = " + str(conf["height"]) + ",\n")
+				file_out.write(".data = " + conf_name + "_data,\n")
 				file_out.write("};\n")
 			textures.append((conf_name, conf["width"], conf["height"]))
 			includes.append("#include \"" + str(conf_rel_out_path) + ".h\"\n")

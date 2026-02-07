@@ -19,14 +19,8 @@ static const L3_Index Wall_Pillar_1_0_indexes[] = {
 5, 1, 0,
 3, 1, 5,
 };
-static const L3_COLORTYPE *Wall_Pillar_1_0_textures[] = {
-tex_Brick_Wall_1,
-};
-static const L3_Unit Wall_Pillar_1_0_textures_width[] = {
-96,
-};
-static const L3_Unit Wall_Pillar_1_0_textures_height[] = {
-96,
+static const L3_Texture *Wall_Pillar_1_0_textures[] = {
+&tex_Brick_Wall_1,
 };
 static const L3_Unit Wall_Pillar_1_0_UVs[] = {
 16, -10,
@@ -64,8 +58,6 @@ static const L3_Model3D Wall_Pillar_1_0 = {
 .triangleTextures = Wall_Pillar_1_0_textures,
 .triangleUVs = Wall_Pillar_1_0_UVs,
 .triangleTextureIndex = Wall_Pillar_1_0_indexes_texture,
-.triangleTextureWidth = Wall_Pillar_1_0_textures_width,
-.triangleTextureHeight = Wall_Pillar_1_0_textures_height,
 };
 #pragma once
 #ifndef ARRAY_SIZE

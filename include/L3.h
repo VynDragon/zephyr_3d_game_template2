@@ -487,28 +487,44 @@ void L3_drawConfigInit(L3_DrawConfig *config);
 
 typedef struct
 {
+	const L3_COLORTYPE *data;
+	const L3_Unit width;
+	const L3_Unit height;
+} L3_Texture;
+
+typedef struct
+{
 	const L3_Unit *vertices;
 	L3_Index vertexCount;
 	const L3_Index *triangles;
 	L3_Index triangleCount;
 	const L3_Unit *triangleUVs;
 	const L3_Index *triangleTextureIndex;
-	const L3_COLORTYPE **triangleTextures;
-	const L3_Unit *triangleTextureWidth;
-	const L3_Unit *triangleTextureHeight;
+	const L3_Texture **triangleTextures;
 } L3_Model3D;
 
 typedef struct
 {
-	const L3_Unit	*texture;
-	L3_Unit			height;
-	L3_Unit			width;
-	L3_Unit			scale;
-	L3_COLORTYPE	transparency_threshold;
+	const L3_Texture	*texture;
+	L3_Unit				scale;
+	L3_COLORTYPE		transparency_threshold;
 	/* x / 0xFF */
-	uint8_t			transparency;
+	uint8_t				transparency;
 } L3_Billboard;
 
+/* Skybox texture must be square */
+typedef union
+{
+	struct {
+			const L3_Texture	*front; /* 0 */
+			const L3_Texture	*back; /* 1 */
+			const L3_Texture	*left; /* 2 */
+			const L3_Texture	*right; /* 3 */
+			const L3_Texture	*top; /* 4 */
+			const L3_Texture	*bottom; /* 5 */
+	} faces;
+	const L3_Texture	*textures[6];
+} L3_Skybox;
 
 typedef struct
 {
@@ -848,6 +864,7 @@ void L3_clearScreen(L3_COLORTYPE color);
 /* functions to clear background */
 typedef L3_COLORTYPE (*L3_ClearPixFunc)(L3_Unit x, L3_Unit y);
 void L3_clearScreen_with(L3_ClearPixFunc func);
+void L3_clear_with_skybox(L3_Skybox *skybox);
 void L3_plot_line(L3_COLORTYPE color, int x0, int y0, int x1, int y1);
 
 void _L3_mapProjectedVertexToScreen(L3_Vec4 *vertex, L3_Unit focalLength);

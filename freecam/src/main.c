@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <zephyr/random/random.h>
+#include <zephyr/sys/util.h>
 #include <math.h>
 
 #include <lvgl.h>
@@ -21,6 +22,13 @@ LOG_MODULE_REGISTER(main);
 #include "map.h"
 
 #include "filters.h"
+
+#include "skybox/h2s_bk.h"
+#include "skybox/h2s_dn.h"
+#include "skybox/h2s_ft.h"
+#include "skybox/h2s_lf.h"
+#include "skybox/h2s_rt.h"
+#include "skybox/h2s_up.h"
 
 static const struct device *display_device = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
 
@@ -292,10 +300,14 @@ static Filter_f default_scene_filters[] = {
 	filter_fixgap,
 };
 
-L3_COLORTYPE sky_clearpix(L3_Unit x, L3_Unit y)
-{
-	return ((L3_RESOLUTION_Y - y) * 0x28) / L3_RESOLUTION_Y + (abs(L3_RESOLUTION_X / 2 - x) * 0x28) / (L3_RESOLUTION_X / 2);
-}
+L3_Skybox skybox = {
+	.faces.front = &h2s_ft,
+	.faces.back = &h2s_bk,
+	.faces.left = &h2s_lf,
+	.faces.right = &h2s_rt,
+	.faces.top = &h2s_up,
+	.faces.bottom = &h2s_dn,
+};
 
 int main()
 {
@@ -322,7 +334,7 @@ int main()
 	scene.statics_count = sizeof(map) / sizeof(*map);
 	scene.filters_count = 1,
 	scene.filters = default_scene_filters,
-	scene.clear_pix_func = sky_clearpix;
+	scene.skybox = &skybox;
 
 	engine_switchscene(&logo_scene);
 	k_msleep(2000);

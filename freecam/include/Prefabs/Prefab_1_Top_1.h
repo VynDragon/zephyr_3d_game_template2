@@ -19,14 +19,8 @@ static const L3_Index Prefabs_Prefab_1_Top_1_indexes[] = {
 0, 2, 3,
 4, 0, 1,
 };
-static const L3_COLORTYPE *Prefabs_Prefab_1_Top_1_textures[] = {
-tex_facade_1,
-};
-static const L3_Unit Prefabs_Prefab_1_Top_1_textures_width[] = {
-256,
-};
-static const L3_Unit Prefabs_Prefab_1_Top_1_textures_height[] = {
-256,
+static const L3_Texture *Prefabs_Prefab_1_Top_1_textures[] = {
+&tex_facade_1,
 };
 static const L3_Unit Prefabs_Prefab_1_Top_1_UVs[] = {
 256, 0,
@@ -64,8 +58,6 @@ static const L3_Model3D Prefabs_Prefab_1_Top_1 = {
 .triangleTextures = Prefabs_Prefab_1_Top_1_textures,
 .triangleUVs = Prefabs_Prefab_1_Top_1_UVs,
 .triangleTextureIndex = Prefabs_Prefab_1_Top_1_indexes_texture,
-.triangleTextureWidth = Prefabs_Prefab_1_Top_1_textures_width,
-.triangleTextureHeight = Prefabs_Prefab_1_Top_1_textures_height,
 };
 #pragma once
 #ifndef ARRAY_SIZE

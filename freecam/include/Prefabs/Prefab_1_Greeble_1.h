@@ -357,14 +357,8 @@ static const L3_Index Prefabs_Prefab_1_Greeble_1_indexes[] = {
 139, 148, 149,
 138, 140, 149,
 };
-static const L3_COLORTYPE *Prefabs_Prefab_1_Greeble_1_textures[] = {
-tex_Greeble_1,
-};
-static const L3_Unit Prefabs_Prefab_1_Greeble_1_textures_width[] = {
-96,
-};
-static const L3_Unit Prefabs_Prefab_1_Greeble_1_textures_height[] = {
-96,
+static const L3_Texture *Prefabs_Prefab_1_Greeble_1_textures[] = {
+&tex_Greeble_1,
 };
 static const L3_Unit Prefabs_Prefab_1_Greeble_1_UVs[] = {
 57, 4,
@@ -990,8 +984,6 @@ static const L3_Model3D Prefabs_Prefab_1_Greeble_1 = {
 .triangleTextures = Prefabs_Prefab_1_Greeble_1_textures,
 .triangleUVs = Prefabs_Prefab_1_Greeble_1_UVs,
 .triangleTextureIndex = Prefabs_Prefab_1_Greeble_1_indexes_texture,
-.triangleTextureWidth = Prefabs_Prefab_1_Greeble_1_textures_width,
-.triangleTextureHeight = Prefabs_Prefab_1_Greeble_1_textures_height,
 };
 #pragma once
 #ifndef ARRAY_SIZE

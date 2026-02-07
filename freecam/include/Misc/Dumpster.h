@@ -33,14 +33,8 @@ static const L3_Index Misc_Dumpster_indexes[] = {
 5, 11, 10,
 1, 8, 11,
 };
-static const L3_COLORTYPE *Misc_Dumpster_textures[] = {
-tex_Dumpster,
-};
-static const L3_Unit Misc_Dumpster_textures_width[] = {
-64,
-};
-static const L3_Unit Misc_Dumpster_textures_height[] = {
-64,
+static const L3_Texture *Misc_Dumpster_textures[] = {
+&tex_Dumpster,
 };
 static const L3_Unit Misc_Dumpster_UVs[] = {
 25, 18,
@@ -108,8 +102,6 @@ static const L3_Model3D Misc_Dumpster = {
 .triangleTextures = Misc_Dumpster_textures,
 .triangleUVs = Misc_Dumpster_UVs,
 .triangleTextureIndex = Misc_Dumpster_indexes_texture,
-.triangleTextureWidth = Misc_Dumpster_textures_width,
-.triangleTextureHeight = Misc_Dumpster_textures_height,
 };
 #pragma once
 #ifndef ARRAY_SIZE

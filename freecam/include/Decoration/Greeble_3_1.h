@@ -63,14 +63,8 @@ static const L3_Index Decoration_Greeble_3_1_indexes[] = {
 13, 22, 23,
 12, 14, 23,
 };
-static const L3_COLORTYPE *Decoration_Greeble_3_1_textures[] = {
-tex_Greeble_1,
-};
-static const L3_Unit Decoration_Greeble_3_1_textures_width[] = {
-96,
-};
-static const L3_Unit Decoration_Greeble_3_1_textures_height[] = {
-96,
+static const L3_Texture *Decoration_Greeble_3_1_textures[] = {
+&tex_Greeble_1,
 };
 static const L3_Unit Decoration_Greeble_3_1_UVs[] = {
 84, 7,
@@ -192,8 +186,6 @@ static const L3_Model3D Decoration_Greeble_3_1 = {
 .triangleTextures = Decoration_Greeble_3_1_textures,
 .triangleUVs = Decoration_Greeble_3_1_UVs,
 .triangleTextureIndex = Decoration_Greeble_3_1_indexes_texture,
-.triangleTextureWidth = Decoration_Greeble_3_1_textures_width,
-.triangleTextureHeight = Decoration_Greeble_3_1_textures_height,
 };
 #pragma once
 #ifndef ARRAY_SIZE

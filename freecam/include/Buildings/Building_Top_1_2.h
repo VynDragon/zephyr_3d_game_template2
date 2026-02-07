@@ -3139,14 +3139,8 @@ static const L3_Index Buildings_Building_Top_1_2_indexes[] = {
 36, 878, 893,
 863, 878, 36,
 };
-static const L3_COLORTYPE *Buildings_Building_Top_1_2_textures[] = {
-tex_facade_2,
-};
-static const L3_Unit Buildings_Building_Top_1_2_textures_width[] = {
-64,
-};
-static const L3_Unit Buildings_Building_Top_1_2_textures_height[] = {
-64,
+static const L3_Texture *Buildings_Building_Top_1_2_textures[] = {
+&tex_facade_2,
 };
 static const L3_Unit Buildings_Building_Top_1_2_UVs[] = {
 60, 56,
@@ -9304,8 +9298,6 @@ static const L3_Model3D Buildings_Building_Top_1_2 = {
 .triangleTextures = Buildings_Building_Top_1_2_textures,
 .triangleUVs = Buildings_Building_Top_1_2_UVs,
 .triangleTextureIndex = Buildings_Building_Top_1_2_indexes_texture,
-.triangleTextureWidth = Buildings_Building_Top_1_2_textures_width,
-.triangleTextureHeight = Buildings_Building_Top_1_2_textures_height,
 };
 #pragma once
 #ifndef ARRAY_SIZE

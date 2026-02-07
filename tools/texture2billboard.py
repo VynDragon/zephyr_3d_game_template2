@@ -28,15 +28,19 @@ tex = Image.open(args.filename_in)
 tex = tex.resize((args.width, args.height))
 tex = tex.convert("L")
 
-file_out.write("static const L3_Unit " +  data_texture_name + "[" + str(args.width * args.height) + "] = {\n")
+file_out.write("static const L3_COLORTYPE " +  data_texture_name + "_data[" + str(args.width * args.height) + "] = {\n")
 for p in list(tex.getdata()):
 	file_out.write(str(p) + ",")
 file_out.write("};\n")
 
-file_out.write("static const L3_Billboard " +  data_bb_name + " = {\n")
-file_out.write(".texture = " + data_texture_name + ",\n")
+file_out.write("static const L3_Texture " + data_texture_name + "= {\n")
 file_out.write(".width = " + str(args.width) + ",\n")
 file_out.write(".height = " + str(args.height) + ",\n")
+file_out.write(".data = " + data_texture_name + "_data,\n")
+file_out.write("};\n")
+
+file_out.write("static const L3_Billboard " +  data_bb_name + " = {\n")
+file_out.write(".texture = &" + data_texture_name + ",\n")
 file_out.write(".scale = " + str(args.scale) + ",\n")
 file_out.write("};\n")
 

@@ -7,8 +7,8 @@ manifest:
 
   projects:
     - name: zephyr
-      remote: VynDragon
-      revision: bflb_600m_oc
+      remote: zephyrproject-rtos
+      revision: main
       import:
         name-allowlist:
           - hal_bouffalolab

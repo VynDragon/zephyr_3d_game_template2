@@ -42,7 +42,7 @@ uint32_t					engine_dynamic_objects_count = 0;
 K_MUTEX_DEFINE(engine_objects_lock);
 K_MUTEX_DEFINE(engine_render_lock);
 #ifdef CONFIG_BLIT_THREAD
-K_SEM_DEFINE(engine_blit_cnt, 0, ENGINE_MAX_BLIT_QUEUED * 2);
+K_SEM_DEFINE(engine_blit_cnt, 0, 1);
 #endif
 
 static Engine_pf	engine_pf;
@@ -81,8 +81,8 @@ inline int E_drawbillboard_particle(L3_Vec4 point, const E_Particle *particle, L
 	int focal = camera.focalLength != 0 ? camera.focalLength : 1;
 	float scale_x = ((float)(particle->transform.scale.x * focal) / (float)point.z) * ((float)particle->billboard->scale/0x4000) * L3_RESOLUTION_X / L3_F;
 	float scale_y = ((float)(particle->transform.scale.y * focal) / (float)point.z) * ((float)particle->billboard->scale/0x4000) * L3_RESOLUTION_X / L3_F;
-	int scaled_width = particle->billboard->width * scale_x;
-	int scaled_height = particle->billboard->height * scale_y;
+	int scaled_width = particle->billboard->texture->width * scale_x;
+	int scaled_height = particle->billboard->texture->height * scale_y;
 
 	int startx = point.x - scaled_width / 2;
 	int endx =  MIN(point.x + scaled_width / 2, L3_RESOLUTION_X);
@@ -92,8 +92,8 @@ inline int E_drawbillboard_particle(L3_Vec4 point, const E_Particle *particle, L
 		int m = (float)(i - startx) / scale_x;
 		for (int j = MAX(0, starty); j < endy; j++) {
 			int n = (float)(j - starty) / scale_y;
-			if (particle->billboard->texture[m + n * particle->billboard->width] > particle->billboard->transparency_threshold) {
-				L3_video_buffer[j * L3_RESOLUTION_X + i] = (L3_video_buffer[j * L3_RESOLUTION_X + i] * (0xFF - particle->billboard->transparency) +  particle->billboard->texture[m + n * particle->billboard->width] * particle->billboard->transparency) / 0xFF;
+			if (particle->billboard->texture->data[m + n * particle->billboard->texture->width] > particle->billboard->transparency_threshold) {
+				L3_video_buffer[j * L3_RESOLUTION_X + i] = (L3_video_buffer[j * L3_RESOLUTION_X + i] * (0xFF - particle->billboard->transparency) +  particle->billboard->texture->data[m + n * particle->billboard->texture->width] * particle->billboard->transparency) / 0xFF;
 			}
 		}
 	}
@@ -135,6 +135,8 @@ __attribute__((weak)) int engine_render_hook_post(void) {
 	return 0;
 }
 
+static uint64_t render_delayed_count = 0;
+
 #ifdef CONFIG_BLIT_THREAD
 static void blit_function(void *, void *, void *)
 {
@@ -154,14 +156,14 @@ static void blit_function(void *, void *, void *)
 #if	CONFIG_LOG_PERFORMANCE
 		start_time = timing_counter_get();
 #endif
-		if (k_sem_count_get(&engine_blit_cnt) * 4 < ENGINE_MAX_BLIT_QUEUED) {
-			missed_seq = L3_RESOLUTION_Y;
-		} else if (k_sem_count_get(&engine_blit_cnt) * 4 > ENGINE_MAX_BLIT_QUEUED) {
+		if (render_delayed_count > CONFIG_TARGET_RENDER_FPS / 16) {
 			missed_seq = L3_RESOLUTION_Y / 2;
-		} else if (k_sem_count_get(&engine_blit_cnt) * 2 > ENGINE_MAX_BLIT_QUEUED) {
+		} else if (render_delayed_count > CONFIG_TARGET_RENDER_FPS / 8) {
 			missed_seq = L3_RESOLUTION_Y / 4;
-		} else if (k_sem_count_get(&engine_blit_cnt) > ENGINE_MAX_BLIT_QUEUED) {
+		} else if (render_delayed_count > CONFIG_TARGET_RENDER_FPS / 4) {
 			missed_seq = L3_RESOLUTION_Y / 8;
+		} else {
+			missed_seq = L3_RESOLUTION_Y;
 		}
 
 		offset += missed_seq;
@@ -188,7 +190,6 @@ static void blit_function(void *, void *, void *)
 }
 
 #endif
-static uint64_t render_delayed_count = 0;
 
 static void render_function(void *, void *, void *)
 {
@@ -213,8 +214,8 @@ static void render_function(void *, void *, void *)
 		/* clear viewport to black */
 		L3_newFrame();
 		if (engine_current_scene != NULL)
-			if (engine_current_scene->clear_pix_func != NULL)
-				L3_clearScreen_with(engine_current_scene->clear_pix_func);
+			if (engine_current_scene->skybox != NULL)
+				L3_clear_with_skybox(engine_current_scene->skybox);
 			else
 				L3_clearScreen(0);
 		else
@@ -230,10 +231,7 @@ static void render_function(void *, void *, void *)
 		engine_render_hook_post();
 		k_mutex_unlock(&engine_render_lock);
 #ifdef CONFIG_BLIT_THREAD
-		if (k_sem_count_get(&engine_blit_cnt) > ENGINE_MAX_BLIT_QUEUED) {
-			render_delayed_count+=2;
-			//LOG_ERR_RATELIMIT_RATE(2000, "Blit cant keep up!");
-		}
+		// LOG_ERR_RATELIMIT_RATE(500, "render_delayed_count %d", render_delayed_count);
 		k_sem_give(&engine_blit_cnt);
 #else
 		ENGINE_BLIT_FUNCTION(L3_video_buffer, 0, 0, L3_RESOLUTION_X, L3_RESOLUTION_Y);

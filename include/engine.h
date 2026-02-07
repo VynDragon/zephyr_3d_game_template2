@@ -27,8 +27,6 @@ int ENGINE_BLIT_FUNCTION(L3_COLORTYPE *buffer, uint16_t x, uint16_t y, uint16_t 
 #define ENGINE_MAX_DOBJECTS		0xF
 #define ENGINE_MAX_PARTICLES	0x100
 
-#define ENGINE_MAX_BLIT_QUEUED	6
-
 /* do product to determine if object is behind camera limit */
 #define ENGINE_REAR_OBJECT_CUTOFF 8 * L3_F
 
@@ -175,7 +173,7 @@ typedef struct Engine_Scene_s {
 	Engine_Scene_inf	inf;
 	const Filter_f		*filters;
 	size_t				filters_count;
-	L3_ClearPixFunc		clear_pix_func;
+	L3_Skybox			*skybox;
 	void				*data;
 } Engine_Scene;
 

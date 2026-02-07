@@ -28,22 +28,41 @@
 	#address-cells = <1>;
 	#size-cells = <0>;
 
-	display: ssd1327@0 {
-		compatible = "solomon,ssd1327fb";
-		mipi-max-frequency = <21000000>;
+	// display: ssd1327@0 {
+	// 	compatible = "solomon,ssd1327";
+	// 	mipi-max-frequency = <21000000>;
+	// 	reg = <0>;
+	// 	width = <128>;
+	// 	height = <64>;
+	// 	prechargep = <0x5>;
+	// 	precharge-voltage = <0x7>;
+	// 	remap-value = <0x53>;
+	// 	oscillator-freq = <0xA1>;
+	// 	display-offset = <0x40>;
+	// 	start-line = <0>;
+	// 	multiplex-ratio = <0x3f>;
+	// 	phase-length = <0x29>;
+	// 	mipi-mode = "MIPI_DBI_MODE_SPI_4WIRE";
+	// 	grayscale-table = [04 06 08 0A 0C 0D 10 12 14 16 18 1C 20 24 3C];
+	// };
+
+	ssd1325: ssd1325@0 {
+		compatible = "solomon,ssd1325";
+		mipi-max-frequency = <2000000>;
 		reg = <0>;
 		width = <128>;
 		height = <64>;
-		prechargep = <0x5>;
-		precharge-voltage = <0x7>;
-		remap-value = <0x53>;
-		oscillator-freq = <0xA1>;
-		display-offset = <0x40>;
+		prechargep = <0x0>;
+		precharge-voltage = <0x10>;
+		remap-value = <0x52>;
+		oscillator-freq = <0x91>;
+		display-offset = <0x4c>;
 		start-line = <0>;
 		multiplex-ratio = <0x3f>;
-		phase-length = <0x29>;
+		phase-length = <0x22>;
+		vcomh-voltage = <0x2>;
 		mipi-mode = "MIPI_DBI_MODE_SPI_4WIRE";
-		grayscale-table = [04 06 08 0A 0C 0D 10 12 14 16 18 1C 20 24 3C];
+		grayscale-table = [ 01 01 01 02 02 02 03 03 04 04 05 05 06 06 07 ];
 	};
 
 	dmas = <&dma0 0 0x14>;
