@@ -45,11 +45,9 @@ And remember, monochrome OLEDs look much worse in pictures than in real life.
 - rp2350b_core: 2.7 inches ssd1327 display requires external power, board regulator is not powerful enough (150 mA).
 - esp32s3_devkitc: Using board power for display prevents flashing for some reason, unplug display power when flashing.
 
-### Images
-![IMG_20260106_054926](https://github.com/user-attachments/assets/e0ce7ff1-6fe0-42fc-b6b9-3553f3d02dae)
-Freecam on RP2350 M33 Overclocked
-![IMG_20260106_055710~2](https://github.com/user-attachments/assets/be7034f4-2140-45a2-a0d3-89270ec84bde)
-Freecam on BL616 Overclocked
+### Freecam in Action
 
-https://github.com/user-attachments/assets/a37e6746-3824-4c60-988b-bdd37998c26b
+Freecam on Ai-M61-32S-kit Overclocked ot 480MHz
+
+[bl616_480M_bench.webm](https://github.com/user-attachments/assets/6efed0ed-e3ed-4376-93a3-52f24d798bfb)
 
