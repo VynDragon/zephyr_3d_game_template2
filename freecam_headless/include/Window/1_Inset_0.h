@@ -37,14 +37,8 @@ static const L3_Index Window_1_Inset_0_indexes[] = {
 13, 9, 1,
 13, 12, 8,
 };
-static const L3_COLORTYPE *Window_1_Inset_0_textures[] = {
-tex_Window_1,
-};
-static const L3_Unit Window_1_Inset_0_textures_width[] = {
-64,
-};
-static const L3_Unit Window_1_Inset_0_textures_height[] = {
-64,
+static const L3_Texture *Window_1_Inset_0_textures[] = {
+&tex_Window_1,
 };
 static const L3_Unit Window_1_Inset_0_UVs[] = {
 35, 35,
@@ -118,8 +112,6 @@ static const L3_Model3D Window_1_Inset_0 = {
 .triangleTextures = Window_1_Inset_0_textures,
 .triangleUVs = Window_1_Inset_0_UVs,
 .triangleTextureIndex = Window_1_Inset_0_indexes_texture,
-.triangleTextureWidth = Window_1_Inset_0_textures_width,
-.triangleTextureHeight = Window_1_Inset_0_textures_height,
 };
 #pragma once
 #ifndef ARRAY_SIZE

@@ -31,6 +31,16 @@ LOG_MODULE_REGISTER(main);
 #include "skybox/h2s_rt.h"
 #include "skybox/h2s_up.h"
 
+static timing_t bench_start_time;
+static uint32_t bench_frames;
+static lv_obj_t *bench_passed;
+float engine_rFPS_avg;
+int last_t = -1;
+bool animate = true;
+
+#define BAR_LEN 20
+
+
 static const struct device *display_device = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
 
 int blit_display_L8(L3_COLORTYPE *buffer, uint16_t x, uint16_t y, uint16_t size_x, uint16_t size_y)
@@ -224,6 +234,8 @@ static void update_controls(struct input_event *evt, void *user_data)
 {
 	Controls *cont = user_data;
 
+	animate = false;
+
 	if (evt->code == INPUT_KEY_UP) {
 		if (evt->value)
 			cont->vx = 5;
@@ -326,36 +338,71 @@ void scene_init(void *data)
 	camera->focalLength = 288;
 }
 
+void print_progress_bar(size_t value, size_t min, size_t max, size_t len)
+{
+	size_t t = ((value - min) * len) / max;
 
-static timing_t bench_start_time;
-static uint32_t bench_frames;
-static lv_obj_t *bench_passed;
-
+	printf("\e[1A[");
+	for (int i = 0; i < len; i++) {
+		if (t >= i) {
+			printf("=");
+		} else {
+			printf(" ");
+		}
+	}
+	printf("]\n");
+}
 
 void scene_pf(Engine_Scene *self)
 {
-	if (!camera_animation.started)
-	{
-		bench_frames = 0;
-		bench_start_time = timing_counter_get();
-	}
-	if (camera_animation.finished) {
-		timing_t bench_end_time = timing_counter_get();
-		uint32_t total_time_us = timing_cycles_to_ns(timing_cycles_get(&bench_start_time, &bench_end_time)) / 1000;
-		uint32_t avg_fps = (1000000 * bench_frames) / total_time_us;
-		camera_animation.finished = false;
-		camera_animation.started = false;
-		printf("Average Frame/Second: %u\n", avg_fps);
-		if (avg_fps >= CONFIG_TARGET_RENDER_FPS) {
-			lv_label_set_text_fmt(bench_passed, "PASS");
-			printf("\e[0;32m%u >= %u, passed\e[0m\n", avg_fps, CONFIG_TARGET_RENDER_FPS);
-		} else {
-			printf("\e[0;31m%u < %u, failed\e[0m\n", avg_fps, CONFIG_TARGET_RENDER_FPS);
-			lv_label_set_text_fmt(bench_passed, "FAIL");
+	int t = (camera_animation.frame_counter * BAR_LEN) / ARRAY_SIZE(camera_animation_impl_frames);
+
+	if (animate) {
+		if (!camera_animation.started)
+		{
+			bench_frames = 0;
+			bench_start_time = timing_counter_get();
 		}
-		L3_transform3DSet(0 * L3_F,1.5*L3_F,-20*L3_F,0,0,0,L3_F,L3_F,L3_F, &player->visual.transform);
-	} else {
-		utility_animation_process(&camera_animation);
+		if (camera_animation.finished) {
+			timing_t bench_end_time = timing_counter_get();
+			uint32_t total_time_us = timing_cycles_to_ns(timing_cycles_get(&bench_start_time, &bench_end_time)) / 1000;
+			float avg_fps = (1000000 * bench_frames) / total_time_us;
+			camera_animation.finished = false;
+			camera_animation.started = false;
+
+			#if defined(CONFIG_FPU)
+				printf("Average Frame/Second: %f\n", (double)avg_fps);
+				printf("Average Render Frame/Second (RFPS): %f\n", (double)engine_rFPS_avg);
+			#else
+				printf("Average Frame/Second: %d\n", (int)avg_fps);
+				printf("Average Render Frame/Second (RFPS): %d\n", (int)engine_rFPS_avg);
+			#endif
+			if (avg_fps >= CONFIG_TARGET_RENDER_FPS) {
+				lv_label_set_text_fmt(bench_passed, "PASS");
+				#if defined(CONFIG_FPU)
+					printf("\e[0;32m%f >= %u, passed\e[0m\n\n", (double)avg_fps, CONFIG_TARGET_RENDER_FPS);
+				#else
+					printf("\e[0;32m%d >= %u, passed\e[0m\n\n", (int)avg_fps, CONFIG_TARGET_RENDER_FPS);
+				#endif
+			} else {
+				lv_label_set_text_fmt(bench_passed, "FAIL");
+				#if defined(CONFIG_FPU)
+					printf("\e[0;31m%f < %u, failed\e[0m\n\n", (double)avg_fps, CONFIG_TARGET_RENDER_FPS);
+				#else
+					printf("\e[0;31m%d < %u, failed\e[0m\n\n", (int)avg_fps, CONFIG_TARGET_RENDER_FPS);
+				#endif
+			}
+			L3_transform3DSet(0 * L3_F,1.5*L3_F,-20*L3_F,0,0,0,L3_F,L3_F,L3_F, &player->visual.transform);
+		} else {
+			if (bench_frames > 0) {
+				engine_rFPS_avg = (engine_rFPS_avg * (bench_frames - 1) + engine_rFPS) / bench_frames;
+			}
+			if (t != last_t) {
+				print_progress_bar(camera_animation.frame_counter, 0, ARRAY_SIZE(camera_animation_impl_frames), BAR_LEN);
+				last_t = t;
+			}
+			utility_animation_process(&camera_animation);
+		}
 	}
 }
 
@@ -419,7 +466,7 @@ int main()
 
 	controls.speedmul = 1;
 
-	printf("obj cnt: %d\n", engine_object_getcnt() + engine_statics_getcnt());
+	printf("Benching...\n\n");
 
 	return 0;
 }

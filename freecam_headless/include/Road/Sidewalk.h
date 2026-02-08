@@ -9,14 +9,8 @@ static const L3_Index Road_Sidewalk_indexes[] = {
 1, 2, 0,
 1, 3, 2,
 };
-static const L3_COLORTYPE *Road_Sidewalk_textures[] = {
-tex_Road_1,
-};
-static const L3_Unit Road_Sidewalk_textures_width[] = {
-192,
-};
-static const L3_Unit Road_Sidewalk_textures_height[] = {
-192,
+static const L3_Texture *Road_Sidewalk_textures[] = {
+&tex_Road_1,
 };
 static const L3_Unit Road_Sidewalk_UVs[] = {
 47, 0,
@@ -36,8 +30,6 @@ static const L3_Model3D Road_Sidewalk = {
 .triangleTextures = Road_Sidewalk_textures,
 .triangleUVs = Road_Sidewalk_UVs,
 .triangleTextureIndex = Road_Sidewalk_indexes_texture,
-.triangleTextureWidth = Road_Sidewalk_textures_width,
-.triangleTextureHeight = Road_Sidewalk_textures_height,
 };
 #pragma once
 #ifndef ARRAY_SIZE

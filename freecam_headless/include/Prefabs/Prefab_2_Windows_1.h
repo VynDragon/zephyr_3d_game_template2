@@ -157,14 +157,8 @@ static const L3_Index Prefabs_Prefab_2_Windows_1_indexes[] = {
 58, 57, 62,
 59, 58, 63,
 };
-static const L3_COLORTYPE *Prefabs_Prefab_2_Windows_1_textures[] = {
-tex_Window_1,
-};
-static const L3_Unit Prefabs_Prefab_2_Windows_1_textures_width[] = {
-64,
-};
-static const L3_Unit Prefabs_Prefab_2_Windows_1_textures_height[] = {
-64,
+static const L3_Texture *Prefabs_Prefab_2_Windows_1_textures[] = {
+&tex_Window_1,
 };
 static const L3_Unit Prefabs_Prefab_2_Windows_1_UVs[] = {
 35, 35,
@@ -448,8 +442,6 @@ static const L3_Model3D Prefabs_Prefab_2_Windows_1 = {
 .triangleTextures = Prefabs_Prefab_2_Windows_1_textures,
 .triangleUVs = Prefabs_Prefab_2_Windows_1_UVs,
 .triangleTextureIndex = Prefabs_Prefab_2_Windows_1_indexes_texture,
-.triangleTextureWidth = Prefabs_Prefab_2_Windows_1_textures_width,
-.triangleTextureHeight = Prefabs_Prefab_2_Windows_1_textures_height,
 };
 #pragma once
 #ifndef ARRAY_SIZE

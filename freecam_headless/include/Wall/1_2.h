@@ -21,14 +21,8 @@ static const L3_Index Wall_1_2_indexes[] = {
 6, 7, 1,
 9, 8, 0,
 };
-static const L3_COLORTYPE *Wall_1_2_textures[] = {
-tex_Concrete_Wall_1,
-};
-static const L3_Unit Wall_1_2_textures_width[] = {
-96,
-};
-static const L3_Unit Wall_1_2_textures_height[] = {
-96,
+static const L3_Texture *Wall_1_2_textures[] = {
+&tex_Concrete_Wall_1,
 };
 static const L3_Unit Wall_1_2_UVs[] = {
 72, 96,
@@ -66,8 +60,6 @@ static const L3_Model3D Wall_1_2 = {
 .triangleTextures = Wall_1_2_textures,
 .triangleUVs = Wall_1_2_UVs,
 .triangleTextureIndex = Wall_1_2_indexes_texture,
-.triangleTextureWidth = Wall_1_2_textures_width,
-.triangleTextureHeight = Wall_1_2_textures_height,
 };
 #pragma once
 #ifndef ARRAY_SIZE

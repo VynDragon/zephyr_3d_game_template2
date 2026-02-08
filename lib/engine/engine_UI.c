@@ -104,10 +104,10 @@ int engine_render_UI(void)
 
 	lv_label_set_text_fmt(engine_trianglecount, "Tris: %d", engine_drawnTriangles);
 	lv_label_set_text_fmt(engine_FPS, "FPS: %d", 1000000 / (engine_FPS_total_time_avg != 0 ? engine_FPS_total_time_avg : 1));
-#if defined(__XTENSA__) || defined(CONFIG_SOC_SERIES_RP2350)
-	lv_label_set_text_fmt(render_FPS, "RFPS: %d", (int)engine_rFPS);
-#else
+#if defined(CONFIG_FPU)
 	lv_label_set_text_fmt(render_FPS, "RFPS: %0.1f", (double)engine_rFPS);
+#else
+	lv_label_set_text_fmt(render_FPS, "RFPS: %d", (int)engine_rFPS);
 #endif
 	lv_obj_invalidate(lv_screen_active());
 	lv_timer_handler();

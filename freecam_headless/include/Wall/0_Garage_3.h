@@ -41,14 +41,8 @@ static const L3_Index Wall_0_Garage_3_indexes[] = {
 13, 12, 6,
 16, 13, 7,
 };
-static const L3_COLORTYPE *Wall_0_Garage_3_textures[] = {
-tex_Concrete_Wall_2,
-};
-static const L3_Unit Wall_0_Garage_3_textures_width[] = {
-96,
-};
-static const L3_Unit Wall_0_Garage_3_textures_height[] = {
-96,
+static const L3_Texture *Wall_0_Garage_3_textures[] = {
+&tex_Concrete_Wall_2,
 };
 static const L3_Unit Wall_0_Garage_3_UVs[] = {
 0, -3,
@@ -122,8 +116,6 @@ static const L3_Model3D Wall_0_Garage_3 = {
 .triangleTextures = Wall_0_Garage_3_textures,
 .triangleUVs = Wall_0_Garage_3_UVs,
 .triangleTextureIndex = Wall_0_Garage_3_indexes_texture,
-.triangleTextureWidth = Wall_0_Garage_3_textures_width,
-.triangleTextureHeight = Wall_0_Garage_3_textures_height,
 };
 #pragma once
 #ifndef ARRAY_SIZE

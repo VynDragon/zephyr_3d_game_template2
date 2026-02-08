@@ -19,14 +19,8 @@ static const L3_Index Piping_Vent_1_NotOut_indexes[] = {
 6, 4, 0,
 3, 1, 5,
 };
-static const L3_COLORTYPE *Piping_Vent_1_NotOut_textures[] = {
-tex_Aluminium,
-};
-static const L3_Unit Piping_Vent_1_NotOut_textures_width[] = {
-64,
-};
-static const L3_Unit Piping_Vent_1_NotOut_textures_height[] = {
-64,
+static const L3_Texture *Piping_Vent_1_NotOut_textures[] = {
+&tex_Aluminium,
 };
 static const L3_Unit Piping_Vent_1_NotOut_UVs[] = {
 3, 50,
@@ -64,8 +58,6 @@ static const L3_Model3D Piping_Vent_1_NotOut = {
 .triangleTextures = Piping_Vent_1_NotOut_textures,
 .triangleUVs = Piping_Vent_1_NotOut_UVs,
 .triangleTextureIndex = Piping_Vent_1_NotOut_indexes_texture,
-.triangleTextureWidth = Piping_Vent_1_NotOut_textures_width,
-.triangleTextureHeight = Piping_Vent_1_NotOut_textures_height,
 };
 #pragma once
 #ifndef ARRAY_SIZE

@@ -49,14 +49,8 @@ static const L3_Index Decoration_Plot_indexes[] = {
 5, 14, 15,
 1, 11, 17,
 };
-static const L3_COLORTYPE *Decoration_Plot_textures[] = {
-tex_Road_1,
-};
-static const L3_Unit Decoration_Plot_textures_width[] = {
-192,
-};
-static const L3_Unit Decoration_Plot_textures_height[] = {
-192,
+static const L3_Texture *Decoration_Plot_textures[] = {
+&tex_Road_1,
 };
 static const L3_Unit Decoration_Plot_UVs[] = {
 107, 11,
@@ -154,8 +148,6 @@ static const L3_Model3D Decoration_Plot = {
 .triangleTextures = Decoration_Plot_textures,
 .triangleUVs = Decoration_Plot_UVs,
 .triangleTextureIndex = Decoration_Plot_indexes_texture,
-.triangleTextureWidth = Decoration_Plot_textures_width,
-.triangleTextureHeight = Decoration_Plot_textures_height,
 };
 #pragma once
 #ifndef ARRAY_SIZE

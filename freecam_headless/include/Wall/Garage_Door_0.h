@@ -9,14 +9,8 @@ static const L3_Index Wall_Garage_Door_0_indexes[] = {
 1, 2, 0,
 1, 3, 2,
 };
-static const L3_COLORTYPE *Wall_Garage_Door_0_textures[] = {
-tex_Garage_Door_0,
-};
-static const L3_Unit Wall_Garage_Door_0_textures_width[] = {
-64,
-};
-static const L3_Unit Wall_Garage_Door_0_textures_height[] = {
-64,
+static const L3_Texture *Wall_Garage_Door_0_textures[] = {
+&tex_Garage_Door_0,
 };
 static const L3_Unit Wall_Garage_Door_0_UVs[] = {
 64, 64,
@@ -36,8 +30,6 @@ static const L3_Model3D Wall_Garage_Door_0 = {
 .triangleTextures = Wall_Garage_Door_0_textures,
 .triangleUVs = Wall_Garage_Door_0_UVs,
 .triangleTextureIndex = Wall_Garage_Door_0_indexes_texture,
-.triangleTextureWidth = Wall_Garage_Door_0_textures_width,
-.triangleTextureHeight = Wall_Garage_Door_0_textures_height,
 };
 #pragma once
 #ifndef ARRAY_SIZE

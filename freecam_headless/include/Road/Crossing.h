@@ -45,14 +45,8 @@ static const L3_Index Road_Crossing_indexes[] = {
 21, 23, 22,
 25, 27, 26,
 };
-static const L3_COLORTYPE *Road_Crossing_textures[] = {
-tex_Road_1,
-};
-static const L3_Unit Road_Crossing_textures_width[] = {
-192,
-};
-static const L3_Unit Road_Crossing_textures_height[] = {
-192,
+static const L3_Texture *Road_Crossing_textures[] = {
+&tex_Road_1,
 };
 static const L3_Unit Road_Crossing_UVs[] = {
 17, 91,
@@ -108,8 +102,6 @@ static const L3_Model3D Road_Crossing = {
 .triangleTextures = Road_Crossing_textures,
 .triangleUVs = Road_Crossing_UVs,
 .triangleTextureIndex = Road_Crossing_indexes_texture,
-.triangleTextureWidth = Road_Crossing_textures_width,
-.triangleTextureHeight = Road_Crossing_textures_height,
 };
 #pragma once
 #ifndef ARRAY_SIZE

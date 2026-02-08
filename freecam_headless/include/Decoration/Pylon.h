@@ -67,14 +67,8 @@ static const L3_Index Decoration_Pylon_indexes[] = {
 1, 19, 18,
 11, 23, 19,
 };
-static const L3_COLORTYPE *Decoration_Pylon_textures[] = {
-tex_Road_1,
-};
-static const L3_Unit Decoration_Pylon_textures_width[] = {
-192,
-};
-static const L3_Unit Decoration_Pylon_textures_height[] = {
-192,
+static const L3_Texture *Decoration_Pylon_textures[] = {
+&tex_Road_1,
 };
 static const L3_Unit Decoration_Pylon_UVs[] = {
 105, 9,
@@ -208,8 +202,6 @@ static const L3_Model3D Decoration_Pylon = {
 .triangleTextures = Decoration_Pylon_textures,
 .triangleUVs = Decoration_Pylon_UVs,
 .triangleTextureIndex = Decoration_Pylon_indexes_texture,
-.triangleTextureWidth = Decoration_Pylon_textures_width,
-.triangleTextureHeight = Decoration_Pylon_textures_height,
 };
 #pragma once
 #ifndef ARRAY_SIZE

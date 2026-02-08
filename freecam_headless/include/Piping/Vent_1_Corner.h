@@ -105,14 +105,8 @@ static const L3_Index Piping_Vent_1_Corner_indexes[] = {
 41, 40, 28,
 38, 39, 27,
 };
-static const L3_COLORTYPE *Piping_Vent_1_Corner_textures[] = {
-tex_Aluminium,
-};
-static const L3_Unit Piping_Vent_1_Corner_textures_width[] = {
-64,
-};
-static const L3_Unit Piping_Vent_1_Corner_textures_height[] = {
-64,
+static const L3_Texture *Piping_Vent_1_Corner_textures[] = {
+&tex_Aluminium,
 };
 static const L3_Unit Piping_Vent_1_Corner_UVs[] = {
 3, 50,
@@ -306,8 +300,6 @@ static const L3_Model3D Piping_Vent_1_Corner = {
 .triangleTextures = Piping_Vent_1_Corner_textures,
 .triangleUVs = Piping_Vent_1_Corner_UVs,
 .triangleTextureIndex = Piping_Vent_1_Corner_indexes_texture,
-.triangleTextureWidth = Piping_Vent_1_Corner_textures_width,
-.triangleTextureHeight = Piping_Vent_1_Corner_textures_height,
 };
 #pragma once
 #ifndef ARRAY_SIZE

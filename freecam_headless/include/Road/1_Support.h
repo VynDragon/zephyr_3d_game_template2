@@ -53,14 +53,8 @@ static const L3_Index Road_1_Support_indexes[] = {
 6, 24, 25,
 4, 25, 24,
 };
-static const L3_COLORTYPE *Road_1_Support_textures[] = {
-tex_Road_1,
-};
-static const L3_Unit Road_1_Support_textures_width[] = {
-192,
-};
-static const L3_Unit Road_1_Support_textures_height[] = {
-192,
+static const L3_Texture *Road_1_Support_textures[] = {
+&tex_Road_1,
 };
 static const L3_Unit Road_1_Support_UVs[] = {
 47, 0,
@@ -146,8 +140,6 @@ static const L3_Model3D Road_1_Support = {
 .triangleTextures = Road_1_Support_textures,
 .triangleUVs = Road_1_Support_UVs,
 .triangleTextureIndex = Road_1_Support_indexes_texture,
-.triangleTextureWidth = Road_1_Support_textures_width,
-.triangleTextureHeight = Road_1_Support_textures_height,
 };
 #pragma once
 #ifndef ARRAY_SIZE

@@ -28,6 +28,10 @@ int engine_render_UI(void)
 
 	engine_FPS_total_time_avg = (engine_FPS_total_time_avg * 4 + total_time_us) / 5;
 
-	LOG_ERR("RFPS: %0.1f", (double)engine_rFPS);
+// #if defined(CONFIG_FPU)
+// 	LOG_ERR("RFPS: %0.1f", (double)engine_rFPS);
+// #else
+// 	LOG_ERR("RFPS: %d", (int)engine_rFPS);
+// #endif
 	return 0;
 }

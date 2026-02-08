@@ -23,14 +23,8 @@ static const L3_Index Decoration_Cardboard_Boxes_1_indexes[] = {
 6, 4, 0,
 3, 1, 5,
 };
-static const L3_COLORTYPE *Decoration_Cardboard_Boxes_1_textures[] = {
-tex_Cardboard_Box,
-};
-static const L3_Unit Decoration_Cardboard_Boxes_1_textures_width[] = {
-64,
-};
-static const L3_Unit Decoration_Cardboard_Boxes_1_textures_height[] = {
-64,
+static const L3_Texture *Decoration_Cardboard_Boxes_1_textures[] = {
+&tex_Cardboard_Box,
 };
 static const L3_Unit Decoration_Cardboard_Boxes_1_UVs[] = {
 41, 20,
@@ -80,8 +74,6 @@ static const L3_Model3D Decoration_Cardboard_Boxes_1 = {
 .triangleTextures = Decoration_Cardboard_Boxes_1_textures,
 .triangleUVs = Decoration_Cardboard_Boxes_1_UVs,
 .triangleTextureIndex = Decoration_Cardboard_Boxes_1_indexes_texture,
-.triangleTextureWidth = Decoration_Cardboard_Boxes_1_textures_width,
-.triangleTextureHeight = Decoration_Cardboard_Boxes_1_textures_height,
 };
 #pragma once
 #ifndef ARRAY_SIZE
