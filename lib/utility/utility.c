@@ -25,7 +25,8 @@ void utility_animation_process(Animation *animation)
 		if (animation->frame_counter >= animation->len)
 		{
 			if (!animation->loop) {
-				animation->started = false;
+				animation->finished = true;
+				return;
 			} else {
 				animation->frame_counter = 0;
 			}

@@ -17,6 +17,7 @@ LOG_MODULE_REGISTER(main);
 #define ENGINE_BLIT_FUNCTION blit_display
 
 #include "engine.h"
+#include "utility.h"
 #include "logo_scene.h"
 
 #include "map.h"
@@ -279,6 +280,39 @@ static void update_controls(struct input_event *evt, void *user_data)
 
 INPUT_CALLBACK_DEFINE(0, update_controls, &controls);
 
+#define CAM_ANIM_0(i, _) {.type = 2, .transform = {.translation = {.x = 0, .y = 0, .z = 0}, .rotation = {0}, .scale = {0}}}
+#define CAM_ANIM_1(i, _) {.type = 2, .transform = {.translation = {.x = 0, .y = 0, .z = 128}, .rotation = {0}, .scale = {0}}}
+#define CAM_ANIM_2(i, _) {.type = 2, .transform = {.translation = {.x = 0, .y = 32, .z = 0}, .rotation = {.x = -1, .y = 4, .z = 0}, .scale = {0}}}
+#define CAM_ANIM_3(i, _) {.type = 2, .transform = {.translation = {.x = 0, .y = 0, .z = -128}, .rotation = {0}, .scale = {0}}}
+#define CAM_ANIM_4(i, _) {.type = 2, .transform = {.translation = {.x = 0, .y = -32, .z = 0}, .rotation = {.x = 1, .y = 2, .z = 0}, .scale = {0}}}
+#define CAM_ANIM_5(i, _) {.type = 2, .transform = {.translation = {.x = 16, .y = 0, .z = 0}, .rotation = {0}, .scale = {0}}}
+
+const ObjectProcess_FrameArray_Frame camera_animation_impl_frames[] = {
+	LISTIFY(50, CAM_ANIM_0, (,)),
+	LISTIFY(300, CAM_ANIM_1, (,)),
+	LISTIFY(64, CAM_ANIM_2, (,)),
+	LISTIFY(70, CAM_ANIM_3, (,)),
+	LISTIFY(64, CAM_ANIM_4, (,)),
+	LISTIFY(200, CAM_ANIM_5, (,)),
+};
+
+const ObjectProcess_FrameArray camera_animation_impl = {
+	.len = ARRAY_SIZE(camera_animation_impl_frames),
+	.loop = false,
+	.frames = camera_animation_impl_frames,
+};
+
+Engine_Object *camera_animation_objects[1];
+
+Animation camera_animation = ANIMATION_INIT(
+	camera_animation_objects,
+	(void*[]) {(void*)&camera_animation_impl},
+	(AnimationObjectProcess[]) {utility_animation_objectprocess_framearray},
+	1, 30,
+	ARRAY_SIZE(camera_animation_impl_frames),
+	false
+);
+
 void scene_init(void *data)
 {
 	Engine_Object tmp = {0};
@@ -286,12 +320,43 @@ void scene_init(void *data)
 	tmp.view_range = 16 * L3_F;
 	tmp.visual_type = ENGINE_VISUAL_NOTHING;
 	player = engine_add_object(tmp);
+	camera_animation_objects[0] = player;
 
 	L3_Camera *camera = engine_getcamera();
 	camera->focalLength = 288;
 }
+
+
+static timing_t bench_start_time;
+static uint32_t bench_frames;
+static lv_obj_t *bench_passed;
+
+
 void scene_pf(Engine_Scene *self)
 {
+	if (!camera_animation.started)
+	{
+		bench_frames = 0;
+		bench_start_time = timing_counter_get();
+	}
+	if (camera_animation.finished) {
+		timing_t bench_end_time = timing_counter_get();
+		uint32_t total_time_us = timing_cycles_to_ns(timing_cycles_get(&bench_start_time, &bench_end_time)) / 1000;
+		uint32_t avg_fps = (1000000 * bench_frames) / total_time_us;
+		camera_animation.finished = false;
+		camera_animation.started = false;
+		printf("Average Frame/Second: %u\n", avg_fps);
+		if (avg_fps >= CONFIG_TARGET_RENDER_FPS) {
+			lv_label_set_text_fmt(bench_passed, "PASS");
+			printf("\e[0;32m%u >= %u, passed\e[0m\n", avg_fps, CONFIG_TARGET_RENDER_FPS);
+		} else {
+			printf("\e[0;31m%u < %u, failed\e[0m\n", avg_fps, CONFIG_TARGET_RENDER_FPS);
+			lv_label_set_text_fmt(bench_passed, "FAIL");
+		}
+		L3_transform3DSet(0 * L3_F,1.5*L3_F,-20*L3_F,0,0,0,L3_F,L3_F,L3_F, &player->visual.transform);
+	} else {
+		utility_animation_process(&camera_animation);
+	}
 }
 
 Engine_Scene scene = {0};
@@ -308,6 +373,12 @@ L3_Skybox skybox = {
 	.faces.top = &h2s_up,
 	.faces.bottom = &h2s_dn,
 };
+
+
+int engine_render_hook_post(void) {
+	bench_frames++;
+	return 0;
+}
 
 int main()
 {
@@ -338,6 +409,10 @@ int main()
 
 	engine_switchscene(&logo_scene);
 	k_msleep(2000);
+
+	bench_passed = lv_label_create(lv_screen_active());
+	lv_label_set_text_fmt(bench_passed, "");
+	lv_obj_align(bench_passed, LV_ALIGN_TOP_LEFT, CONFIG_RESOLUTION_X - 4*4, 0);
 
 	engine_switchscene(&scene);
 	engine_statics_enabled(true);
