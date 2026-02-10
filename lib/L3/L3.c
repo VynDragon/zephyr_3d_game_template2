@@ -64,6 +64,14 @@ const L3_Object	*engine_global_objects[L3_MAX_OBJECTS] = {0};
 L3_Index		engine_objectCount = 0;
 L3_Camera		engine_camera = {0};
 
+/* the following serves to communicate info about if the triangle has been split
+	and how the barycentrics should be remapped. */
+uint8_t _L3_projectedTriangleState = 0; // 0 = normal, 1 = cut, 2 = split
+
+#if L3_NEAR_CROSS_STRATEGY == 3
+L3_Vec4 _L3_triangleRemapBarycentrics[6];
+#endif
+
 /* Code ------------------------------------------------------------------------------------------*/
 
 L3_PERFORMANCE_FUNCTION
@@ -883,7 +891,7 @@ void L3_vec3Cross(L3_Vec4 a, L3_Vec4 b, L3_Vec4 *result)
 	result->z = a.x * b.y - a.y * b.x;
 }
 
-void L3_triangleNormal(L3_Vec4 t0, L3_Vec4 t1, L3_Vec4 t2, L3_Vec4 *n)
+void L3_triangleNormal_32(L3_Vec4 t0, L3_Vec4 t1, L3_Vec4 t2, L3_Vec4 *n)
 {
 	#define ANTI_OVERFLOW 32
 
@@ -896,6 +904,21 @@ void L3_triangleNormal(L3_Vec4 t0, L3_Vec4 t1, L3_Vec4 t2, L3_Vec4 *n)
 	t2.z = (t2.z - t0.z) / ANTI_OVERFLOW;
 
 	#undef ANTI_OVERFLOW
+
+	L3_vec3Cross(t1,t2,n);
+
+	L3_vec3Normalize(n);
+}
+
+void L3_triangleNormal(L3_Vec4 t0, L3_Vec4 t1, L3_Vec4 t2, L3_Vec4 *n)
+{
+	t1.x = (t1.x - t0.x);
+	t1.y = (t1.y - t0.y);
+	t1.z = (t1.z - t0.z);
+
+	t2.x = (t2.x - t0.x);
+	t2.y = (t2.y - t0.y);
+	t2.z = (t2.z - t0.z);
 
 	L3_vec3Cross(t1,t2,n);
 
@@ -992,7 +1015,7 @@ void L3_computeModelNormals(L3_Object *object, L3_Unit *dst,
 
 				#undef getVertex
 
-				L3_triangleNormal(t0,t1,t2,&(ns[normalCount]));
+				L3_triangleNormal_32(t0,t1,t2,&(ns[normalCount]));
 
 				normalCount++;
 
@@ -1624,9 +1647,6 @@ void L3_drawConfigInit(L3_DrawConfig *config)
 }
 
 
-
-
-
 #define L3_getFastLerpValue(state)\
 	(state.valueScaled >> L3_FAST_LERP_QUALITY)
 
@@ -1657,14 +1677,6 @@ void L3_newFrame(void)
 	L3_zBufferClear();
 	L3_stencilBufferClear();
 }
-
-/* the following serves to communicate info about if the triangle has been split
-	and how the barycentrics should be remapped. */
-uint8_t _L3_projectedTriangleState = 0; // 0 = normal, 1 = cut, 2 = split
-
-#if L3_NEAR_CROSS_STRATEGY == 3
-L3_Vec4 _L3_triangleRemapBarycentrics[6];
-#endif
 
 __attribute__((flatten))
 L3_PERFORMANCE_FUNCTION
@@ -2537,8 +2549,14 @@ L3_PERFORMANCE_FUNCTION
 uint32_t L3_draw(L3_Camera camera, const L3_Object **objects, L3_Index objectCount)
 {
 	uint32_t drawnTriangles = 0;
-	L3_Mat4 matFinal, matCamera;
+	L3_Mat4 matFinal, matWorld, matCamera, matWorldToObjectRot;
 	L3_Vec4 transformed[6]; // transformed triangle coords, for 2 triangles
+#if defined(L3_TRIANGLE_FUNCTION_WORLD_EN) && L3_TRIANGLE_FUNCTION_WORLD_EN
+	L3_Vec4 transformed_world[6]; // transformed triangle coords, for 2 triangles
+#endif
+	L3_Vec4 transformed_light;
+	static const L3_Vec4 down = {0,2*L3_F/4,2*L3_F/4,L3_F};
+	int draw = 1;
 
 	const L3_Object *object;
 	L3_Index objectIndex, triangleIndex;
@@ -2552,12 +2570,15 @@ uint32_t L3_draw(L3_Camera camera, const L3_Object **objects, L3_Index objectCou
 
 	for (objectIndex = 0; objectIndex < objectCount; ++objectIndex)
 	{
-		if (!objects[objectIndex]->config.visible)
+		object = objects[objectIndex];
+
+		if (!object->config.visible)
 			continue;
 
-		if(objects[objectIndex]->config.visible & L3_VISIBLE_BILLBOARD)
+		if(object->config.visible & L3_VISIBLE_BILLBOARD)
 		{
-			L3_makeWorldMatrix(objects[objectIndex]->transform,matFinal);
+			L3_makeWorldMatrix(object->transform, matWorld);
+			memcpy(matFinal, matWorld, sizeof(L3_Mat4));
 			L3_mat4Xmat4(matFinal,matCamera);
 
 			transformed->x = 0;
@@ -2575,10 +2596,10 @@ uint32_t L3_draw(L3_Camera camera, const L3_Object **objects, L3_Index objectCou
 				continue;
 			}
 
-			L3_BILLBOARD_FUNCTION(*transformed, objects[objectIndex], camera);
+			L3_BILLBOARD_FUNCTION(*transformed, object, camera);
 			continue;
 		} else {
-			L3_MODEL_FUNCTION(objects[objectIndex]);
+			L3_MODEL_FUNCTION(object);
 		}
 
 #if L3_SORT != 0
@@ -2588,28 +2609,46 @@ uint32_t L3_draw(L3_Camera camera, const L3_Object **objects, L3_Index objectCou
 		previousModel = objectIndex;
 #endif
 
-		L3_makeWorldMatrix(objects[objectIndex]->transform,matFinal);
+		L3_makeWorldMatrix(object->transform, matWorld);
+		memcpy(matFinal, matWorld, sizeof(L3_Mat4));
 		L3_mat4Xmat4(matFinal,matCamera);
 
-		L3_Index triangleCount = objects[objectIndex]->model->triangleCount;
+		if(object->config.visible & L3_VISIBLE_NORMALLIGHT) {
+			memcpy(matWorldToObjectRot, matWorld, sizeof(L3_Mat4));
+
+			L3_mat4Transpose(matWorldToObjectRot);
+
+			transformed_light = down;
+
+			L3_vec3Xmat4(&transformed_light, matWorldToObjectRot);
+
+			L3_vec3NormalizeFast(&transformed_light);
+		}
+
+		L3_Index triangleCount = object->model->triangleCount;
 
 		triangleIndex = 0;
 
-		object = objects[objectIndex];
 
 		while (triangleIndex < triangleCount)
 		{
-			/* Some kind of cache could be used in theory to not project perviously
-				already projected vertices, but after some testing this was abandoned,
-				no gain was seen. */
-
 			_L3_projectTriangle(object,triangleIndex,matFinal,
 				camera.focalLength,transformed);
 
 			if (L3_triangleIsVisible(transformed[0],transformed[1],transformed[2],
 				object->config.backfaceCulling))
 			{
-				if (L3_TRIANGLE_FUNCTION(transformed[0],transformed[1],transformed[2],objectIndex,triangleIndex))
+#if defined(L3_TRIANGLE_FUNCTION_WORLD_EN) && L3_TRIANGLE_FUNCTION_WORLD_EN
+				_L3_projectVertex(object, triangleIndex, 0, matWorld, &(transformed_world[0]));
+				_L3_projectVertex(object, triangleIndex, 1, matWorld, &(transformed_world[1]));
+				_L3_projectVertex(object, triangleIndex, 2, matWorld, &(transformed_world[2]));
+
+				draw = L3_TRIANGLE_FUNCTION_WORLD(transformed_world[0],transformed_world[1],transformed_world[2], objectIndex, triangleIndex, object->config.visible, transformed_light);
+#endif
+				if (draw) {
+					draw = L3_TRIANGLE_FUNCTION_SCREEN(transformed[0], transformed[1], transformed[2], objectIndex, triangleIndex, object->config.visible, transformed_light);
+				}
+				if (draw)
 				{
 #if L3_SORT == 0
 				// without sorting draw right away
@@ -2729,14 +2768,16 @@ uint32_t L3_draw(L3_Camera camera, const L3_Object **objects, L3_Index objectCou
 
 /* Zephyr Code -----------------------------------------------------------------------------------*/
 
-static int L3_zephyr_putpixel_current_render_mode = 0;
-static L3_Vec4	triangleNormal;
+static uint16_t L3_zephyr_putpixel_current_render_mode = 0;
+static L3_Unit	triangleNormalDot = L3_F;
 L3_PERFORMANCE_FUNCTION
 inline void zephyr_putpixel(L3_PixelInfo *p)
 {
 	float depthmul = 1.0;
 	const L3_Object *object = engine_global_objects[p->objectIndex];
 	L3_COLORTYPE color;
+
+	if (unlikely(0 > p->x && L3_RESOLUTION_X <= p->x && 0 > p->y && L3_RESOLUTION_Y <= p->y)) return;
 
 	if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_TEXTURED) {
 		if (object->model->triangleTextureIndex[p->triangleIndex] < 0) {
@@ -2754,7 +2795,6 @@ inline void zephyr_putpixel(L3_PixelInfo *p)
 	} else {
 		color = object->solid_color;
 	}
-	if (unlikely(0 > p->x && L3_RESOLUTION_X <= p->x && 0 > p->y && L3_RESOLUTION_Y <= p->y)) return;
 	if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_DISTANCELIGHT) {
 		//depthmul = (p->depth * p->depth) / 524288;
 		depthmul = sqrt(p->depth) / 64;
@@ -2764,21 +2804,66 @@ inline void zephyr_putpixel(L3_PixelInfo *p)
 	}
 	if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_NORMALLIGHT)
 	{
-		L3_Vec4 down = {0,L3_F,0,L3_F};
-		L3_Unit dot = L3_vec3Dot(triangleNormal, down);
-		if (dot > 0)
-			color = color / 4 + (color * dot) / L3_F * 3/4;
-		else
-			color /= 4;
+		if (color < 0xC0) {
+			color = (4*color)/6 + clamp(((L3_Unit)color * triangleNormalDot) / L3_F, (-3*color)/8, (2*color)/6);
+		}
 	}
 	L3_video_buffer[p->x + p->y * L3_RESOLUTION_X] = color;
 }
 
+#if defined(L3_TRIANGLE_FUNCTION_WORLD_EN) && L3_TRIANGLE_FUNCTION_WORLD_EN
 L3_PERFORMANCE_FUNCTION
-inline int zephyr_drawtriangle(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
-								L3_Index objectIndex, L3_Index triangleIndex)
+int zephyr_drawtriangle_world(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
+							  L3_Index objectIndex, L3_Index triangleIndex,
+							  uint16_t rendermode, L3_Vec4 lightDir)
 {
-	L3_zephyr_putpixel_current_render_mode = engine_global_objects[objectIndex]->config.visible;
+	L3_zephyr_putpixel_current_render_mode = rendermode;
+
+	const L3_Object *object = engine_global_objects[objectIndex];
+
+	if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_NORMALLIGHT) {
+		if (object->model->triangleNormals) {
+			L3_Vec4 triangleNormal = {
+				.x = object->model->triangleNormals[triangleIndex*3+0],
+				.y = object->model->triangleNormals[triangleIndex*3+1],
+				.z = object->model->triangleNormals[triangleIndex*3+2],
+				.w = L3_F,
+			};
+			triangleNormalDot = L3_vec3Dot(triangleNormal, lightDir);
+		} else {
+			L3_Vec4 triangleNormal;
+			L3_triangleNormal(point0, point1, point2, &triangleNormal);
+			triangleNormalDot = L3_vec3Dot(triangleNormal, lightDir);
+		}
+	}
+	return 1;
+}
+
+#endif
+L3_PERFORMANCE_FUNCTION
+int zephyr_drawtriangle_screen(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
+							   L3_Index objectIndex, L3_Index triangleIndex,
+							   uint16_t rendermode, L3_Vec4 lightDir)
+{
+#if !defined(L3_TRIANGLE_FUNCTION_WORLD_EN) || !L3_TRIANGLE_FUNCTION_WORLD_EN
+	L3_zephyr_putpixel_current_render_mode = rendermode;
+
+	const L3_Object *object = engine_global_objects[objectIndex];
+
+	if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_NORMALLIGHT) {
+		if (object->model->triangleNormals) {
+			L3_Vec4 triangleNormal = {
+				.x = object->model->triangleNormals[triangleIndex*3+0],
+				.y = object->model->triangleNormals[triangleIndex*3+1],
+				.z = object->model->triangleNormals[triangleIndex*3+2],
+				.w = L3_F,
+			};
+			triangleNormalDot = L3_vec3Dot(triangleNormal, lightDir);
+		} else {
+			L3_zephyr_putpixel_current_render_mode &= ~L3_VISIBLE_NORMALLIGHT;
+		}
+	}
+#endif
 	if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_WIREFRAME) {
 		L3_COLORTYPE color = engine_global_objects[objectIndex]->solid_color;
 		color = MIN(255, color + 16);
@@ -2787,22 +2872,6 @@ inline int zephyr_drawtriangle(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
 		L3_plot_line(color, point2.x, point2.y, point0.x, point0.y);
 		if (!(L3_zephyr_putpixel_current_render_mode & ~L3_VISIBLE_WIREFRAME))
 			return 0;
-	}
-	if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_NORMALLIGHT) {
-		const L3_Object *object = engine_global_objects[objectIndex];
-		L3_Mat4 matFinal;
-		L3_Index v1 = object->model->triangles[triangleIndex * 3];
-		L3_Index v2 = object->model->triangles[triangleIndex * 3 + 1];
-		L3_Index v3 = object->model->triangles[triangleIndex * 3 + 2];
-		L3_Vec4 a1 = {object->model->vertices[v1 * 3], object->model->vertices[v1 * 3 + 1], object->model->vertices[v1 * 3 + 2], L3_F};
-		L3_Vec4 a2 = {object->model->vertices[v2 * 3], object->model->vertices[v2 * 3 + 1], object->model->vertices[v2 * 3 + 2], L3_F};
-		L3_Vec4 a3 = {object->model->vertices[v3 * 3], object->model->vertices[v3 * 3 + 1], object->model->vertices[v3 * 3 + 2], L3_F};
-
-		L3_makeWorldMatrix(engine_global_objects[objectIndex]->transform, matFinal);
-		L3_vec3Xmat4(&a1, matFinal);
-		L3_vec3Xmat4(&a2, matFinal);
-		L3_vec3Xmat4(&a3, matFinal);
-		L3_triangleNormal(a1, a2, a3, &triangleNormal);
 	}
 	return 1;
 }

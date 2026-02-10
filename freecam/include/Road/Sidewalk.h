@@ -22,6 +22,10 @@ static const L3_Unit Road_Sidewalk_UVs[] = {
 };
 static const L3_Index Road_Sidewalk_indexes_texture[] = {
 0,0,};
+static const L3_Unit Road_Sidewalk_Normals[] = {
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+};
 static const L3_Model3D Road_Sidewalk = {
 .vertices = Road_Sidewalk_vertices,
 .triangleCount = 2,
@@ -30,6 +34,7 @@ static const L3_Model3D Road_Sidewalk = {
 .triangleTextures = Road_Sidewalk_textures,
 .triangleUVs = Road_Sidewalk_UVs,
 .triangleTextureIndex = Road_Sidewalk_indexes_texture,
+.triangleNormals = Road_Sidewalk_Normals,
 };
 #pragma once
 #ifndef ARRAY_SIZE

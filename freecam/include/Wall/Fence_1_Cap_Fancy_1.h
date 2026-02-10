@@ -1,21 +1,21 @@
 #pragma once
 static const L3_Unit Wall_Fence_1_Cap_Fancy_1_vertices[] = {
-522,1566,208,
-913,0,78,
-600,1410,78,
-522,1410,208,
-522,1566,-208,
-913,0,-78,
-600,1410,-78,
-522,1410,-208,
-600,1566,78,
-600,1566,-78,
-522,0,78,
-522,0,-78,
-522,1410,-78,
-522,1410,78,
-522,1566,-78,
-522,1566,78,
+512,1536,204,
+896,0,76,
+588,1382,76,
+512,1382,204,
+512,1536,-204,
+896,0,-76,
+588,1382,-76,
+512,1382,-204,
+588,1536,76,
+588,1536,-76,
+512,0,76,
+512,0,-76,
+512,1382,-76,
+512,1382,76,
+512,1536,-76,
+512,1536,76,
 };
 static const L3_Index Wall_Fence_1_Cap_Fancy_1_indexes[] = {
 5, 2, 1,
@@ -98,6 +98,26 @@ static const L3_Unit Wall_Fence_1_Cap_Fancy_1_UVs[] = {
 };
 static const L3_Index Wall_Fence_1_Cap_Fancy_1_indexes_texture[] = {
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
+static const L3_Unit Wall_Fence_1_Cap_Fancy_1_Normals[] = {
+0.9762 * L3_F,0.2169 * L3_F,-0.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+0.8575 * L3_F,-0.0 * L3_F,0.5145 * L3_F,
+0.8575 * L3_F,-0.0 * L3_F,-0.5145 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,-1.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,-1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+0.9762 * L3_F,0.2169 * L3_F,-0.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+0.8575 * L3_F,-0.0 * L3_F,0.5145 * L3_F,
+0.8575 * L3_F,-0.0 * L3_F,-0.5145 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,-1.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+};
 static const L3_Model3D Wall_Fence_1_Cap_Fancy_1 = {
 .vertices = Wall_Fence_1_Cap_Fancy_1_vertices,
 .triangleCount = 18,
@@ -106,6 +126,7 @@ static const L3_Model3D Wall_Fence_1_Cap_Fancy_1 = {
 .triangleTextures = Wall_Fence_1_Cap_Fancy_1_textures,
 .triangleUVs = Wall_Fence_1_Cap_Fancy_1_UVs,
 .triangleTextureIndex = Wall_Fence_1_Cap_Fancy_1_indexes_texture,
+.triangleNormals = Wall_Fence_1_Cap_Fancy_1_Normals,
 };
 #pragma once
 #ifndef ARRAY_SIZE

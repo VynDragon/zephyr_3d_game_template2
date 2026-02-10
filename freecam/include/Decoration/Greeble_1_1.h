@@ -88,6 +88,24 @@ static const L3_Unit Decoration_Greeble_1_1_UVs[] = {
 };
 static const L3_Index Decoration_Greeble_1_1_indexes_texture[] = {
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
+static const L3_Unit Decoration_Greeble_1_1_Normals[] = {
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,-1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.6319 * L3_F,-0.0 * L3_F,0.775 * L3_F,
+0.7944 * L3_F,-0.0 * L3_F,0.6074 * L3_F,
+-0.0202 * L3_F,-0.0 * L3_F,-0.9998 * L3_F,
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,-1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.6319 * L3_F,-0.0 * L3_F,0.775 * L3_F,
+0.7944 * L3_F,-0.0 * L3_F,0.6074 * L3_F,
+-0.0202 * L3_F,-0.0 * L3_F,-0.9998 * L3_F,
+};
 static const L3_Model3D Decoration_Greeble_1_1 = {
 .vertices = Decoration_Greeble_1_1_vertices,
 .triangleCount = 16,
@@ -96,6 +114,7 @@ static const L3_Model3D Decoration_Greeble_1_1 = {
 .triangleTextures = Decoration_Greeble_1_1_textures,
 .triangleUVs = Decoration_Greeble_1_1_UVs,
 .triangleTextureIndex = Decoration_Greeble_1_1_indexes_texture,
+.triangleNormals = Decoration_Greeble_1_1_Normals,
 };
 #pragma once
 #ifndef ARRAY_SIZE

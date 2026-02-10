@@ -66,6 +66,20 @@ static const L3_Unit Misc_AC_1_UVs[] = {
 };
 static const L3_Index Misc_AC_1_indexes_texture[] = {
 0,0,0,0,0,0,0,0,0,0,0,0,};
+static const L3_Unit Misc_AC_1_Normals[] = {
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,-1.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,-1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,-1.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,-1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+};
 static const L3_Model3D Misc_AC_1 = {
 .vertices = Misc_AC_1_vertices,
 .triangleCount = 12,
@@ -74,6 +88,7 @@ static const L3_Model3D Misc_AC_1 = {
 .triangleTextures = Misc_AC_1_textures,
 .triangleUVs = Misc_AC_1_UVs,
 .triangleTextureIndex = Misc_AC_1_indexes_texture,
+.triangleNormals = Misc_AC_1_Normals,
 };
 #pragma once
 #ifndef ARRAY_SIZE

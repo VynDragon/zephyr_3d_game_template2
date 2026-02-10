@@ -94,6 +94,26 @@ static const L3_Unit Furniture_Table_1_UVs[] = {
 };
 static const L3_Index Furniture_Table_1_indexes_texture[] = {
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
+static const L3_Unit Furniture_Table_1_Normals[] = {
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,-1.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.3116 * L3_F,-0.9502 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.9502 * L3_F,0.3116 * L3_F,
+-0.0 * L3_F,-0.9502 * L3_F,-0.3116 * L3_F,
+0.3116 * L3_F,-0.9502 * L3_F,-0.0 * L3_F,
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,-1.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.3116 * L3_F,-0.9502 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.9502 * L3_F,0.3116 * L3_F,
+-0.0 * L3_F,-0.9502 * L3_F,-0.3116 * L3_F,
+0.3116 * L3_F,-0.9502 * L3_F,-0.0 * L3_F,
+};
 static const L3_Model3D Furniture_Table_1 = {
 .vertices = Furniture_Table_1_vertices,
 .triangleCount = 18,
@@ -102,6 +122,7 @@ static const L3_Model3D Furniture_Table_1 = {
 .triangleTextures = Furniture_Table_1_textures,
 .triangleUVs = Furniture_Table_1_UVs,
 .triangleTextureIndex = Furniture_Table_1_indexes_texture,
+.triangleNormals = Furniture_Table_1_Normals,
 };
 #pragma once
 #ifndef ARRAY_SIZE

@@ -178,6 +178,44 @@ static const L3_Unit Decoration_Greeble_3_1_UVs[] = {
 };
 static const L3_Index Decoration_Greeble_3_1_indexes_texture[] = {
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
+static const L3_Unit Decoration_Greeble_3_1_Normals[] = {
+0.9766 * L3_F,-0.0 * L3_F,0.2152 * L3_F,
+-0.2533 * L3_F,-0.0 * L3_F,-0.9674 * L3_F,
+-0.6252 * L3_F,-0.0 * L3_F,0.7804 * L3_F,
+0.9766 * L3_F,-0.0027 * L3_F,0.2152 * L3_F,
+-0.2521 * L3_F,0.0121 * L3_F,-0.9676 * L3_F,
+-0.626 * L3_F,-0.0097 * L3_F,0.7798 * L3_F,
+0.8827 * L3_F,0.4278 * L3_F,0.1945 * L3_F,
+-0.2629 * L3_F,-0.1084 * L3_F,-0.9587 * L3_F,
+-0.619 * L3_F,-0.318 * L3_F,0.7182 * L3_F,
+0.9709 * L3_F,0.1077 * L3_F,0.2139 * L3_F,
+-0.2561 * L3_F,-0.0284 * L3_F,-0.9662 * L3_F,
+-0.6295 * L3_F,-0.0698 * L3_F,0.7738 * L3_F,
+0.9766 * L3_F,-0.0 * L3_F,0.2152 * L3_F,
+-0.2533 * L3_F,-0.0 * L3_F,-0.9674 * L3_F,
+-0.6252 * L3_F,-0.0 * L3_F,0.7804 * L3_F,
+0.9766 * L3_F,-0.0 * L3_F,0.2152 * L3_F,
+-0.2533 * L3_F,-0.0 * L3_F,-0.9674 * L3_F,
+-0.6252 * L3_F,-0.0 * L3_F,0.7804 * L3_F,
+0.9766 * L3_F,-0.0 * L3_F,0.2152 * L3_F,
+-0.2533 * L3_F,-0.0 * L3_F,-0.9674 * L3_F,
+-0.6252 * L3_F,-0.0 * L3_F,0.7804 * L3_F,
+0.9766 * L3_F,-0.0027 * L3_F,0.2152 * L3_F,
+-0.2521 * L3_F,0.0121 * L3_F,-0.9676 * L3_F,
+-0.626 * L3_F,-0.0097 * L3_F,0.7798 * L3_F,
+0.8827 * L3_F,0.4278 * L3_F,0.1945 * L3_F,
+-0.2629 * L3_F,-0.1084 * L3_F,-0.9587 * L3_F,
+-0.619 * L3_F,-0.318 * L3_F,0.7182 * L3_F,
+0.9709 * L3_F,0.1077 * L3_F,0.2139 * L3_F,
+-0.2561 * L3_F,-0.0284 * L3_F,-0.9662 * L3_F,
+-0.6295 * L3_F,-0.0698 * L3_F,0.7738 * L3_F,
+0.9766 * L3_F,-0.0 * L3_F,0.2152 * L3_F,
+-0.2533 * L3_F,-0.0 * L3_F,-0.9674 * L3_F,
+-0.6252 * L3_F,-0.0 * L3_F,0.7804 * L3_F,
+0.9766 * L3_F,-0.0 * L3_F,0.2152 * L3_F,
+-0.2533 * L3_F,-0.0 * L3_F,-0.9674 * L3_F,
+-0.6252 * L3_F,-0.0 * L3_F,0.7804 * L3_F,
+};
 static const L3_Model3D Decoration_Greeble_3_1 = {
 .vertices = Decoration_Greeble_3_1_vertices,
 .triangleCount = 36,
@@ -186,6 +224,7 @@ static const L3_Model3D Decoration_Greeble_3_1 = {
 .triangleTextures = Decoration_Greeble_3_1_textures,
 .triangleUVs = Decoration_Greeble_3_1_UVs,
 .triangleTextureIndex = Decoration_Greeble_3_1_indexes_texture,
+.triangleNormals = Decoration_Greeble_3_1_Normals,
 };
 #pragma once
 #ifndef ARRAY_SIZE

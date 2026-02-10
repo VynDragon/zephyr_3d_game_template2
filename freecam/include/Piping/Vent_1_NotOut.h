@@ -50,6 +50,16 @@ static const L3_Unit Piping_Vent_1_NotOut_UVs[] = {
 };
 static const L3_Index Piping_Vent_1_NotOut_indexes_texture[] = {
 0,0,0,0,0,0,0,0,};
+static const L3_Unit Piping_Vent_1_NotOut_Normals[] = {
+-0.0 * L3_F,-0.0 * L3_F,-1.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,-1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,-1.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,-1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+};
 static const L3_Model3D Piping_Vent_1_NotOut = {
 .vertices = Piping_Vent_1_NotOut_vertices,
 .triangleCount = 8,
@@ -58,6 +68,7 @@ static const L3_Model3D Piping_Vent_1_NotOut = {
 .triangleTextures = Piping_Vent_1_NotOut_textures,
 .triangleUVs = Piping_Vent_1_NotOut_UVs,
 .triangleTextureIndex = Piping_Vent_1_NotOut_indexes_texture,
+.triangleNormals = Piping_Vent_1_NotOut_Normals,
 };
 #pragma once
 #ifndef ARRAY_SIZE

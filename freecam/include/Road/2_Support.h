@@ -132,6 +132,32 @@ static const L3_Unit Road_2_Support_UVs[] = {
 };
 static const L3_Index Road_2_Support_indexes_texture[] = {
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
+static const L3_Unit Road_2_Support_Normals[] = {
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,0.3948 * L3_F,0.9188 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,-1.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,-1.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,0.0777 * L3_F,-0.997 * L3_F,
+-0.0 * L3_F,0.3948 * L3_F,-0.9188 * L3_F,
+-0.0 * L3_F,0.0777 * L3_F,0.997 * L3_F,
+-0.0 * L3_F,-0.9923 * L3_F,-0.124 * L3_F,
+-0.0 * L3_F,-0.9923 * L3_F,0.124 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,0.3948 * L3_F,0.9188 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,-1.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,-1.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,0.0777 * L3_F,-0.997 * L3_F,
+-0.0 * L3_F,0.3948 * L3_F,-0.9188 * L3_F,
+-0.0 * L3_F,0.0777 * L3_F,0.997 * L3_F,
+-0.0 * L3_F,-0.9923 * L3_F,-0.124 * L3_F,
+-0.0 * L3_F,-0.9923 * L3_F,0.124 * L3_F,
+};
 static const L3_Model3D Road_2_Support = {
 .vertices = Road_2_Support_vertices,
 .triangleCount = 24,
@@ -140,6 +166,7 @@ static const L3_Model3D Road_2_Support = {
 .triangleTextures = Road_2_Support_textures,
 .triangleUVs = Road_2_Support_UVs,
 .triangleTextureIndex = Road_2_Support_indexes_texture,
+.triangleNormals = Road_2_Support_Normals,
 };
 #pragma once
 #ifndef ARRAY_SIZE

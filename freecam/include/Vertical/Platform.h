@@ -23,6 +23,20 @@ static const L3_Index Vertical_Platform_indexes[] = {
 2, 4, 7,
 1, 6, 5,
 };
+static const L3_Unit Vertical_Platform_Normals[] = {
+-0.0 * L3_F,-1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,-1.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,-1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,-1.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+};
 static const L3_Model3D Vertical_Platform = {
 .vertices = Vertical_Platform_vertices,
 .triangleCount = 12,
@@ -31,6 +45,7 @@ static const L3_Model3D Vertical_Platform = {
 .triangleTextures = NULL,
 .triangleUVs = NULL,
 .triangleTextureIndex = NULL,
+.triangleNormals = Vertical_Platform_Normals,
 };
 #pragma once
 #ifndef ARRAY_SIZE

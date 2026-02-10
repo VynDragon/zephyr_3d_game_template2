@@ -94,6 +94,26 @@ static const L3_Unit Misc_Dumpster_UVs[] = {
 };
 static const L3_Index Misc_Dumpster_indexes_texture[] = {
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
+static const L3_Unit Misc_Dumpster_Normals[] = {
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,-1.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,0.9811 * L3_F,0.1934 * L3_F,
+-0.593 * L3_F,0.79 * L3_F,0.1557 * L3_F,
+-0.0 * L3_F,0.4582 * L3_F,-0.8889 * L3_F,
+0.593 * L3_F,0.79 * L3_F,0.1557 * L3_F,
+-0.0 * L3_F,0.8334 * L3_F,0.5526 * L3_F,
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,-1.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,0.9811 * L3_F,0.1934 * L3_F,
+-0.593 * L3_F,0.79 * L3_F,0.1557 * L3_F,
+-0.0 * L3_F,0.4582 * L3_F,-0.8889 * L3_F,
+0.593 * L3_F,0.79 * L3_F,0.1557 * L3_F,
+-0.0 * L3_F,0.8334 * L3_F,0.5526 * L3_F,
+};
 static const L3_Model3D Misc_Dumpster = {
 .vertices = Misc_Dumpster_vertices,
 .triangleCount = 18,
@@ -102,6 +122,7 @@ static const L3_Model3D Misc_Dumpster = {
 .triangleTextures = Misc_Dumpster_textures,
 .triangleUVs = Misc_Dumpster_UVs,
 .triangleTextureIndex = Misc_Dumpster_indexes_texture,
+.triangleNormals = Misc_Dumpster_Normals,
 };
 #pragma once
 #ifndef ARRAY_SIZE

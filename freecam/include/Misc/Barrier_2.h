@@ -94,6 +94,26 @@ static const L3_Unit Misc_Barrier_2_UVs[] = {
 };
 static const L3_Index Misc_Barrier_2_indexes_texture[] = {
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
+static const L3_Unit Misc_Barrier_2_Normals[] = {
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,-1.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.9756 * L3_F,0.2195 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,0.3909 * L3_F,0.9205 * L3_F,
+-0.0 * L3_F,0.3909 * L3_F,-0.9205 * L3_F,
+0.9756 * L3_F,0.2195 * L3_F,-0.0 * L3_F,
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,-1.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.9756 * L3_F,0.2195 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,0.3909 * L3_F,0.9205 * L3_F,
+-0.0 * L3_F,0.3909 * L3_F,-0.9205 * L3_F,
+0.9756 * L3_F,0.2195 * L3_F,-0.0 * L3_F,
+};
 static const L3_Model3D Misc_Barrier_2 = {
 .vertices = Misc_Barrier_2_vertices,
 .triangleCount = 18,
@@ -102,6 +122,7 @@ static const L3_Model3D Misc_Barrier_2 = {
 .triangleTextures = Misc_Barrier_2_textures,
 .triangleUVs = Misc_Barrier_2_UVs,
 .triangleTextureIndex = Misc_Barrier_2_indexes_texture,
+.triangleNormals = Misc_Barrier_2_Normals,
 };
 #pragma once
 #ifndef ARRAY_SIZE

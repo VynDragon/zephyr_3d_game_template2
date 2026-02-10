@@ -22,6 +22,10 @@ static const L3_Unit Wall_Garage_Door_0_UVs[] = {
 };
 static const L3_Index Wall_Garage_Door_0_indexes_texture[] = {
 0,0,};
+static const L3_Unit Wall_Garage_Door_0_Normals[] = {
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+};
 static const L3_Model3D Wall_Garage_Door_0 = {
 .vertices = Wall_Garage_Door_0_vertices,
 .triangleCount = 2,
@@ -30,6 +34,7 @@ static const L3_Model3D Wall_Garage_Door_0 = {
 .triangleTextures = Wall_Garage_Door_0_textures,
 .triangleUVs = Wall_Garage_Door_0_UVs,
 .triangleTextureIndex = Wall_Garage_Door_0_indexes_texture,
+.triangleNormals = Wall_Garage_Door_0_Normals,
 };
 #pragma once
 #ifndef ARRAY_SIZE

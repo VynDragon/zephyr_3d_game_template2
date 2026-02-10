@@ -194,6 +194,48 @@ static const L3_Unit Decoration_Pylon_UVs[] = {
 };
 static const L3_Index Decoration_Pylon_indexes_texture[] = {
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
+static const L3_Unit Decoration_Pylon_Normals[] = {
+0.5 * L3_F,-0.0 * L3_F,-0.866 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+0.5 * L3_F,-0.0 * L3_F,0.866 * L3_F,
+-0.5 * L3_F,-0.0 * L3_F,0.866 * L3_F,
+-0.5 * L3_F,-0.0 * L3_F,0.866 * L3_F,
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.5 * L3_F,-0.0 * L3_F,-0.866 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+0.5 * L3_F,-0.0 * L3_F,0.866 * L3_F,
+0.5 * L3_F,-0.0 * L3_F,-0.866 * L3_F,
+-0.5 * L3_F,-0.0 * L3_F,-0.866 * L3_F,
+0.5 * L3_F,-0.0 * L3_F,-0.866 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+0.5 * L3_F,-0.0 * L3_F,0.866 * L3_F,
+-0.5 * L3_F,-0.0 * L3_F,0.866 * L3_F,
+-0.5 * L3_F,-0.0 * L3_F,0.866 * L3_F,
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.5 * L3_F,-0.0 * L3_F,-0.866 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+0.5 * L3_F,-0.0 * L3_F,0.866 * L3_F,
+0.5 * L3_F,-0.0 * L3_F,-0.866 * L3_F,
+-0.5 * L3_F,-0.0 * L3_F,-0.866 * L3_F,
+};
 static const L3_Model3D Decoration_Pylon = {
 .vertices = Decoration_Pylon_vertices,
 .triangleCount = 40,
@@ -202,6 +244,7 @@ static const L3_Model3D Decoration_Pylon = {
 .triangleTextures = Decoration_Pylon_textures,
 .triangleUVs = Decoration_Pylon_UVs,
 .triangleTextureIndex = Decoration_Pylon_indexes_texture,
+.triangleNormals = Decoration_Pylon_Normals,
 };
 #pragma once
 #ifndef ARRAY_SIZE

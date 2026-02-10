@@ -66,6 +66,20 @@ static const L3_Unit Decoration_Cardboard_Boxes_2_UVs[] = {
 };
 static const L3_Index Decoration_Cardboard_Boxes_2_indexes_texture[] = {
 0,0,0,0,0,0,0,0,0,0,0,0,};
+static const L3_Unit Decoration_Cardboard_Boxes_2_Normals[] = {
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,-1.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,-1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,-1.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,-1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+};
 static const L3_Model3D Decoration_Cardboard_Boxes_2 = {
 .vertices = Decoration_Cardboard_Boxes_2_vertices,
 .triangleCount = 12,
@@ -74,6 +88,7 @@ static const L3_Model3D Decoration_Cardboard_Boxes_2 = {
 .triangleTextures = Decoration_Cardboard_Boxes_2_textures,
 .triangleUVs = Decoration_Cardboard_Boxes_2_UVs,
 .triangleTextureIndex = Decoration_Cardboard_Boxes_2_indexes_texture,
+.triangleNormals = Decoration_Cardboard_Boxes_2_Normals,
 };
 #pragma once
 #ifndef ARRAY_SIZE

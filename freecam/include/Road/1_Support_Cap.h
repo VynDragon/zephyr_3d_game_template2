@@ -87,6 +87,23 @@ static const L3_Unit Road_1_Support_Cap_UVs[] = {
 };
 static const L3_Index Road_1_Support_Cap_indexes_texture[] = {
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
+static const L3_Unit Road_1_Support_Cap_Normals[] = {
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+};
 static const L3_Model3D Road_1_Support_Cap = {
 .vertices = Road_1_Support_Cap_vertices,
 .triangleCount = 15,
@@ -95,6 +112,7 @@ static const L3_Model3D Road_1_Support_Cap = {
 .triangleTextures = Road_1_Support_Cap_textures,
 .triangleUVs = Road_1_Support_Cap_UVs,
 .triangleTextureIndex = Road_1_Support_Cap_indexes_texture,
+.triangleNormals = Road_1_Support_Cap_Normals,
 };
 #pragma once
 #ifndef ARRAY_SIZE

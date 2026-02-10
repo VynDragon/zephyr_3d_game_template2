@@ -166,6 +166,42 @@ static const L3_Unit Furniture_Chair_1_UVs[] = {
 };
 static const L3_Index Furniture_Chair_1_indexes_texture[] = {
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
+static const L3_Unit Furniture_Chair_1_Normals[] = {
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,0.2892 * L3_F,-0.9573 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.9185 * L3_F,-0.3954 * L3_F,
+0.6678 * L3_F,-0.7443 * L3_F,-0.0 * L3_F,
+-0.6678 * L3_F,-0.7443 * L3_F,-0.0 * L3_F,
+0.6678 * L3_F,-0.7443 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.5405 * L3_F,0.8413 * L3_F,
+-0.6678 * L3_F,-0.7443 * L3_F,-0.0 * L3_F,
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0932 * L3_F,0.9956 * L3_F,
+-0.0 * L3_F,0.2598 * L3_F,-0.9657 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,0.2892 * L3_F,-0.9573 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.9185 * L3_F,-0.3954 * L3_F,
+0.6678 * L3_F,-0.7443 * L3_F,-0.0 * L3_F,
+-0.6678 * L3_F,-0.7443 * L3_F,-0.0 * L3_F,
+0.6678 * L3_F,-0.7443 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.5405 * L3_F,0.8413 * L3_F,
+-0.6678 * L3_F,-0.7443 * L3_F,-0.0 * L3_F,
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0932 * L3_F,0.9956 * L3_F,
+-0.0 * L3_F,0.2598 * L3_F,-0.9657 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+};
 static const L3_Model3D Furniture_Chair_1 = {
 .vertices = Furniture_Chair_1_vertices,
 .triangleCount = 34,
@@ -174,6 +210,7 @@ static const L3_Model3D Furniture_Chair_1 = {
 .triangleTextures = Furniture_Chair_1_textures,
 .triangleUVs = Furniture_Chair_1_UVs,
 .triangleTextureIndex = Furniture_Chair_1_indexes_texture,
+.triangleNormals = Furniture_Chair_1_Normals,
 };
 #pragma once
 #ifndef ARRAY_SIZE

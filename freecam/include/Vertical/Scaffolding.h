@@ -51,6 +51,32 @@ static const L3_Index Vertical_Scaffolding_indexes[] = {
 18, 21, 23,
 22, 20, 18,
 };
+static const L3_Unit Vertical_Scaffolding_Normals[] = {
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.7071 * L3_F,0.7071 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.7071 * L3_F,-0.7071 * L3_F,-0.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.6567 * L3_F,0.7455 * L3_F,0.114 * L3_F,
+-0.0 * L3_F,-0.9885 * L3_F,-0.1512 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.6567 * L3_F,0.7441 * L3_F,-0.1229 * L3_F,
+-0.0 * L3_F,-0.9866 * L3_F,0.1629 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.7071 * L3_F,0.7071 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.7071 * L3_F,-0.7071 * L3_F,-0.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.6567 * L3_F,0.7455 * L3_F,0.114 * L3_F,
+-0.0 * L3_F,-0.9885 * L3_F,-0.1512 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.6567 * L3_F,0.7441 * L3_F,-0.1229 * L3_F,
+-0.0 * L3_F,-0.9866 * L3_F,0.1629 * L3_F,
+};
 static const L3_Model3D Vertical_Scaffolding = {
 .vertices = Vertical_Scaffolding_vertices,
 .triangleCount = 24,
@@ -59,6 +85,7 @@ static const L3_Model3D Vertical_Scaffolding = {
 .triangleTextures = NULL,
 .triangleUVs = NULL,
 .triangleTextureIndex = NULL,
+.triangleNormals = Vertical_Scaffolding_Normals,
 };
 #pragma once
 #ifndef ARRAY_SIZE

@@ -62,6 +62,18 @@ static const L3_Unit Road_2_UVs[] = {
 };
 static const L3_Index Road_2_indexes_texture[] = {
 0,0,0,0,0,0,0,0,0,0,};
+static const L3_Unit Road_2_Normals[] = {
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,-1.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,-1.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+};
 static const L3_Model3D Road_2 = {
 .vertices = Road_2_vertices,
 .triangleCount = 10,
@@ -70,6 +82,7 @@ static const L3_Model3D Road_2 = {
 .triangleTextures = Road_2_textures,
 .triangleUVs = Road_2_UVs,
 .triangleTextureIndex = Road_2_indexes_texture,
+.triangleNormals = Road_2_Normals,
 };
 #pragma once
 #ifndef ARRAY_SIZE

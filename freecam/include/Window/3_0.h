@@ -58,6 +58,18 @@ static const L3_Unit Window_3_0_UVs[] = {
 };
 static const L3_Index Window_3_0_indexes_texture[] = {
 0,0,0,0,0,0,0,0,0,0,};
+static const L3_Unit Window_3_0_Normals[] = {
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.6408 * L3_F,-0.0 * L3_F,0.7677 * L3_F,
+-0.0 * L3_F,0.6408 * L3_F,0.7677 * L3_F,
+0.6408 * L3_F,-0.0 * L3_F,0.7677 * L3_F,
+-0.0 * L3_F,-0.6408 * L3_F,0.7677 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.6408 * L3_F,-0.0 * L3_F,0.7677 * L3_F,
+-0.0 * L3_F,0.6408 * L3_F,0.7677 * L3_F,
+0.6408 * L3_F,-0.0 * L3_F,0.7677 * L3_F,
+-0.0 * L3_F,-0.6408 * L3_F,0.7677 * L3_F,
+};
 static const L3_Model3D Window_3_0 = {
 .vertices = Window_3_0_vertices,
 .triangleCount = 10,
@@ -66,6 +78,7 @@ static const L3_Model3D Window_3_0 = {
 .triangleTextures = Window_3_0_textures,
 .triangleUVs = Window_3_0_UVs,
 .triangleTextureIndex = Window_3_0_indexes_texture,
+.triangleNormals = Window_3_0_Normals,
 };
 #pragma once
 #ifndef ARRAY_SIZE

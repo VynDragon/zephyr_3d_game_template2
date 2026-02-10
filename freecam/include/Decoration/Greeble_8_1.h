@@ -133,6 +133,32 @@ static const L3_Unit Decoration_Greeble_8_1_UVs[] = {
 };
 static const L3_Index Decoration_Greeble_8_1_indexes_texture[] = {
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
+static const L3_Unit Decoration_Greeble_8_1_Normals[] = {
+-0.13 * L3_F,0.7752 * L3_F,0.6182 * L3_F,
+-0.1281 * L3_F,-0.5599 * L3_F,0.8186 * L3_F,
+-0.1561 * L3_F,0.8763 * L3_F,0.4559 * L3_F,
+0.7063 * L3_F,0.5535 * L3_F,0.4414 * L3_F,
+0.7353 * L3_F,-0.503 * L3_F,0.4542 * L3_F,
+-0.1015 * L3_F,-0.5617 * L3_F,0.8211 * L3_F,
+0.6968 * L3_F,0.6363 * L3_F,0.331 * L3_F,
+0.6964 * L3_F,-0.4764 * L3_F,0.5366 * L3_F,
+-0.1101 * L3_F,0.845 * L3_F,0.5233 * L3_F,
+-0.171 * L3_F,-0.5563 * L3_F,0.8132 * L3_F,
+0.6443 * L3_F,0.6502 * L3_F,0.4027 * L3_F,
+0.761 * L3_F,-0.5206 * L3_F,0.3872 * L3_F,
+-0.13 * L3_F,0.7752 * L3_F,0.6182 * L3_F,
+-0.1419 * L3_F,-0.7243 * L3_F,0.6747 * L3_F,
+-0.1496 * L3_F,0.7731 * L3_F,0.6165 * L3_F,
+0.5954 * L3_F,0.7467 * L3_F,0.2966 * L3_F,
+0.7371 * L3_F,-0.4945 * L3_F,0.4606 * L3_F,
+-0.1025 * L3_F,-0.693 * L3_F,0.7136 * L3_F,
+0.6049 * L3_F,0.7824 * L3_F,0.1481 * L3_F,
+0.6878 * L3_F,-0.5057 * L3_F,0.5208 * L3_F,
+-0.1123 * L3_F,0.7769 * L3_F,0.6195 * L3_F,
+-0.171 * L3_F,-0.5563 * L3_F,0.8132 * L3_F,
+0.589 * L3_F,0.7402 * L3_F,0.3245 * L3_F,
+0.7972 * L3_F,-0.3408 * L3_F,0.4982 * L3_F,
+};
 static const L3_Model3D Decoration_Greeble_8_1 = {
 .vertices = Decoration_Greeble_8_1_vertices,
 .triangleCount = 24,
@@ -141,6 +167,7 @@ static const L3_Model3D Decoration_Greeble_8_1 = {
 .triangleTextures = Decoration_Greeble_8_1_textures,
 .triangleUVs = Decoration_Greeble_8_1_UVs,
 .triangleTextureIndex = Decoration_Greeble_8_1_indexes_texture,
+.triangleNormals = Decoration_Greeble_8_1_Normals,
 };
 #pragma once
 #ifndef ARRAY_SIZE

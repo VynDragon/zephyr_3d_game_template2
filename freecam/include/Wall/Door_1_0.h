@@ -106,6 +106,28 @@ static const L3_Unit Wall_Door_1_0_UVs[] = {
 };
 static const L3_Index Wall_Door_1_0_indexes_texture[] = {
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
+static const L3_Unit Wall_Door_1_0_Normals[] = {
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+0.9999 * L3_F,0.0102 * L3_F,-0.0 * L3_F,
+-0.9999 * L3_F,0.0102 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-1.0 * L3_F,-0.0 * L3_F,
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+0.9999 * L3_F,0.0102 * L3_F,-0.0 * L3_F,
+-0.9999 * L3_F,0.0102 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-1.0 * L3_F,-0.0 * L3_F,
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+};
 static const L3_Model3D Wall_Door_1_0 = {
 .vertices = Wall_Door_1_0_vertices,
 .triangleCount = 20,
@@ -114,6 +136,7 @@ static const L3_Model3D Wall_Door_1_0 = {
 .triangleTextures = Wall_Door_1_0_textures,
 .triangleUVs = Wall_Door_1_0_UVs,
 .triangleTextureIndex = Wall_Door_1_0_indexes_texture,
+.triangleNormals = Wall_Door_1_0_Normals,
 };
 #pragma once
 #ifndef ARRAY_SIZE

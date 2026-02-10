@@ -118,6 +118,30 @@ static const L3_Unit Decoration_Greeble_4_1_UVs[] = {
 };
 static const L3_Index Decoration_Greeble_4_1_indexes_texture[] = {
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
+static const L3_Unit Decoration_Greeble_4_1_Normals[] = {
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.9365 * L3_F,-0.0 * L3_F,0.3507 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.6301 * L3_F,-0.0752 * L3_F,0.7728 * L3_F,
+0.7908 * L3_F,0.0944 * L3_F,0.6047 * L3_F,
+-0.0202 * L3_F,-0.0024 * L3_F,-0.9998 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+0.9531 * L3_F,-0.0 * L3_F,0.3026 * L3_F,
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.9365 * L3_F,-0.0 * L3_F,0.3507 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.6301 * L3_F,-0.0752 * L3_F,0.7728 * L3_F,
+0.7908 * L3_F,0.0944 * L3_F,0.6047 * L3_F,
+-0.0202 * L3_F,-0.0024 * L3_F,-0.9998 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+0.9531 * L3_F,-0.0 * L3_F,0.3026 * L3_F,
+};
 static const L3_Model3D Decoration_Greeble_4_1 = {
 .vertices = Decoration_Greeble_4_1_vertices,
 .triangleCount = 22,
@@ -126,6 +150,7 @@ static const L3_Model3D Decoration_Greeble_4_1 = {
 .triangleTextures = Decoration_Greeble_4_1_textures,
 .triangleUVs = Decoration_Greeble_4_1_UVs,
 .triangleTextureIndex = Decoration_Greeble_4_1_indexes_texture,
+.triangleNormals = Decoration_Greeble_4_1_Normals,
 };
 #pragma once
 #ifndef ARRAY_SIZE

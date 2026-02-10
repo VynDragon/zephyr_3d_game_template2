@@ -234,7 +234,10 @@ static void update_controls(struct input_event *evt, void *user_data)
 {
 	Controls *cont = user_data;
 
-	animate = false;
+	if (animate) {
+		printf("Benchmark interrupted.\n");
+		animate = false;
+	}
 
 	if (evt->code == INPUT_KEY_UP) {
 		if (evt->value)

@@ -9,10 +9,15 @@
 #define L3_RESOLUTION_X CONFIG_RESOLUTION_X
 #define L3_RESOLUTION_Y CONFIG_RESOLUTION_Y
 
-#define L3_PIXEL_FUNCTION		zephyr_putpixel
-#define L3_TRIANGLE_FUNCTION	zephyr_drawtriangle
-#define L3_BILLBOARD_FUNCTION	zephyr_drawbillboard
-#define L3_MODEL_FUNCTION		zephyr_model
+#define L3_PIXEL_FUNCTION			zephyr_putpixel
+
+#undef L3_TRIANGLE_FUNCTION_WORLD_EN
+#if defined(L3_TRIANGLE_FUNCTION_WORLD_EN) && L3_TRIANGLE_FUNCTION_WORLD_EN
+#define L3_TRIANGLE_FUNCTION_WORLD	zephyr_drawtriangle_world
+#endif
+#define L3_TRIANGLE_FUNCTION_SCREEN	zephyr_drawtriangle_screen
+#define L3_BILLBOARD_FUNCTION		zephyr_drawbillboard
+#define L3_MODEL_FUNCTION			zephyr_model
 
 #define L3_COLORTYPE uint8_t
 
@@ -501,6 +506,7 @@ typedef struct
 	const L3_Unit *triangleUVs;
 	const L3_Index *triangleTextureIndex;
 	const L3_Texture **triangleTextures;
+	const L3_Unit *triangleNormals;
 } L3_Model3D;
 
 typedef struct
@@ -826,8 +832,13 @@ m/2,  m/2,  m/2,\
 #ifndef L3_PIXEL_FUNCTION
 	#error Pixel rendering function (L3_PIXEL_FUNCTION) not specified!
 #endif
-#ifndef L3_TRIANGLE_FUNCTION
-	#error Triangle rendering function (L3_TRIANGLE_FUNCTION) not specified!
+#ifndef L3_TRIANGLE_FUNCTION_SCREEN
+	#error Triangle Screen rendering function (L3_TRIANGLE_FUNCTION_SCREEN) not specified!
+#endif
+#if defined(L3_TRIANGLE_FUNCTION_WORLD_EN) && L3_TRIANGLE_FUNCTION_WORLD_EN
+	#ifndef L3_TRIANGLE_FUNCTION_WORLD
+		#error Triangle Screen rendering function (L3_TRIANGLE_FUNCTION_WORLD) not specified!
+	#endif
 #endif
 #ifndef L3_BILLBOARD_FUNCTION
 	#error Billboard rendering function (L3_BILLBOARD_FUNCTION) not specified!
@@ -836,8 +847,12 @@ m/2,  m/2,  m/2,\
 	#error model processing function (L3_MODEL_FUNCTION) not specified!
 #endif
 void L3_PIXEL_FUNCTION(L3_PixelInfo *pixel); // forward decl
-int L3_TRIANGLE_FUNCTION(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
-	L3_Index modelIndex, L3_Index triangleIndex);
+int L3_TRIANGLE_FUNCTION_SCREEN(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
+	L3_Index modelIndex, L3_Index triangleIndex, uint16_t rendermode, L3_Vec4 lightDir);
+#if defined(L3_TRIANGLE_FUNCTION_WORLD_EN) && L3_TRIANGLE_FUNCTION_WORLD_EN
+int L3_TRIANGLE_FUNCTION_WORLD(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
+	L3_Index modelIndex, L3_Index triangleIndex, uint16_t rendermode, L3_Vec4 lightDir);
+#endif
 int L3_BILLBOARD_FUNCTION(L3_Vec4 point, const L3_Object *billboard, L3_Camera camera);
 int L3_MODEL_FUNCTION(const L3_Object *object);
 
@@ -875,22 +890,22 @@ int8_t L3_zTest(L3_ScreenCoord x, L3_ScreenCoord y, L3_Unit depth);
 
 /* Instanciate a object from a original */
 #define INSTANCIATE_OBJECT(name, object) L3_Object name = {	\
-.model = object.model,																		\
+.model = object.model,																\
 .billboard = object.billboard,														\
-.transform.scale.x = L3_F,																\
-.transform.scale.y = L3_F,																\
-.transform.scale.z = L3_F,																\
-.transform.scale.w = 0,																		\
-.transform.translation.x = 0,															\
-.transform.translation.y = 0,															\
-.transform.translation.z = 0,															\
+.transform.scale.x = L3_F,															\
+.transform.scale.y = L3_F,															\
+.transform.scale.z = L3_F,															\
+.transform.scale.w = 0,																\
+.transform.translation.x = 0,														\
+.transform.translation.y = 0,														\
+.transform.translation.z = 0,														\
 .transform.translation.w = L3_F,													\
-.transform.rotation.x = 0,																\
-.transform.rotation.y = 0,																\
-.transform.rotation.z = 0,																\
-.transform.rotation.w = L3_F,															\
-.config.backfaceCulling = object.config.backfaceCulling,	\
-.config.visible = object.config.visible,									\
+.transform.rotation.x = 0,															\
+.transform.rotation.y = 0,															\
+.transform.rotation.z = 0,															\
+.transform.rotation.w = L3_F,														\
+.config.backfaceCulling = object.config.backfaceCulling,							\
+.config.visible = object.config.visible,											\
 };
 
 extern L3_COLORTYPE L3_video_buffer[L3_RESOLUTION_X * L3_RESOLUTION_Y];

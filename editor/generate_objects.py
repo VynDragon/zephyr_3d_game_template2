@@ -14,6 +14,7 @@ def generate_model_header(name, model_path, texture_name, texture_width, texture
 	data_index_name = name + "_indexes"
 	data_texture_name = name + "_textures"
 	data_uv_name = name + "_UVs"
+	data_normals_name = name + "_Normals"
 	data_texindex_name = name + "_indexes_texture"
 	data_model_name = name
 
@@ -46,9 +47,17 @@ def generate_model_header(name, model_path, texture_name, texture_width, texture
 		file_out.write("static const L3_Unit " +  data_uv_name + "[] = {\n")
 		for mesh in object_in.mesh_list:
 			for faceid, face in enumerate(mesh.faces):
-				face0uv = (mesh.materials[0].vertices[faceid * 5 * 3], mesh.materials[0].vertices[faceid * 5 * 3+ 1])
-				face1uv = (mesh.materials[0].vertices[faceid * 5 * 3 + 5], mesh.materials[0].vertices[faceid * 5 * 3 + 6])
-				face2uv = (mesh.materials[0].vertices[faceid * 5 * 3 + 10], mesh.materials[0].vertices[faceid * 5 * 3 + 11])
+				face_data_len = 5
+				if mesh.materials[0].vertex_format == "T2F_N3F_V3F":
+					face_data_len = 8
+				elif mesh.materials[0].vertex_format == "T2F_V3F":
+					face_data_len = 5
+				else:
+					print("Unsupported face format")
+					sys.exit(-1)
+				face0uv = (mesh.materials[0].vertices[faceid * face_data_len * 3], mesh.materials[0].vertices[faceid * face_data_len * 3 + 1])
+				face1uv = (mesh.materials[0].vertices[faceid * face_data_len * 3 + face_data_len], mesh.materials[0].vertices[faceid * face_data_len * 3 + face_data_len + 1])
+				face2uv = (mesh.materials[0].vertices[faceid * face_data_len * 3 + face_data_len * 2], mesh.materials[0].vertices[faceid * face_data_len * 3 + face_data_len * 2 + 1])
 				# with fix for UV being the wrong way for some reason
 				file_out.write(str(int(face0uv[0] * texture_width * MUL_UV)) + ", " + str(int(texture_height * MUL_UV - face0uv[1] * texture_height * MUL_UV)) + ",\n")
 				file_out.write(str(int(face1uv[0] * texture_width * MUL_UV)) + ", " + str(int(texture_height * MUL_UV - face1uv[1] * texture_height * MUL_UV)) + ",\n")
@@ -64,6 +73,29 @@ def generate_model_header(name, model_path, texture_name, texture_width, texture
 					file_out.write(str(-1) + ",")
 		file_out.write("};\n")
 
+	has_normals = True
+
+	file_out.write("static const L3_Unit " +  data_normals_name + "[] = {\n")
+	for mesh in object_in.mesh_list:
+		for faceid, face in enumerate(mesh.faces):
+			face_data_len = 6
+			normal_offset = 0
+			if mesh.materials[0].vertex_format == "T2F_N3F_V3F":
+				face_data_len = 8
+				normal_offset = 2
+			elif mesh.materials[0].vertex_format == "N3F_V3F":
+				face_data_len = 6
+				normal_offset = 0
+			else:
+				has_normals = False
+				break
+				break
+			normalx = mesh.materials[0].vertices[faceid * face_data_len * 3 + normal_offset]
+			normaly = mesh.materials[0].vertices[faceid * face_data_len * 3 + normal_offset + 1]
+			normalz = mesh.materials[0].vertices[faceid * face_data_len * 3 + normal_offset + 2]
+			file_out.write(str(normalx) + " * L3_F," + str(normaly) + " * L3_F," + str(normalz) + " * L3_F,\n")
+	file_out.write("};\n")
+
 	file_out.write("static const L3_Model3D " +  data_model_name + " = {\n")
 	file_out.write(".vertices = " + data_vertices_name + ",\n")
 	file_out.write(".triangleCount = " + str(int(total_polys)) + ",\n")
@@ -77,6 +109,10 @@ def generate_model_header(name, model_path, texture_name, texture_width, texture
 		file_out.write(".triangleTextures = NULL,\n")
 		file_out.write(".triangleUVs = NULL,\n")
 		file_out.write(".triangleTextureIndex = NULL,\n")
+	if has_normals:
+		file_out.write(".triangleNormals = " + data_normals_name + ",\n")
+	else:
+		file_out.write(".triangleNormals = NULL,\n")
 	file_out.write("};\n")
 	file_out.close()
 

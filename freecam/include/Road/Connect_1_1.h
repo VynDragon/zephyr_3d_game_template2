@@ -104,6 +104,26 @@ static const L3_Unit Road_Connect_1_1_UVs[] = {
 };
 static const L3_Index Road_Connect_1_1_indexes_texture[] = {
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
+static const L3_Unit Road_Connect_1_1_Normals[] = {
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.7071 * L3_F,-0.0 * L3_F,0.7071 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+0.7071 * L3_F,-0.0 * L3_F,0.7071 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.7071 * L3_F,-0.0 * L3_F,0.7071 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+0.7071 * L3_F,-0.0 * L3_F,0.7071 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+};
 static const L3_Model3D Road_Connect_1_1 = {
 .vertices = Road_Connect_1_1_vertices,
 .triangleCount = 18,
@@ -112,6 +132,7 @@ static const L3_Model3D Road_Connect_1_1 = {
 .triangleTextures = Road_Connect_1_1_textures,
 .triangleUVs = Road_Connect_1_1_UVs,
 .triangleTextureIndex = Road_Connect_1_1_indexes_texture,
+.triangleNormals = Road_Connect_1_1_Normals,
 };
 #pragma once
 #ifndef ARRAY_SIZE

@@ -1,13 +1,13 @@
 #pragma once
 static const L3_Unit Prefabs_Prefab_2_Garage_Doors_1_vertices[] = {
--3120,0,1847,
--1031,0,1847,
--3120,1462,1847,
--1031,1462,1847,
-13,0,1847,
-2102,0,1847,
-13,1462,1847,
-2102,1462,1847,
+-3059,0,1811,
+-1011,0,1811,
+-3059,1433,1811,
+-1011,1433,1811,
+12,0,1811,
+2060,0,1811,
+12,1433,1811,
+2060,1433,1811,
 };
 static const L3_Index Prefabs_Prefab_2_Garage_Doors_1_indexes[] = {
 1, 2, 0,
@@ -34,6 +34,12 @@ static const L3_Unit Prefabs_Prefab_2_Garage_Doors_1_UVs[] = {
 };
 static const L3_Index Prefabs_Prefab_2_Garage_Doors_1_indexes_texture[] = {
 0,0,0,0,};
+static const L3_Unit Prefabs_Prefab_2_Garage_Doors_1_Normals[] = {
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+};
 static const L3_Model3D Prefabs_Prefab_2_Garage_Doors_1 = {
 .vertices = Prefabs_Prefab_2_Garage_Doors_1_vertices,
 .triangleCount = 4,
@@ -42,6 +48,7 @@ static const L3_Model3D Prefabs_Prefab_2_Garage_Doors_1 = {
 .triangleTextures = Prefabs_Prefab_2_Garage_Doors_1_textures,
 .triangleUVs = Prefabs_Prefab_2_Garage_Doors_1_UVs,
 .triangleTextureIndex = Prefabs_Prefab_2_Garage_Doors_1_indexes_texture,
+.triangleNormals = Prefabs_Prefab_2_Garage_Doors_1_Normals,
 };
 #pragma once
 #ifndef ARRAY_SIZE

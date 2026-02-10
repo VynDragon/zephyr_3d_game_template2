@@ -94,6 +94,22 @@ static const L3_Unit Road_Crossing_UVs[] = {
 };
 static const L3_Index Road_Crossing_indexes_texture[] = {
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
+static const L3_Unit Road_Crossing_Normals[] = {
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+};
 static const L3_Model3D Road_Crossing = {
 .vertices = Road_Crossing_vertices,
 .triangleCount = 14,
@@ -102,6 +118,7 @@ static const L3_Model3D Road_Crossing = {
 .triangleTextures = Road_Crossing_textures,
 .triangleUVs = Road_Crossing_UVs,
 .triangleTextureIndex = Road_Crossing_indexes_texture,
+.triangleNormals = Road_Crossing_Normals,
 };
 #pragma once
 #ifndef ARRAY_SIZE

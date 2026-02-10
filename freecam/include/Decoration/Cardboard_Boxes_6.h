@@ -202,6 +202,48 @@ static const L3_Unit Decoration_Cardboard_Boxes_6_UVs[] = {
 };
 static const L3_Index Decoration_Cardboard_Boxes_6_indexes_texture[] = {
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
+static const L3_Unit Decoration_Cardboard_Boxes_6_Normals[] = {
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,-1.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,-1.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.9245 * L3_F,-0.0 * L3_F,-0.3811 * L3_F,
+0.3811 * L3_F,-0.0 * L3_F,-0.9245 * L3_F,
+0.9245 * L3_F,-0.0 * L3_F,0.3811 * L3_F,
+-0.3811 * L3_F,-0.0 * L3_F,0.9245 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.8574 * L3_F,-0.0 * L3_F,-0.5147 * L3_F,
+0.5147 * L3_F,-0.0 * L3_F,-0.8574 * L3_F,
+0.8574 * L3_F,-0.0 * L3_F,0.5147 * L3_F,
+-0.5147 * L3_F,-0.0 * L3_F,0.8574 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,-1.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,-1.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.9245 * L3_F,-0.0 * L3_F,-0.3811 * L3_F,
+0.3811 * L3_F,-0.0 * L3_F,-0.9245 * L3_F,
+0.9245 * L3_F,-0.0 * L3_F,0.3811 * L3_F,
+-0.3811 * L3_F,-0.0 * L3_F,0.9245 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.8574 * L3_F,-0.0 * L3_F,-0.5147 * L3_F,
+0.5147 * L3_F,-0.0 * L3_F,-0.8574 * L3_F,
+0.8574 * L3_F,-0.0 * L3_F,0.5147 * L3_F,
+-0.5147 * L3_F,-0.0 * L3_F,0.8574 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+};
 static const L3_Model3D Decoration_Cardboard_Boxes_6 = {
 .vertices = Decoration_Cardboard_Boxes_6_vertices,
 .triangleCount = 40,
@@ -210,6 +252,7 @@ static const L3_Model3D Decoration_Cardboard_Boxes_6 = {
 .triangleTextures = Decoration_Cardboard_Boxes_6_textures,
 .triangleUVs = Decoration_Cardboard_Boxes_6_UVs,
 .triangleTextureIndex = Decoration_Cardboard_Boxes_6_indexes_texture,
+.triangleNormals = Decoration_Cardboard_Boxes_6_Normals,
 };
 #pragma once
 #ifndef ARRAY_SIZE

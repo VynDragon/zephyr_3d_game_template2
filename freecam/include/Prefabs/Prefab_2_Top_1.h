@@ -1,13 +1,13 @@
 #pragma once
 static const L3_Unit Prefabs_Prefab_2_Top_1_vertices[] = {
-4542,10408,-2090,
-4542,2574,-2090,
-4542,10408,1818,
-4542,2574,1818,
--4549,10408,-2090,
--4549,2574,-2090,
--4549,10408,1818,
--4549,2574,1818,
+4452,10204,-2049,
+4452,2524,-2049,
+4452,10204,1783,
+4452,2524,1783,
+-4460,10204,-2049,
+-4460,2524,-2049,
+-4460,10204,1783,
+-4460,2524,1783,
 };
 static const L3_Index Prefabs_Prefab_2_Top_1_indexes[] = {
 2, 7, 3,
@@ -50,6 +50,16 @@ static const L3_Unit Prefabs_Prefab_2_Top_1_UVs[] = {
 };
 static const L3_Index Prefabs_Prefab_2_Top_1_indexes_texture[] = {
 0,0,0,0,0,0,0,0,};
+static const L3_Unit Prefabs_Prefab_2_Top_1_Normals[] = {
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,-1.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,-1.0 * L3_F,
+};
 static const L3_Model3D Prefabs_Prefab_2_Top_1 = {
 .vertices = Prefabs_Prefab_2_Top_1_vertices,
 .triangleCount = 8,
@@ -58,6 +68,7 @@ static const L3_Model3D Prefabs_Prefab_2_Top_1 = {
 .triangleTextures = Prefabs_Prefab_2_Top_1_textures,
 .triangleUVs = Prefabs_Prefab_2_Top_1_UVs,
 .triangleTextureIndex = Prefabs_Prefab_2_Top_1_indexes_texture,
+.triangleNormals = Prefabs_Prefab_2_Top_1_Normals,
 };
 #pragma once
 #ifndef ARRAY_SIZE

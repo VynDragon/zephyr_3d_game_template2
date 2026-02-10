@@ -130,6 +130,34 @@ static const L3_Unit Misc_Barrier_1_UVs[] = {
 };
 static const L3_Index Misc_Barrier_1_indexes_texture[] = {
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
+static const L3_Unit Misc_Barrier_1_Normals[] = {
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,0.4062 * L3_F,0.9138 * L3_F,
+0.9581 * L3_F,0.2865 * L3_F,-0.0 * L3_F,
+-0.9581 * L3_F,0.2865 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,0.4062 * L3_F,-0.9138 * L3_F,
+-0.9891 * L3_F,0.1471 * L3_F,-0.0 * L3_F,
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,-1.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,0.6748 * L3_F,-0.738 * L3_F,
+-0.0 * L3_F,0.6748 * L3_F,0.738 * L3_F,
+0.9891 * L3_F,0.1471 * L3_F,-0.0 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,0.4062 * L3_F,0.9138 * L3_F,
+0.9581 * L3_F,0.2865 * L3_F,-0.0 * L3_F,
+-0.9581 * L3_F,0.2865 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,0.4062 * L3_F,-0.9138 * L3_F,
+-0.9891 * L3_F,0.1471 * L3_F,-0.0 * L3_F,
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,-1.0 * L3_F,
+-0.0 * L3_F,-0.0 * L3_F,1.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,0.6748 * L3_F,-0.738 * L3_F,
+-0.0 * L3_F,0.6748 * L3_F,0.738 * L3_F,
+0.9891 * L3_F,0.1471 * L3_F,-0.0 * L3_F,
+};
 static const L3_Model3D Misc_Barrier_1 = {
 .vertices = Misc_Barrier_1_vertices,
 .triangleCount = 26,
@@ -138,6 +166,7 @@ static const L3_Model3D Misc_Barrier_1 = {
 .triangleTextures = Misc_Barrier_1_textures,
 .triangleUVs = Misc_Barrier_1_UVs,
 .triangleTextureIndex = Misc_Barrier_1_indexes_texture,
+.triangleNormals = Misc_Barrier_1_Normals,
 };
 #pragma once
 #ifndef ARRAY_SIZE

@@ -140,6 +140,36 @@ static const L3_Unit Decoration_Plot_UVs[] = {
 };
 static const L3_Index Decoration_Plot_indexes_texture[] = {
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
+static const L3_Unit Decoration_Plot_Normals[] = {
+0.5 * L3_F,-0.0 * L3_F,-0.866 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+0.5 * L3_F,-0.0 * L3_F,0.866 * L3_F,
+-0.5 * L3_F,-0.0 * L3_F,0.866 * L3_F,
+-0.3591 * L3_F,0.6958 * L3_F,0.622 * L3_F,
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.5 * L3_F,-0.0 * L3_F,-0.866 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+0.7183 * L3_F,0.6958 * L3_F,-0.0 * L3_F,
+-0.7183 * L3_F,0.6958 * L3_F,-0.0 * L3_F,
+0.3591 * L3_F,0.6958 * L3_F,-0.622 * L3_F,
+0.3591 * L3_F,0.6958 * L3_F,0.622 * L3_F,
+-0.3591 * L3_F,0.6958 * L3_F,-0.622 * L3_F,
+0.5 * L3_F,-0.0 * L3_F,-0.866 * L3_F,
+1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+0.5 * L3_F,-0.0 * L3_F,0.866 * L3_F,
+-0.5 * L3_F,-0.0 * L3_F,0.866 * L3_F,
+-0.3591 * L3_F,0.6958 * L3_F,0.622 * L3_F,
+-1.0 * L3_F,-0.0 * L3_F,-0.0 * L3_F,
+-0.5 * L3_F,-0.0 * L3_F,-0.866 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+-0.0 * L3_F,1.0 * L3_F,-0.0 * L3_F,
+0.7183 * L3_F,0.6958 * L3_F,-0.0 * L3_F,
+-0.7183 * L3_F,0.6958 * L3_F,-0.0 * L3_F,
+0.3591 * L3_F,0.6958 * L3_F,-0.622 * L3_F,
+0.3591 * L3_F,0.6958 * L3_F,0.622 * L3_F,
+-0.3591 * L3_F,0.6958 * L3_F,-0.622 * L3_F,
+};
 static const L3_Model3D Decoration_Plot = {
 .vertices = Decoration_Plot_vertices,
 .triangleCount = 28,
@@ -148,6 +178,7 @@ static const L3_Model3D Decoration_Plot = {
 .triangleTextures = Decoration_Plot_textures,
 .triangleUVs = Decoration_Plot_UVs,
 .triangleTextureIndex = Decoration_Plot_indexes_texture,
+.triangleNormals = Decoration_Plot_Normals,
 };
 #pragma once
 #ifndef ARRAY_SIZE
