@@ -5,6 +5,8 @@ import glob
 import os
 import json
 
+L3_VISIBLE_BILLBOARD = 1
+
 parser = argparse.ArgumentParser(
                     prog='generate objects',
                     description='use tools and configuration to generate data')
@@ -50,7 +52,7 @@ with open(Path(args.output_folder).joinpath(args.name), "wt") as static_file:
 			static_file.write("\t\t.visual.config.backfaceCulling = " + str(obj["backfaceCulling"]) + ",\n")
 			static_file.write("\t\t.visual.solid_color = " + str(obj["solid_color"]) + ",\n")
 			static_file.write("\t\t.visual.config.visible = " + str(obj["visible"]) + ",\n")
-			if obj["visible"] & (1 << 4):
+			if obj["visible"] & L3_VISIBLE_BILLBOARD:
 				static_file.write("\t\t.visual.billboard = &" + str(obj["visual_i"]) + ",\n")
 			else:
 				static_file.write("\t\t.visual.model = &" + str(obj["visual_i"]) + ",\n")

@@ -17,6 +17,7 @@
 #endif
 #define L3_TRIANGLE_FUNCTION_SCREEN	zephyr_drawtriangle_screen
 #define L3_BILLBOARD_FUNCTION		zephyr_drawbillboard
+#define L3_BILLBOARD_3D_FUNCTION	zephyr_drawbillboard_3D
 #define L3_MODEL_FUNCTION			zephyr_model
 
 #define L3_COLORTYPE uint8_t
@@ -36,13 +37,28 @@ static k_timepoint_t inline L3_FPS_TIMEPOINT(uint64_t fps)
 #define L3_MAX_OBJECTS 0x2FF
 
 #define L3_VISIBLE_INVISIBLE		0
-#define L3_VISIBLE_TEXTURED			BIT(0)
-#define L3_VISIBLE_WIREFRAME		BIT(1)
-#define L3_VISIBLE_SOLID			BIT(2)
-#define L3_VISIBLE_BILLBOARD		BIT(4)
 
-#define L3_VISIBLE_NORMALLIGHT		BIT(15)
-#define L3_VISIBLE_DISTANCELIGHT	BIT(14)
+#define L3_VISIBLE_MODEL_TEXTURED			BIT(1)
+#define L3_VISIBLE_MODEL_WIREFRAME			BIT(2)
+#define L3_VISIBLE_MODEL_SOLID				BIT(3)
+#define L3_VISIBLE_MODEL_WIREFRAME_DEPTH	BIT(4)
+
+/* Check Z on each pixel instead of only center */
+#define L3_VISIBLE_BILLBOARD_ZSLOW			BIT(1)
+#define L3_VISIBLE_BILLBOARD_3D				BIT(2)
+/* Pull billboard toward camera by ratio related to y and x from center to compensate for billboardiness */
+#define L3_VISIBLE_BILLBOARD_FRONTIFY		BIT(3)
+
+#define L3_VISIBLE_MODEL					0 /* Bit 0 unset */
+#define L3_VISIBLE_BILLBOARD				BIT(0)
+
+#define L3_VISIBLE_NORMALLIGHT				BIT(15)
+#define L3_VISIBLE_DISTANCELIGHT			BIT(14)
+
+#define L3_VISIBLE_MODEL_WIREFRAME_ANY	(L3_VISIBLE_MODEL_WIREFRAME_DEPTH | L3_VISIBLE_MODEL_WIREFRAME)
+
+/* Wireframe colorshift */
+#define L3_VISIBLE_MODEL_WIREFRAME_COLOR	(32)
 
 #if 1
 	#define L3_PERFORMANCE_FUNCTION	__attribute__((optimize(3))) __attribute__((hot))
@@ -106,10 +122,15 @@ Possible values:
 	memory.
 2: Use reduced-size z-buffer (of bytes). This is fast and somewhat accurate,
 	but inaccuracies can occur and a considerable amount of memory is
-	needed. */
-#define L3_Z_BUFFER 2
+	needed.
+3: Use reduced-size z-buffer (of bytes) with 1/z values, this like 2 but allows greater precision
+	close and reduces precision far
+*/
+#define L3_Z_BUFFER 3
 
-#if L3_Z_BUFFER == 2
+#if L3_Z_BUFFER == 3
+#define L3_ZBUFTYPE uint8_t
+#elif L3_Z_BUFFER == 2
 #define L3_ZBUFTYPE uint8_t
 #elif L3_Z_BUFFER == 1
 #define L3_ZBUFTYPE L3_Unit
@@ -122,6 +143,7 @@ Possible values:
  * Also theorically increases performance
  */
 #define L3_TRI_OVRFL L3_F * 24
+#define L3_TRI_OVRFL_WIREFRAME L3_F * 4
 
 /** Whether to use stencil buffer for drawing -- with this a pixel that would
 be resterized over an already rasterized pixel (within a frame) will be
@@ -177,6 +199,12 @@ Smaller is nicer but slower. */
 
 /** For L3_Z_BUFFER == 2 this sets the reduced z-buffer granularity. */
 #define L3_REDUCED_Z_BUFFER_GRANULARITY 7
+
+/** For L3_Z_BUFFER == 3 this sets the z-buffer adaption ratios. */
+#define L3_INVERTED_Z_TOP_MUL		(1 << 7)
+#define L3_INVERTED_Z_TOP			(0xFF * L3_INVERTED_Z_TOP_MUL)
+#define L3_INVERTED_Z_OFFSET		(1 << 12)
+#define L3_INVERTED_Z_BOTTOM_SHIFT	5
 
 /** Maximum number of triangles that can be drawn in sorted modes. This
 affects the size of the cache used for triangle sorting. */
@@ -470,6 +498,13 @@ void L3_mat4Xmat4(L3_Mat4 m1, L3_Mat4 m2);
 
 typedef struct
 {
+	L3_COLORTYPE	transparency_threshold;
+	/* x / L3_COLORTYPE_MAX (0xFF L8) */
+	L3_COLORTYPE	transparency;
+} L3_Transparency;
+
+typedef struct
+{
 	L3_Unit focalLength;       /**< Defines the field of view (FOV). 0 sets an
 																	orthographics projection (scale is controlled
 																	with camera's scale in its transform). */
@@ -513,10 +548,26 @@ typedef struct
 {
 	const L3_Texture	*texture;
 	L3_Unit				scale;
-	L3_COLORTYPE		transparency_threshold;
-	/* x / 0xFF */
-	uint8_t				transparency;
+	L3_Transparency		transparency;
 } L3_Billboard;
+
+/* Always upright rotatable */
+typedef struct
+{
+	const L3_Texture	**textures;
+	/* textures cnt max = (y_offset / 512 * 360) * (xz_offset / 512 * 360)
+	 * texture cnt min = (y_offset / 512 * 360)
+	 * order with y_offset = 128, y_cnt = 4:
+	 * [y_0_xz_0, y_1_xz_0, y_2_xz_0, y_3_xz_0, y_0_xz_1, y_1_xz_1, y_2_xz_1 ...]
+	 * first no xz angle, then +xz_offset, then -xz_offset, then +2xz_offset, then -2xz_offset, etc
+	 */
+	L3_Index			texture_cnt;
+	L3_Unit				y_cnt;
+	L3_Unit				xz_cnt;
+
+	L3_Unit				scale;
+	L3_Transparency		transparency;
+} L3_Billboard_3D;
 
 /* Skybox texture must be square */
 typedef union
@@ -539,7 +590,8 @@ typedef struct
 	L3_COLORTYPE	solid_color;
 	union {
 		const L3_Model3D		*model;
-		const L3_Billboard	*billboard;
+		const L3_Billboard		*billboard;
+		const L3_Billboard_3D	*billboard_3D;
 	};
 } L3_Object;
 
@@ -848,12 +900,13 @@ m/2,  m/2,  m/2,\
 #endif
 void L3_PIXEL_FUNCTION(L3_PixelInfo *pixel); // forward decl
 int L3_TRIANGLE_FUNCTION_SCREEN(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
-	L3_Index modelIndex, L3_Index triangleIndex, uint16_t rendermode, L3_Vec4 lightDir);
+								const L3_Object *object, L3_Index triangleIndex, L3_Vec4 lightDir);
 #if defined(L3_TRIANGLE_FUNCTION_WORLD_EN) && L3_TRIANGLE_FUNCTION_WORLD_EN
 int L3_TRIANGLE_FUNCTION_WORLD(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
-	L3_Index modelIndex, L3_Index triangleIndex, uint16_t rendermode, L3_Vec4 lightDir);
+							   const L3_Object *object, L3_Index triangleIndex, L3_Vec4 lightDir);
 #endif
-int L3_BILLBOARD_FUNCTION(L3_Vec4 point, const L3_Object *billboard, L3_Camera camera);
+int L3_BILLBOARD_FUNCTION(L3_Vec4 point, const L3_Object *billboard, const L3_Camera *camera);
+int L3_BILLBOARD_3D_FUNCTION(L3_Vec4 point, const L3_Object *billboard, const L3_Camera *camera, L3_Mat4 matFinal);
 int L3_MODEL_FUNCTION(const L3_Object *object);
 
 /** Serves to accelerate linear interpolation for performance-critical
@@ -885,7 +938,9 @@ void L3_plot_line(L3_COLORTYPE color, int x0, int y0, int x1, int y1);
 void _L3_mapProjectedVertexToScreen(L3_Vec4 *vertex, L3_Unit focalLength);
 
 #if L3_Z_BUFFER
-int8_t L3_zTest(L3_ScreenCoord x, L3_ScreenCoord y, L3_Unit depth);
+int8_t L3_zTest(const L3_ScreenCoord x, const L3_ScreenCoord y, const L3_Unit depth);
+/* Same but z coordinate must have been pre-converted to zbuf format */
+int8_t L3_zTest_raw(const L3_ScreenCoord x, const L3_ScreenCoord y, const L3_Unit depth);
 #endif
 
 /* Instanciate a object from a original */

@@ -65,3 +65,59 @@ void utility_animation_objectprocess_framearray(Engine_Object *object, void* dat
 		object->visual.billboard = array->frames[frame_id].billboard;
 	}
 }
+
+void utility_objectprocess_3DBillboard(Engine_Object *self, void *data)
+{
+	Object_3DBillboard *dat = data;
+	L3_Mat4 matCamera, matFinal;
+	L3_Vec4 forward = { 0, 0, L3_F, L3_F };
+	L3_Vec4 up = { 0, L3_F, 0, L3_F };
+	L3_Vec4 center = { 0, 0, 0, L3_F };
+	self->visual.transform = dat->transform;
+
+	L3_Camera *camera = engine_getcamera();
+	L3_makeCameraMatrix(camera->transform, matCamera);
+
+	L3_makeWorldMatrix(self->visual.transform, matFinal);
+	L3_mat4Xmat4(matFinal,matCamera);
+
+	L3_vec3Xmat4(&forward, matFinal);
+	L3_vec3Xmat4(&up, matFinal);
+	L3_vec3Xmat4(&center, matFinal);
+
+	forward.x = forward.x - center.x;
+	forward.z = forward.z - center.z;
+	up.x = up.x - center.x;
+	up.y = up.y - center.y;
+	up.z = up.z - center.z;
+
+	if (up.y < L3_F - 50) {
+		if (abs(forward.z) > abs(forward.x)) {
+			if (forward.z > 0) {
+				dat->billboard.texture = dat->back_35;
+			} else {
+				dat->billboard.texture = dat->front_35;
+			}
+		} else {
+			if (forward.x > 0) {
+				dat->billboard.texture = dat->right_35;
+			} else {
+				dat->billboard.texture = dat->left_35;
+			}
+		}
+	} else {
+		if (abs(forward.z) > abs(forward.x)) {
+			if (forward.z > 0) {
+				dat->billboard.texture = dat->back;
+			} else {
+				dat->billboard.texture = dat->front;
+			}
+		} else {
+			if (forward.x > 0) {
+				dat->billboard.texture = dat->right;
+			} else {
+				dat->billboard.texture = dat->left;
+			}
+		}
+	}
+}

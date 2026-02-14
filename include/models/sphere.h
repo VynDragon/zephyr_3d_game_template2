@@ -145,6 +145,6 @@ static const L3_Object sphere = {
 .transform.rotation.z = 0,
 .transform.rotation.w = L3_F,
 .config.backfaceCulling = 0,
-.config.visible = L3_VISIBLE_WIREFRAME,
+.config.visible = L3_VISIBLE_MODEL_WIREFRAME,
 .model = &sphere_model,
 };

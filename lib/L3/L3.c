@@ -52,12 +52,26 @@ L3_RENDER_BUFFER L3_ZBUFTYPE L3_zBuffer[L3_MAX_PIXELS];
 #endif
 
 #if L3_Z_BUFFER == 1
+	#define L3_Z_BUFFER_CMP < /* For normal z-buffer we leave out equality test to not waste
+										time by drawing over already drawn pixls. */
 	#define L3_MAX_DEPTH 2147483647
+	#define L3_MIN_DEPTH 0
 	#define L3_zBufferFormat(depth) (depth)
 #elif L3_Z_BUFFER == 2
+	#define L3_Z_BUFFER_CMP <= /* For reduced z-buffer we need equality test, because
+										otherwise pixels at the maximum depth (255) would never be
+										drawn over the background (which also has the depth of
+										255). */
 	#define L3_MAX_DEPTH 255
+	#define L3_MIN_DEPTH 0
 	#define L3_zBufferFormat(depth)\
 		L3_min(255,(depth) >> L3_REDUCED_Z_BUFFER_GRANULARITY)
+#elif L3_Z_BUFFER == 3
+	#define L3_Z_BUFFER_CMP >=
+	#define L3_MAX_DEPTH 0
+	#define L3_MIN_DEPTH 0xFF
+	#define L3_zBufferFormat(depth)\
+		(L3_INVERTED_Z_TOP / L3_max(1, (depth + L3_INVERTED_Z_OFFSET) >> L3_INVERTED_Z_BOTTOM_SHIFT))
 #endif
 
 const L3_Object	*engine_global_objects[L3_MAX_OBJECTS] = {0};
@@ -153,17 +167,18 @@ void L3_clear_with_skybox(L3_Skybox *skybox)
 }
 
 L3_PERFORMANCE_FUNCTION
-void L3_plot_line (L3_COLORTYPE color, int x0, int y0, int x1, int y1)
+void L3_plot_line (L3_COLORTYPE color, L3_Unit x0, L3_Unit y0, L3_Unit x1, L3_Unit y1)
 {
-	int dx =  abs (x1 - x0), sx = x0 < x1 ? 1 : -1;
-	int dy = -abs (y1 - y0), sy = y0 < y1 ? 1 : -1;
-	int err = dx + dy, e2; /* error value e_xy */
+	L3_Unit dx =  abs (x1 - x0), sx = x0 < x1 ? 1 : -1;
+	L3_Unit dy = -abs (y1 - y0), sy = y0 < y1 ? 1 : -1;
+	L3_Unit err = dx + dy;
+	L3_Unit e2; /* error value e_xy */
 
 	for (;;){  /* loop */
 		if (0 < x0 && L3_RESOLUTION_X > x0 && 0 < y0 && L3_RESOLUTION_Y > y0) {
 			L3_video_buffer[x0 + y0 * L3_RESOLUTION_X] = color;
 #if L3_Z_BUFFER
-			L3_zBuffer[y0 * L3_RESOLUTION_X + x0] = 0;
+			L3_zBuffer[y0 * L3_RESOLUTION_X + x0] = L3_MIN_DEPTH;
 #endif
 		}
 		if (x0 == x1 && y0 == y1) break;
@@ -173,36 +188,107 @@ void L3_plot_line (L3_COLORTYPE color, int x0, int y0, int x1, int y1)
 	}
 }
 
-#if L3_Z_BUFFER
-int8_t L3_zTest(
-	L3_ScreenCoord x,
-	L3_ScreenCoord y,
-	L3_Unit depth)
+L3_PERFORMANCE_FUNCTION
+void L3_plot_line_depth (L3_COLORTYPE color, L3_Unit x0, L3_Unit y0, L3_Unit z0,
+						 L3_Unit x1, L3_Unit y1, L3_Unit z1)
 {
-	uint32_t index = y * L3_RESOLUTION_X + x;
+	L3_Unit dx = abs (x1 - x0), sx = x0 < x1 ? 1 : -1;
+	L3_Unit dy = abs (y1 - y0), sy = y0 < y1 ? 1 : -1;
+	L3_Unit dz = abs (z1 - z0), sz = z0 < z1 ? 1 : -1;
+	L3_Unit errxy = dx - dy;
+	L3_Unit errxz = dx - dz;
+	L3_Unit x = 0, y = 0, z = 0;
+	L3_Unit rx, ry, rz;
 
-	depth = L3_zBufferFormat(depth);
-
-#if L3_Z_BUFFER == 2
-	#define cmp <= /* For reduced z-buffer we need equality test, because
-										otherwise pixels at the maximum depth (255) would never be
-										drawn over the background (which also has the depth of
-										255). */
-#else
-	#define cmp <  /* For normal z-buffer we leave out equality test to not waste
-										time by drawing over already drawn pixls. */
+	for (;;){  /* loop */
+		if ((abs(errxy) > abs(errxz) || z >= dz) && y < dy)
+		{
+			if (errxy >= 0) {
+				errxy -= dy;
+				errxz -= dz;
+				x += 1;
+			}
+			if (errxy <= 0) {
+				errxy += dx;
+				y += 1;
+			}
+		} else {
+			if (errxz >= 0) {
+				errxy -= dy;
+				errxz -= dz;
+				x += 1;
+			}
+			if (errxz <= 0) {
+				errxz += dx;
+				z += 1;
+			}
+		}
+		rx = x0 + sx * x;
+		ry = y0 + sy * y;
+		rz = z0 + sz * z;
+		if (0 < rx && L3_RESOLUTION_X > rx && 0 < ry && L3_RESOLUTION_Y > ry && L3_zTest(rx, ry, rz)) {
+			L3_video_buffer[rx + ry * L3_RESOLUTION_X] = color;
+#if L3_Z_BUFFER
+			L3_zBuffer[ry * L3_RESOLUTION_X + rx] = L3_zBufferFormat(rz);
 #endif
+		}
+		if (x >= dx && y >= dy && z >= dz) break;
+	}
+}
 
-	if (depth cmp L3_zBuffer[index])
+#if L3_Z_BUFFER
+
+L3_PERFORMANCE_FUNCTION
+inline int8_t L3_zTest(
+	const L3_ScreenCoord x,
+	const L3_ScreenCoord y,
+	const L3_Unit depth)
+{
+	const uint32_t index = y * L3_RESOLUTION_X + x;
+	const L3_Unit zdepth = L3_zBufferFormat(depth);
+
+	if (zdepth L3_Z_BUFFER_CMP L3_zBuffer[index])
 	{
-		L3_zBuffer[index] = depth;
 		return 1;
 	}
 
-#undef cmp
+	return 0;
+}
+
+L3_PERFORMANCE_FUNCTION
+inline int8_t L3_zTest_raw(
+	const L3_ScreenCoord x,
+	const L3_ScreenCoord y,
+	const L3_Unit depth)
+{
+	const uint32_t index = y * L3_RESOLUTION_X + x;
+
+	if (depth L3_Z_BUFFER_CMP L3_zBuffer[index])
+	{
+		return 1;
+	}
 
 	return 0;
 }
+
+L3_PERFORMANCE_FUNCTION
+static inline int8_t L3_zTest_write(
+	const L3_ScreenCoord x,
+	const L3_ScreenCoord y,
+	const L3_Unit depth)
+{
+	const uint32_t index = y * L3_RESOLUTION_X + x;
+	const L3_Unit zdepth = L3_zBufferFormat(depth);
+
+	if (zdepth L3_Z_BUFFER_CMP L3_zBuffer[index])
+	{
+		L3_zBuffer[index] = zdepth;
+		return 1;
+	}
+
+	return 0;
+}
+
 #endif
 
 L3_Unit L3_zBufferRead(L3_ScreenCoord x, L3_ScreenCoord y)
@@ -1244,7 +1330,34 @@ L3_Unit L3_sin(L3_Unit x)
 L3_PERFORMANCE_FUNCTION
 L3_Unit L3_asin(L3_Unit x)
 {
-#if L3_SIN_METHOD == 0 || L3_SIN_METHOD == 3
+#if L3_SIN_METHOD == 3
+	x = x % L3_F;
+
+	int8_t sign = 1;
+
+	if (x < 0)
+	{
+		sign = -1;
+	}
+
+	int16_t low = 0, high = L3_SIN_TABLE_LENGTH -1, middle = 0;
+
+	while (low < high) // binary search
+	{
+		middle = (low + high) / 2;
+
+		L3_Unit v = L3_sinTable[middle];
+
+		if (v > x)
+			high = middle - 1;
+		else if (v < x)
+			low = middle + 1;
+		else
+			break;
+	}
+
+	return sign * middle;
+#elif L3_SIN_METHOD == 0
 	x = L3_clamp(x,-L3_F,L3_F);
 
 	int8_t sign = 1;
@@ -1643,7 +1756,7 @@ void L3_rotationToDirections(
 void L3_drawConfigInit(L3_DrawConfig *config)
 {
 	config->backfaceCulling = 2;
-	config->visible = 1;
+	config->visible = L3_VISIBLE_MODEL_TEXTURED;
 }
 
 
@@ -2133,7 +2246,7 @@ void L3_drawTriangle(
 
 				zBufferIndex++;
 
-				if (!L3_zTest(p.x,p.y,p.depth))
+				if (!L3_zTest_write(p.x,p.y,p.depth))
 					testsPassed = 0;
 #endif
 
@@ -2352,7 +2465,8 @@ static inline int8_t L3_triangleIsVisible(
 			clipTest(y,<,0) ||
 			clipTest(y,>,L3_RESOLUTION_Y) ||
 			sizeTest(x,L3_TRI_OVRFL) ||
-			sizeTest(y,L3_TRI_OVRFL)
+			sizeTest(y,L3_TRI_OVRFL) ||
+			sizeTest(z,L3_TRI_OVRFL)
 		)
 		return 0;
 
@@ -2556,7 +2670,7 @@ uint32_t L3_draw(L3_Camera camera, const L3_Object **objects, L3_Index objectCou
 #endif
 	L3_Vec4 transformed_light;
 	static const L3_Vec4 down = {0,2*L3_F/4,2*L3_F/4,L3_F};
-	int draw = 1;
+	int draw;
 
 	const L3_Object *object;
 	L3_Index objectIndex, triangleIndex;
@@ -2596,7 +2710,11 @@ uint32_t L3_draw(L3_Camera camera, const L3_Object **objects, L3_Index objectCou
 				continue;
 			}
 
-			L3_BILLBOARD_FUNCTION(*transformed, object, camera);
+			if (object->config.visible & L3_VISIBLE_BILLBOARD_3D) {
+				L3_BILLBOARD_3D_FUNCTION(*transformed, object, &camera, matFinal);
+			} else {
+				L3_BILLBOARD_FUNCTION(*transformed, object, &camera);
+			}
 			continue;
 		} else {
 			L3_MODEL_FUNCTION(object);
@@ -2643,10 +2761,12 @@ uint32_t L3_draw(L3_Camera camera, const L3_Object **objects, L3_Index objectCou
 				_L3_projectVertex(object, triangleIndex, 1, matWorld, &(transformed_world[1]));
 				_L3_projectVertex(object, triangleIndex, 2, matWorld, &(transformed_world[2]));
 
-				draw = L3_TRIANGLE_FUNCTION_WORLD(transformed_world[0],transformed_world[1],transformed_world[2], objectIndex, triangleIndex, object->config.visible, transformed_light);
+				draw = L3_TRIANGLE_FUNCTION_WORLD(transformed_world[0],transformed_world[1],transformed_world[2], object, triangleIndex, transformed_light);
+#else
+				draw = 1;
 #endif
 				if (draw) {
-					draw = L3_TRIANGLE_FUNCTION_SCREEN(transformed[0], transformed[1], transformed[2], objectIndex, triangleIndex, object->config.visible, transformed_light);
+					draw = L3_TRIANGLE_FUNCTION_SCREEN(transformed[0], transformed[1], transformed[2], object, triangleIndex, transformed_light);
 				}
 				if (draw)
 				{
@@ -2770,6 +2890,7 @@ uint32_t L3_draw(L3_Camera camera, const L3_Object **objects, L3_Index objectCou
 
 static uint16_t L3_zephyr_putpixel_current_render_mode = 0;
 static L3_Unit	triangleNormalDot = L3_F;
+__attribute__((flatten))
 L3_PERFORMANCE_FUNCTION
 inline void zephyr_putpixel(L3_PixelInfo *p)
 {
@@ -2779,7 +2900,7 @@ inline void zephyr_putpixel(L3_PixelInfo *p)
 
 	if (unlikely(0 > p->x && L3_RESOLUTION_X <= p->x && 0 > p->y && L3_RESOLUTION_Y <= p->y)) return;
 
-	if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_TEXTURED) {
+	if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_MODEL_TEXTURED) {
 		if (object->model->triangleTextureIndex[p->triangleIndex] < 0) {
 			return;
 		}
@@ -2812,14 +2933,13 @@ inline void zephyr_putpixel(L3_PixelInfo *p)
 }
 
 #if defined(L3_TRIANGLE_FUNCTION_WORLD_EN) && L3_TRIANGLE_FUNCTION_WORLD_EN
+__attribute__((flatten))
 L3_PERFORMANCE_FUNCTION
 int zephyr_drawtriangle_world(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
-							  L3_Index objectIndex, L3_Index triangleIndex,
-							  uint16_t rendermode, L3_Vec4 lightDir)
+							  const L3_Object *object, L3_Index triangleIndex,
+							  L3_Vec4 lightDir)
 {
-	L3_zephyr_putpixel_current_render_mode = rendermode;
-
-	const L3_Object *object = engine_global_objects[objectIndex];
+	L3_zephyr_putpixel_current_render_mode = object->config.visible;
 
 	if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_NORMALLIGHT) {
 		if (object->model->triangleNormals) {
@@ -2840,15 +2960,15 @@ int zephyr_drawtriangle_world(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
 }
 
 #endif
+
+__attribute__((flatten))
 L3_PERFORMANCE_FUNCTION
 int zephyr_drawtriangle_screen(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
-							   L3_Index objectIndex, L3_Index triangleIndex,
-							   uint16_t rendermode, L3_Vec4 lightDir)
+							   const L3_Object *object, L3_Index triangleIndex,
+							   L3_Vec4 lightDir)
 {
 #if !defined(L3_TRIANGLE_FUNCTION_WORLD_EN) || !L3_TRIANGLE_FUNCTION_WORLD_EN
-	L3_zephyr_putpixel_current_render_mode = rendermode;
-
-	const L3_Object *object = engine_global_objects[objectIndex];
+	L3_zephyr_putpixel_current_render_mode = object->config.visible;
 
 	if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_NORMALLIGHT) {
 		if (object->model->triangleNormals) {
@@ -2864,13 +2984,29 @@ int zephyr_drawtriangle_screen(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
 		}
 	}
 #endif
-	if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_WIREFRAME) {
-		L3_COLORTYPE color = engine_global_objects[objectIndex]->solid_color;
-		color = MIN(255, color + 16);
-		L3_plot_line(color, point0.x, point0.y, point1.x, point1.y);
-		L3_plot_line(color, point2.x, point2.y, point1.x, point1.y);
-		L3_plot_line(color, point2.x, point2.y, point0.x, point0.y);
-		if (!(L3_zephyr_putpixel_current_render_mode & ~L3_VISIBLE_WIREFRAME))
+	if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_MODEL_WIREFRAME_ANY) {
+		point0.x = clamp(point0.x, -L3_TRI_OVRFL_WIREFRAME, L3_TRI_OVRFL_WIREFRAME);
+		point1.x = clamp(point1.x, -L3_TRI_OVRFL_WIREFRAME, L3_TRI_OVRFL_WIREFRAME);
+		point2.x = clamp(point2.x, -L3_TRI_OVRFL_WIREFRAME, L3_TRI_OVRFL_WIREFRAME);
+		point0.y = clamp(point0.y, -L3_TRI_OVRFL_WIREFRAME, L3_TRI_OVRFL_WIREFRAME);
+		point1.y = clamp(point1.y, -L3_TRI_OVRFL_WIREFRAME, L3_TRI_OVRFL_WIREFRAME);
+		point2.y = clamp(point2.y, -L3_TRI_OVRFL_WIREFRAME, L3_TRI_OVRFL_WIREFRAME);
+		point0.z = clamp(point0.z, -L3_TRI_OVRFL_WIREFRAME, L3_TRI_OVRFL_WIREFRAME);
+		point1.z = clamp(point1.z, -L3_TRI_OVRFL_WIREFRAME, L3_TRI_OVRFL_WIREFRAME);
+		point2.z = clamp(point2.z, -L3_TRI_OVRFL_WIREFRAME, L3_TRI_OVRFL_WIREFRAME);
+		L3_COLORTYPE color = object->solid_color;
+		color = MIN(255, color + L3_VISIBLE_MODEL_WIREFRAME_COLOR);
+		if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_MODEL_WIREFRAME_DEPTH) {
+			L3_plot_line_depth(color, point0.x, point0.y, point0.z, point1.x, point1.y, point1.z);
+			L3_plot_line_depth(color, point2.x, point2.y, point2.z, point1.x, point1.y, point1.z);
+			L3_plot_line_depth(color, point2.x, point2.y, point2.z, point0.x, point0.y, point0.z);
+		} else if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_MODEL_WIREFRAME) {
+			color = MIN(255, color + L3_VISIBLE_MODEL_WIREFRAME_COLOR);
+			L3_plot_line(color, point0.x, point0.y, point1.x, point1.y);
+			L3_plot_line(color, point2.x, point2.y, point1.x, point1.y);
+			L3_plot_line(color, point2.x, point2.y, point0.x, point0.y);
+		}
+		if (!(L3_zephyr_putpixel_current_render_mode & ~L3_VISIBLE_MODEL_WIREFRAME_ANY))
 			return 0;
 	}
 	return 1;
@@ -2889,35 +3025,106 @@ int zephyr_drawtriangle_screen(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
 // 	return 0;
 // }
 
-L3_PERFORMANCE_FUNCTION
-inline int zephyr_drawbillboard(L3_Vec4 point, const L3_Object *billboard, L3_Camera camera)
+static L3_PERFORMANCE_FUNCTION
+void zephyr_drawbillboard_draw(const L3_Vec4 point, const L3_Transform3D *transform, L3_Unit z,
+							   const L3_Unit scale, const L3_Texture *texture, const L3_Transparency *transparency,
+							   const L3_Unit focal, const bool zslow, const bool frontify)
 {
-	if (!L3_zTest(point.x,point.y,point.z))
-		return 0;
+	const float scale_x = ((float)(transform->scale.x * focal) / (float)point.z) * ((float)scale/0x4000) * L3_RESOLUTION_X / L3_F;
+	const float scale_y = ((float)(transform->scale.y * focal) / (float)point.z) * ((float)scale/0x4000) * L3_RESOLUTION_X / L3_F;
+	const int scaled_width = texture->width * scale_x;
+	const int scaled_height = texture->height * scale_y;
 
-	int focal = camera.focalLength != 0 ? camera.focalLength : 1;
-	float scale_x = ((float)(billboard->transform.scale.x * focal) / (float)point.z) * ((float)billboard->billboard->scale/0x4000) * L3_RESOLUTION_X / L3_F;
-	float scale_y = ((float)(billboard->transform.scale.y * focal) / (float)point.z) * ((float)billboard->billboard->scale/0x4000) * L3_RESOLUTION_X / L3_F;
-	int scaled_width = billboard->billboard->texture->width * scale_x;
-	int scaled_height = billboard->billboard->texture->height * scale_y;
+	const int startx = point.x - scaled_width / 2;
+	const int endx =  MIN(point.x + scaled_width / 2, L3_RESOLUTION_X);
+	const int starty = point.y - scaled_height / 2;
+	const int endy =  MIN(point.y + scaled_height / 2, L3_RESOLUTION_Y);
 
-	int startx = point.x - scaled_width / 2;
-	int endx =  MIN(point.x + scaled_width / 2, L3_RESOLUTION_X);
-	int starty = point.y - scaled_height / 2;
-	int endy =  MIN(point.y + scaled_height / 2, L3_RESOLUTION_Y);
-	L3_Unit z = L3_zBufferFormat(point.z);
 	for (int i = MAX(0, startx); i < endx; i++) {
-		int m = (float)(i - startx) / scale_x;
+		const int m = (float)(i - startx) / scale_x;
 		for (int j = MAX(0, starty); j < endy; j++) {
-			int n = (float)(j - starty) / scale_y;
-			if (billboard->billboard->texture->data[m + n * billboard->billboard->texture->width] > billboard->billboard->transparency_threshold) {
-				L3_video_buffer[j * L3_RESOLUTION_X + i] = billboard->billboard->texture->data[m + n * billboard->billboard->texture->width];
+			if (frontify) {
+				z = point.z + abs(i - point.x) - abs(j - point.y) * 3;
+				z = L3_zBufferFormat(z < 0 ? 0 : z);
+			}
+			if (zslow ? !L3_zTest_raw(i, j, z) : false)
+				continue;
+			const int n = (float)(j - starty) / scale_y;
+			if (texture->data[m + n * texture->width] > transparency->transparency_threshold && transparency->transparency > 0) {
+				//L3_video_buffer[j * L3_RESOLUTION_X + i] = texture->data[m + n * texture->width];
+				L3_video_buffer[j * L3_RESOLUTION_X + i] = (L3_video_buffer[j * L3_RESOLUTION_X + i] * (0xFF - transparency->transparency) +  texture->data[m + n * texture->width] * transparency->transparency) / 0xFF;
 				#if L3_Z_BUFFER
 				L3_zBuffer[j * L3_RESOLUTION_X + i] = z;
 				#endif
 			}
 		}
 	}
+}
+
+
+__attribute__((flatten))
+L3_PERFORMANCE_FUNCTION
+int zephyr_drawbillboard_3D(const L3_Vec4 point, const L3_Object *billboard, const L3_Camera *camera,
+							L3_Mat4 matFinal)
+{
+	const L3_Unit z_center = L3_zBufferFormat(point.z);
+	if (!L3_zTest_raw(point.x, point.y, z_center))
+		return 0;
+
+	const bool zslow = billboard->config.visible & L3_VISIBLE_BILLBOARD_ZSLOW;
+	const bool frontify = billboard->config.visible & L3_VISIBLE_BILLBOARD_FRONTIFY;
+	const int focal = camera->focalLength != 0 ? camera->focalLength : 1;
+	const L3_Unit y_off = L3_F / billboard->billboard_3D->y_cnt;
+	const L3_Unit xz_off = L3_F / billboard->billboard_3D->xz_cnt;
+	L3_Vec4 forward = { 0, 0, L3_F, L3_F };
+	L3_Vec4 up = { 0, L3_F, 0, L3_F };
+	L3_Vec4 center = { 0, 0, 0, L3_F };
+
+	L3_vec3Xmat4(&forward, matFinal);
+	L3_vec3Xmat4(&up, matFinal);
+	L3_vec3Xmat4(&center, matFinal);
+
+	forward.x = forward.x - center.x;
+	forward.y = forward.y - center.y;
+	forward.z = forward.z - center.z;
+	up.x = up.x - center.x;
+	up.y = up.y - center.y;
+	up.z = up.z - center.z;
+
+	int ycnt = forward.x <= 0 ? forward.z / 4 + 128 : 512 - (forward.z / 4 + 128);
+	int xzcnt = -(up.x + up.z <= 0 ? up.y / 4 + 128 : 512 - (up.y / 4 + 128)) + 256;
+	xzcnt = xzcnt < 0 ? abs(xzcnt) * 2 + xz_off: xzcnt * 2;
+
+	size_t index_xz = ((xzcnt / xz_off) % billboard->billboard_3D->xz_cnt) * billboard->billboard_3D->y_cnt;
+	size_t index = (ycnt / y_off + 1) % billboard->billboard_3D->y_cnt
+			+ index_xz;
+	if (index < billboard->billboard_3D->texture_cnt) {
+		zephyr_drawbillboard_draw(point, &billboard->transform, z_center,
+							billboard->billboard_3D->scale, billboard->billboard_3D->textures[index],
+							&billboard->billboard_3D->transparency,
+							focal, zslow, frontify);
+	}
+
+	return 0;
+}
+
+__attribute__((flatten))
+L3_PERFORMANCE_FUNCTION
+int zephyr_drawbillboard(const L3_Vec4 point, const L3_Object *billboard, const L3_Camera *camera)
+{
+	const L3_Unit z_center = L3_zBufferFormat(point.z);
+	if (!L3_zTest_raw(point.x, point.y, z_center))
+		return 0;
+
+	const bool zslow = billboard->config.visible & L3_VISIBLE_BILLBOARD_ZSLOW;
+	const bool frontify = billboard->config.visible & L3_VISIBLE_BILLBOARD_FRONTIFY;
+	const int focal = camera->focalLength != 0 ? camera->focalLength : 1;
+
+	zephyr_drawbillboard_draw(point, &billboard->transform, z_center,
+							  billboard->billboard->scale, billboard->billboard->texture,
+							  &billboard->billboard->transparency,
+							  focal, zslow, frontify);
+
 	return 0;
 }
 

@@ -246,7 +246,7 @@ static const L3_Object Piping_Vent_1_Cap_object_object = {
 .transform.rotation.z = 0,
 .transform.rotation.w = L3_F,
 .config.backfaceCulling = 1,
-.config.visible = 1,
+.config.visible = L3_VISIBLE_MODEL_TEXTURED,
 .solid_color = 0xFF,
 .model = &Piping_Vent_1_Cap,
 };

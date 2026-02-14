@@ -224,7 +224,7 @@ static void object_edit_changed(lv_event_t * e)
 
 	if (lv_obj_has_state(object_edit_data.visible, LV_STATE_CHECKED))
 	{
-		if (selected_object->visual.config.visible == L3_VISIBLE_BILLBOARD) {
+		if ((selected_object->visual.config.visible & L3_VISIBLE_BILLBOARD) != 0) {
 			selected_object->visual_type = ENGINE_VISUAL_BILLBOARD;
 		} else {
 			selected_object->visual_type = ENGINE_VISUAL_MODEL;

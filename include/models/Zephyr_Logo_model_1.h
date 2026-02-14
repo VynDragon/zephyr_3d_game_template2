@@ -507,7 +507,7 @@ static const L3_Object Zephyr_Logo_model_1 = {
 .transform.rotation.z = 0,
 .transform.rotation.w = L3_F,
 .config.backfaceCulling = 2,
-.config.visible = 2,
+.config.visible = L3_VISIBLE_MODEL_WIREFRAME,
 .solid_color = 0xFF,
 .model = &Zephyr_Logo_model_1_model,
 };

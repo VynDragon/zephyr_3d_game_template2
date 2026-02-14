@@ -169,7 +169,7 @@ static const L3_Object primitives_capsule__object_object = {
 .transform.rotation.z = 0,
 .transform.rotation.w = L3_F,
 .config.backfaceCulling = 1,
-.config.visible = 4,
+.config.visible = L3_VISIBLE_MODEL_SOLID,
 .solid_color = 0xFF,
 .model = &primitives_capsule_,
 };

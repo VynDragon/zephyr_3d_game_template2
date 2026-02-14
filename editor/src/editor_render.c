@@ -47,7 +47,7 @@ static L3_Object build_collider_representation(const Engine_Object *object, cons
 
 	out.transform = object->visual.transform;
 	out.config.backfaceCulling = 0;
-	out.config.visible = L3_VISIBLE_WIREFRAME;
+	out.config.visible = L3_VISIBLE_MODEL_WIREFRAME;
 	switch (collider->type) {
 		case ENGINE_COLLIDER_CUBE:
 			out.model = &cube_model;

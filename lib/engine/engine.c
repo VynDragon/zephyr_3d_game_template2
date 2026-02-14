@@ -92,8 +92,8 @@ inline int E_drawbillboard_particle(L3_Vec4 point, const E_Particle *particle, L
 		int m = (float)(i - startx) / scale_x;
 		for (int j = MAX(0, starty); j < endy; j++) {
 			int n = (float)(j - starty) / scale_y;
-			if (particle->billboard->texture->data[m + n * particle->billboard->texture->width] > particle->billboard->transparency_threshold) {
-				L3_video_buffer[j * L3_RESOLUTION_X + i] = (L3_video_buffer[j * L3_RESOLUTION_X + i] * (0xFF - particle->billboard->transparency) +  particle->billboard->texture->data[m + n * particle->billboard->texture->width] * particle->billboard->transparency) / 0xFF;
+			if (particle->billboard->texture->data[m + n * particle->billboard->texture->width] > particle->billboard->transparency.transparency_threshold) {
+				L3_video_buffer[j * L3_RESOLUTION_X + i] = (L3_video_buffer[j * L3_RESOLUTION_X + i] * (0xFF - particle->billboard->transparency.transparency) +  particle->billboard->texture->data[m + n * particle->billboard->texture->width] * particle->billboard->transparency.transparency) / 0xFF;
 			}
 		}
 	}

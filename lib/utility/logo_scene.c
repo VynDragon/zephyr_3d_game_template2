@@ -26,11 +26,11 @@ static void logo_scene_init(void *data)
 	tmp.view_range = 512 * L3_F;
 	tmp.visual_type = ENGINE_VISUAL_MODEL;
 	L3_transform3DSet(0 * L3_F,0,3*L3_F,0,0,0,4*L3_F,4*L3_F,4*L3_F,&(tmp.visual.transform));
-	tmp.visual.config.visible = L3_VISIBLE_SOLID;
+	tmp.visual.config.visible = L3_VISIBLE_MODEL_SOLID;
 	logo_1 = engine_add_object(tmp);
 	tmp.visual = Zephyr_Logo_model_2;
 	L3_transform3DSet(0 * L3_F,0,3*L3_F,0,0,0,4*L3_F,4*L3_F,4*L3_F,&(tmp.visual.transform));
-	tmp.visual.config.visible |= L3_VISIBLE_SOLID;
+	tmp.visual.config.visible |= L3_VISIBLE_MODEL_SOLID;
 	tmp.visual.solid_color = 0x80;
 	logo_2 = engine_add_object(tmp);
 

@@ -25,6 +25,7 @@ data_vertices_name = data_name + "_vertices"
 #data_polys_name = data_name + "_polys"
 data_index_name = data_name + "_indexes"
 data_model_name = data_name + "_model"
+data_normals_name = data_name + "_normals"
 
 file_out.write("#pragma once\nstatic const L3_Unit " +  data_vertices_name + "[] = {\n")
 
@@ -47,11 +48,41 @@ for mesh in object_in.mesh_list:
 
 file_out.write("};\n")
 
+has_normals = True
+
+file_out.write("static const L3_Unit " +  data_normals_name + "[] = {\n")
+for mesh in object_in.mesh_list:
+	for faceid, face in enumerate(mesh.faces):
+		face_data_len = 6
+		normal_offset = 0
+		if mesh.materials[0].vertex_format == "T2F_N3F_V3F":
+			face_data_len = 8
+			normal_offset = 2
+		elif mesh.materials[0].vertex_format == "N3F_V3F":
+			face_data_len = 6
+			normal_offset = 0
+		else:
+			has_normals = False
+			break
+			break
+		normalx = mesh.materials[0].vertices[faceid * face_data_len * 3 + normal_offset]
+		normaly = mesh.materials[0].vertices[faceid * face_data_len * 3 + normal_offset + 1]
+		normalz = mesh.materials[0].vertices[faceid * face_data_len * 3 + normal_offset + 2]
+		file_out.write(str(normalx) + " * L3_F," + str(normaly) + " * L3_F," + str(normalz) + " * L3_F,\n")
+file_out.write("};\n")
+
 file_out.write("static const L3_Model3D " +  data_model_name + " = {\n")
 file_out.write(".vertices = " + data_vertices_name + ",\n")
 file_out.write(".triangleCount = " + str(int(total_polys)) + ",\n")
 file_out.write(".vertexCount = " + str(len(object_in.vertices)) + ",\n")
 file_out.write(".triangles = " + data_index_name + ",\n")
+file_out.write(".triangleTextures = NULL,\n")
+file_out.write(".triangleUVs = NULL,\n")
+file_out.write(".triangleTextureIndex = NULL,\n")
+if has_normals:
+	file_out.write(".triangleNormals = " + data_normals_name + ",\n")
+else:
+	file_out.write(".triangleNormals = NULL,\n")
 file_out.write("};\n")
 
 file_out.write("static const L3_Object " +  data_name + " = {\n")
@@ -68,7 +99,7 @@ file_out.write(".transform.rotation.y = 0,\n")
 file_out.write(".transform.rotation.z = 0,\n")
 file_out.write(".transform.rotation.w = L3_F,\n")
 file_out.write(".config.backfaceCulling = " + str(args.backface) + ",\n")
-file_out.write(".config.visible = 2,\n")
+file_out.write(".config.visible = L3_VISIBLE_MODEL_WIREFRAME,\n")
 file_out.write(".solid_color = 0xFF,\n")
 file_out.write(".model = &" + data_model_name + ",\n")
 file_out.write("};\n")

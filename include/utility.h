@@ -58,3 +58,18 @@ typedef struct ObjectProcess_FrameArray_s {
 } ObjectProcess_FrameArray;
 
 void utility_animation_objectprocess_framearray(Engine_Object *object, void* data, uint64_t frame_id);
+
+typedef struct Object_3DBillboard_s {
+	L3_Billboard		billboard;
+	const L3_Texture	*front;
+	const L3_Texture	*back;
+	const L3_Texture	*left;
+	const L3_Texture	*right;
+	const L3_Texture	*front_35;
+	const L3_Texture	*back_35;
+	const L3_Texture	*left_35;
+	const L3_Texture	*right_35;
+	L3_Transform3D		transform;
+} Object_3DBillboard;
+
+void utility_objectprocess_3DBillboard(Engine_Object *self, void *data);

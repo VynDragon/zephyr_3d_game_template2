@@ -43,6 +43,6 @@ static const L3_Object cube = {
 .transform.rotation.z = 0,
 .transform.rotation.w = L3_F,
 .config.backfaceCulling = 0,
-.config.visible = L3_VISIBLE_DISTANCELIGHT | L3_VISIBLE_SOLID | L3_VISIBLE_WIREFRAME,
+.config.visible = L3_VISIBLE_DISTANCELIGHT | L3_VISIBLE_MODEL_SOLID | L3_VISIBLE_MODEL_WIREFRAME,
 .model = &cube_model,
 };
