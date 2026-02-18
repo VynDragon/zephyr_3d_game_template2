@@ -65,6 +65,7 @@ int init_engine_UI(void)
 			LOG_ERR("Invalid LV display %d object", i);
 			return -1;
 		}
+		lv_display_set_color_format(d, LV_COLOR_FORMAT_L8);
 		lv_display_set_flush_cb(d, engine_UI_lvgl_flush_cb);
 		lvgl_display = d;
 	}
