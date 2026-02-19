@@ -3,6 +3,58 @@ import argparse
 from pathlib import Path
 from PIL import Image
 
+class FACE:
+	def __init__(self, vertice_indexes: tuple, uv: tuple, normals: tuple, material_index: int):
+		self.vertice_indexes = vertice_indexes
+		self.uv = uv
+		self.material_index = material_index
+		self.normals = normals
+
+class OBJ:
+	def __init__(self, object_in):
+		self.vertices = []
+		self.faces = []
+		for vertex in object_in.vertices:
+			self.vertices.append((vertex[0], vertex[1], vertex[2]))
+
+		for mesh in object_in.mesh_list:
+			face_total = 0
+			for matid, mat in enumerate(mesh.materials):
+				face_data_len = 5
+				if mat.vertex_format == "T2F_N3F_V3F":
+					face_data_len = 8
+				elif mat.vertex_format == "T2F_V3F":
+					face_data_len = 5
+				elif mat.vertex_format == "N3F_V3F":
+					face_data_len = 6
+				elif mat.vertex_format == "V3F":
+					face_data_len = 3
+				else:
+					raise Exception("Unsupported face format")
+				face_cnt = len(mat.vertices) / (face_data_len * 3)
+				if float(int(face_cnt)) != face_cnt:
+					raise Exception("Invalid face count")
+				face_cnt = int(face_cnt)
+				for fi in range(face_cnt):
+					face = mesh.faces[face_total + fi]
+					face0uv = None
+					face1uv = None
+					face2uv = None
+					if face_data_len == 8 or face_data_len == 5:
+						face0uv = (mat.vertices[fi * face_data_len * 3], mat.vertices[fi * face_data_len * 3 + 1])
+						face1uv = (mat.vertices[fi * face_data_len * 3 + face_data_len], mat.vertices[fi * face_data_len * 3 + face_data_len + 1])
+						face2uv = (mat.vertices[fi * face_data_len * 3 + face_data_len * 2], mat.vertices[fi * face_data_len * 3 + face_data_len * 2 + 1])
+
+					face0n = None
+					face1n = None
+					face2n = None
+					if face_data_len == 8:
+						face0n = (mat.vertices[fi * face_data_len * 3 + 2], mat.vertices[fi * face_data_len * 3 + 3], mat.vertices[fi * face_data_len * 3 + 4])
+						face1n = (mat.vertices[fi * face_data_len * 3 + face_data_len + 2], mat.vertices[fi * face_data_len * 3 + face_data_len + 3], mat.vertices[fi * face_data_len * 3 + face_data_len + 4])
+						face2n = (mat.vertices[fi * face_data_len * 3 + face_data_len * 2 + 2], mat.vertices[fi * face_data_len * 3 + face_data_len * 2 + 3], mat.vertices[fi * face_data_len * 3 + face_data_len * 2 + 4])
+					self.faces.append(FACE((face[0], face[1], face[2]), (face0uv, face1uv, face2uv), (face0n, face1n, face2n), matid))
+				face_total += face_cnt
+
 parser = argparse.ArgumentParser(
                     prog='obj2c',
                     description='convert obj file to PL3D-KC object structure')
@@ -27,53 +79,39 @@ data_index_name = data_name + "_indexes"
 data_model_name = data_name + "_model"
 data_normals_name = data_name + "_normals"
 
-file_out.write("#pragma once\nstatic const L3_Unit " +  data_vertices_name + "[] = {\n")
+if len(object_in.mesh_list) > 1:
+	raise Exception("More than 1 mesh in obj file")
 
-for count, vertex in enumerate(object_in.vertices):
+mesh = object_in.mesh_list[0]
+
+obj = OBJ(object_in)
+
+file_out.write("#pragma once\nstatic const L3_Unit " +  data_vertices_name + "[] = {\n")
+for vertex in obj.vertices:
 	x = int(vertex[0] * args.scale)
 	y = int(vertex[1] * args.scale)
 	z = int(vertex[2] * args.scale)
 	file_out.write(str(x) + "," + str(y) + "," + str(z) + ",\n")
-
 file_out.write("};\n")
 
 file_out.write("static const L3_Index " +  data_index_name + "[] = {\n")
-
-total_polys = 0
-
-for mesh in object_in.mesh_list:
-	total_polys = total_polys + len(mesh.faces)
-	for face in mesh.faces:
-		file_out.write(str(face[0]) + ", " + str(face[1]) + ", " + str(face[2]) + ",\n")
-
+for face in obj.faces:
+	file_out.write(str(face.vertice_indexes[0]) + ", " + str(face.vertice_indexes[1]) + ", " + str(face.vertice_indexes[2]) + ",\n")
 file_out.write("};\n")
 
 has_normals = True
 
-file_out.write("static const L3_Unit " +  data_normals_name + "[] = {\n")
-for mesh in object_in.mesh_list:
-	for faceid, face in enumerate(mesh.faces):
-		face_data_len = 6
-		normal_offset = 0
-		if mesh.materials[0].vertex_format == "T2F_N3F_V3F":
-			face_data_len = 8
-			normal_offset = 2
-		elif mesh.materials[0].vertex_format == "N3F_V3F":
-			face_data_len = 6
-			normal_offset = 0
-		else:
-			has_normals = False
-			break
-			break
-		normalx = mesh.materials[0].vertices[faceid * face_data_len * 3 + normal_offset]
-		normaly = mesh.materials[0].vertices[faceid * face_data_len * 3 + normal_offset + 1]
-		normalz = mesh.materials[0].vertices[faceid * face_data_len * 3 + normal_offset + 2]
-		file_out.write(str(normalx) + " * L3_F," + str(normaly) + " * L3_F," + str(normalz) + " * L3_F,\n")
-file_out.write("};\n")
+if face.normals[0] is None:
+	has_normals = False
+else:
+	file_out.write("static const L3_Unit " +  data_normals_name + "[] = {\n")
+	for face in obj.faces:
+		file_out.write(str(face.normals[0][0]) + " * L3_F," + str(face.normals[0][1]) + " * L3_F," + str(face.normals[0][2]) + " * L3_F,\n")
+	file_out.write("};\n")
 
 file_out.write("static const L3_Model3D " +  data_model_name + " = {\n")
 file_out.write(".vertices = " + data_vertices_name + ",\n")
-file_out.write(".triangleCount = " + str(int(total_polys)) + ",\n")
+file_out.write(".triangleCount = " + str(len(mesh.faces)) + ",\n")
 file_out.write(".vertexCount = " + str(len(object_in.vertices)) + ",\n")
 file_out.write(".triangles = " + data_index_name + ",\n")
 file_out.write(".triangleTextures = NULL,\n")
@@ -103,3 +141,5 @@ file_out.write(".config.visible = L3_VISIBLE_MODEL_WIREFRAME,\n")
 file_out.write(".solid_color = 0xFF,\n")
 file_out.write(".model = &" + data_model_name + ",\n")
 file_out.write("};\n")
+
+file_out.close()
