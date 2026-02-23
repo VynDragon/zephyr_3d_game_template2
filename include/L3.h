@@ -21,6 +21,7 @@
 #define L3_MODEL_FUNCTION			zephyr_model
 
 #define L3_COLORTYPE uint8_t
+#define L3_COLORTYPE_LIGHT_THRES 0xC0
 
 
 #pragma GCC push_options
@@ -54,6 +55,7 @@ static k_timepoint_t inline L3_FPS_TIMEPOINT(uint64_t fps)
 
 #define L3_VISIBLE_NORMALLIGHT				BIT(15)
 #define L3_VISIBLE_DISTANCELIGHT			BIT(14)
+#define L3_VISIBLE_NORMALDIFF				BIT(13)
 
 #define L3_VISIBLE_MODEL_WIREFRAME_ANY	(L3_VISIBLE_MODEL_WIREFRAME_DEPTH | L3_VISIBLE_MODEL_WIREFRAME)
 

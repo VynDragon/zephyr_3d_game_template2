@@ -2890,6 +2890,7 @@ uint32_t L3_draw(L3_Camera camera, const L3_Object **objects, L3_Index objectCou
 
 static uint16_t L3_zephyr_putpixel_current_render_mode = 0;
 static L3_Unit	triangleNormalDot = L3_F;
+static L3_Vec4 triangleNormal;
 __attribute__((flatten))
 L3_PERFORMANCE_FUNCTION
 inline void zephyr_putpixel(L3_PixelInfo *p)
@@ -2901,32 +2902,37 @@ inline void zephyr_putpixel(L3_PixelInfo *p)
 	if (unlikely(0 > p->x && L3_RESOLUTION_X <= p->x && 0 > p->y && L3_RESOLUTION_Y <= p->y)) return;
 
 	if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_MODEL_TEXTURED) {
-		if (object->model->triangleTextureIndex[p->triangleIndex] < 0) {
-			return;
-		}
-		L3_Unit uv[2];
-
-		const L3_Unit *uvs = &(object->model->triangleUVs[p->triangleIndex * 6]);
-
 		L3_Index tex_index = object->model->triangleTextureIndex[p->triangleIndex];
 
-		uv[0] = (abs(L3_interpolateBarycentric(uvs[0], uvs[2], uvs[4], p->barycentric)) / 1) % object->model->triangleTextures[tex_index]->width;
-		uv[1] = (abs(L3_interpolateBarycentric(uvs[1], uvs[3], uvs[5], p->barycentric)) / 1) % object->model->triangleTextures[tex_index]->height;
-		color = object->model->triangleTextures[tex_index]->data[(uv[0] >> 0) + (uv[1] >> 0) * object->model->triangleTextures[tex_index]->width];
+		if (object->model->triangleTextures[tex_index] <= 0) {
+			color = object->solid_color;
+		} else {
+			L3_Unit uv[2];
+
+			const L3_Unit *uvs = &(object->model->triangleUVs[p->triangleIndex * 6]);
+
+			uv[0] = (abs(L3_interpolateBarycentric(uvs[0], uvs[2], uvs[4], p->barycentric)) / 1) % object->model->triangleTextures[tex_index]->width;
+			uv[1] = (abs(L3_interpolateBarycentric(uvs[1], uvs[3], uvs[5], p->barycentric)) / 1) % object->model->triangleTextures[tex_index]->height;
+			color = object->model->triangleTextures[tex_index]->data[(uv[0] >> 0) + (uv[1] >> 0) * object->model->triangleTextures[tex_index]->width];
+		}
 	} else {
 		color = object->solid_color;
 	}
-	if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_DISTANCELIGHT) {
-		//depthmul = (p->depth * p->depth) / 524288;
-		depthmul = sqrt(p->depth) / 64;
-		depthmul = 1 / (depthmul != 0 ? depthmul : 1);
-		depthmul = depthmul > 1 ? 1 : depthmul;
-		color *= depthmul;
-	}
-	if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_NORMALLIGHT)
-	{
-		if (color < 0xC0) {
+	/* Only modify color if under light threshold */
+	if (color <= L3_COLORTYPE_LIGHT_THRES) {
+		if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_DISTANCELIGHT) {
+			//depthmul = (p->depth * p->depth) / 524288;
+			depthmul = sqrt(p->depth) / 64;
+			depthmul = 1 / (depthmul != 0 ? depthmul : 1);
+			depthmul = depthmul > 1 ? 1 : depthmul;
+			color *= depthmul;
+		}
+		if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_NORMALLIGHT)
+		{
 			color = (4*color)/6 + clamp(((L3_Unit)color * triangleNormalDot) / L3_F, (-3*color)/8, (2*color)/6);
+		} else if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_NORMALDIFF)
+		{
+			color = (4*color)/6 + ((L3_Unit)((2*color)/6) * triangleNormalDot) / L3_F;
 		}
 	}
 	L3_video_buffer[p->x + p->y * L3_RESOLUTION_X] = color;
@@ -2941,21 +2947,21 @@ int zephyr_drawtriangle_world(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
 {
 	L3_zephyr_putpixel_current_render_mode = object->config.visible;
 
-	if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_NORMALLIGHT) {
-		if (object->model->triangleNormals) {
-			L3_Vec4 triangleNormal = {
-				.x = object->model->triangleNormals[triangleIndex*3+0],
-				.y = object->model->triangleNormals[triangleIndex*3+1],
-				.z = object->model->triangleNormals[triangleIndex*3+2],
-				.w = L3_F,
-			};
-			triangleNormalDot = L3_vec3Dot(triangleNormal, lightDir);
-		} else {
-			L3_Vec4 triangleNormal;
-			L3_triangleNormal(point0, point1, point2, &triangleNormal);
-			triangleNormalDot = L3_vec3Dot(triangleNormal, lightDir);
-		}
+	if (object->model->triangleNormals) {
+		triangleNormal.x = object->model->triangleNormals[triangleIndex*3+0];
+		triangleNormal.y = object->model->triangleNormals[triangleIndex*3+1];
+		triangleNormal.z = object->model->triangleNormals[triangleIndex*3+2];
+		triangleNormal.w = L3_F;
+	} else {
+		L3_triangleNormal(point0, point1, point2, &triangleNormal);
 	}
+
+	if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_NORMALLIGHT) {
+		triangleNormalDot = L3_vec3Dot(triangleNormal, lightDir);
+	} else if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_NORMALDIFF) {
+		triangleNormalDot = (triangleNormal.x + triangleNormal.y + triangleNormal.z) / 3;
+	}
+
 	return 1;
 }
 
@@ -2970,18 +2976,19 @@ int zephyr_drawtriangle_screen(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
 #if !defined(L3_TRIANGLE_FUNCTION_WORLD_EN) || !L3_TRIANGLE_FUNCTION_WORLD_EN
 	L3_zephyr_putpixel_current_render_mode = object->config.visible;
 
-	if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_NORMALLIGHT) {
-		if (object->model->triangleNormals) {
-			L3_Vec4 triangleNormal = {
-				.x = object->model->triangleNormals[triangleIndex*3+0],
-				.y = object->model->triangleNormals[triangleIndex*3+1],
-				.z = object->model->triangleNormals[triangleIndex*3+2],
-				.w = L3_F,
-			};
+	if (object->model->triangleNormals) {
+		triangleNormal.x = object->model->triangleNormals[triangleIndex*3+0];
+		triangleNormal.y = object->model->triangleNormals[triangleIndex*3+1];
+		triangleNormal.z = object->model->triangleNormals[triangleIndex*3+2];
+		triangleNormal.w = L3_F;
+
+		if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_NORMALLIGHT) {
 			triangleNormalDot = L3_vec3Dot(triangleNormal, lightDir);
-		} else {
-			L3_zephyr_putpixel_current_render_mode &= ~L3_VISIBLE_NORMALLIGHT;
+		} else if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_NORMALDIFF) {
+			triangleNormalDot = (triangleNormal.x + triangleNormal.y + triangleNormal.z) / 3;
 		}
+	} else {
+		L3_zephyr_putpixel_current_render_mode &= ~(L3_VISIBLE_NORMALLIGHT | L3_VISIBLE_NORMALDIFF);
 	}
 #endif
 	if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_MODEL_WIREFRAME_ANY) {

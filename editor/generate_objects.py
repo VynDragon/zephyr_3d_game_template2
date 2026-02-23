@@ -98,7 +98,10 @@ def generate_model_header_textured(name, model_path, textures, out_path):
 
 	file_out.write("static const L3_Texture *" +  data_texture_name + "[] = {\n")
 	for tex in textures:
-		file_out.write("&" + tex[0] + ",\n")
+		if tex[0] is None:
+			file_out.write("0,\n")
+		else:
+			file_out.write("&" + tex[0] + ",\n")
 	file_out.write("};\n")
 
 	file_out.write("static const L3_Index " +  data_texindex_name + "[] = {\n")
@@ -186,7 +189,10 @@ def generate_model_header_notex(name, model_path, out_path):
 	else:
 		file_out.write("static const L3_Unit " +  data_normals_name + "[] = {\n")
 		for face in obj.faces:
-			file_out.write(str(face.normals[0][0]) + " * L3_F," + str(face.normals[0][1]) + " * L3_F," + str(face.normals[0][2]) + " * L3_F,\n")
+			normalx = (face.normals[0][0] + face.normals[1][0] + face.normals[2][0]) / 3
+			normaly = (face.normals[0][1] + face.normals[1][1] + face.normals[2][1]) / 3
+			normalz = (face.normals[0][2] + face.normals[1][2] + face.normals[2][2]) / 3
+			file_out.write(str(normalx) + " * L3_F," + str(normaly) + " * L3_F," + str(normalz) + " * L3_F,\n")
 		file_out.write("};\n")
 
 	file_out.write("static const L3_Model3D " +  data_model_name + " = {\n")
@@ -252,7 +258,7 @@ def generate_object_header(name, model_name, output_path, textured = False, col_
 			file_out.write(".config.visible = L3_VISIBLE_MODEL_TEXTURED,\n")
 		else:
 			file_out.write(".config.visible = L3_VISIBLE_MODEL_SOLID,\n")
-		file_out.write(".solid_color = 0xFF,\n")
+		file_out.write(".solid_color = 0x80,\n")
 		file_out.write(".model = &" + model_name + ",\n")
 		file_out.write("};\n")
 
@@ -355,6 +361,10 @@ for conf_path in glob.glob(os.path.join(glob.escape(args.data_folder), "**/*.jso
 						tex_path_stemmed = Path(tex_path.parent.joinpath(tex_path.stem))
 						if model_tex == tex[0] or str(tex_path_stemmed).replace('/','_') == tex[0]:
 							local_model_textures.append(tex)
+							found = True
+							break
+						if model_tex == "":
+							local_model_textures.append(( None, 1, 1))
 							found = True
 							break
 					if not found:
