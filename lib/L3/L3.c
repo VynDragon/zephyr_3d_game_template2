@@ -2919,7 +2919,7 @@ inline void zephyr_putpixel(L3_PixelInfo *p)
 		color = object->solid_color;
 	}
 	/* Only modify color if under light threshold */
-	if (color <= L3_COLORTYPE_LIGHT_THRES) {
+	if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_THRESLIGHT ? color <= L3_COLORTYPE_LIGHT_THRES : true) {
 		if (L3_zephyr_putpixel_current_render_mode & L3_VISIBLE_DISTANCELIGHT) {
 			//depthmul = (p->depth * p->depth) / 524288;
 			depthmul = sqrt(p->depth) / 64;

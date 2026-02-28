@@ -255,9 +255,9 @@ def generate_object_header(name, model_name, output_path, textured = False, col_
 		file_out.write(".transform.rotation.w = L3_F,\n")
 		file_out.write(".config.backfaceCulling = 1,\n")
 		if textured:
-			file_out.write(".config.visible = L3_VISIBLE_MODEL_TEXTURED,\n")
+			file_out.write(".config.visible = L3_VISIBLE_MODEL_TEXTURED | L3_VISIBLE_NORMALDIFF,\n")
 		else:
-			file_out.write(".config.visible = L3_VISIBLE_MODEL_SOLID,\n")
+			file_out.write(".config.visible = L3_VISIBLE_MODEL_SOLID | L3_VISIBLE_NORMALDIFF,\n")
 		file_out.write(".solid_color = 0x80,\n")
 		file_out.write(".model = &" + model_name + ",\n")
 		file_out.write("};\n")
