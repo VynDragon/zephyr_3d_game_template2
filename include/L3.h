@@ -940,6 +940,9 @@ void L3_plot_line(L3_COLORTYPE color, int x0, int y0, int x1, int y1);
 
 void _L3_mapProjectedVertexToScreen(L3_Vec4 *vertex, L3_Unit focalLength);
 
+/* Set direction of normal light vector */
+void L3_normallight_vector(const L3_Vec4 vec);
+
 #if L3_Z_BUFFER
 int8_t L3_zTest(const L3_ScreenCoord x, const L3_ScreenCoord y, const L3_Unit depth);
 /* Same but z coordinate must have been pre-converted to zbuf format */

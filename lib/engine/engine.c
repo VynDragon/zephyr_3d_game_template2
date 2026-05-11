@@ -24,7 +24,7 @@ static const Engine_Object	*static_engine_objects;
 static uint32_t				static_engine_objects_count;
 static bool					static_engine_objects_enabled = false;
 static const Filter_f		*static_engine_filters;
-size_t						static_engine_filters_count;
+static size_t				static_engine_filters_count;
 
 typedef struct E_Collider_pair_t {
 	const E_Collider	*collider;
@@ -38,6 +38,9 @@ static E_Particle			engine_particles[ENGINE_MAX_PARTICLES];
 
 Engine_DObject				engine_dynamic_objects[ENGINE_MAX_DOBJECTS];
 uint32_t					engine_dynamic_objects_count = 0;
+
+static Filter_f				engine_filters[ENGINE_MAX_FILTERS];
+static size_t				engine_filters_count = 0;
 
 K_MUTEX_DEFINE(engine_objects_lock);
 K_MUTEX_DEFINE(engine_render_lock);
@@ -182,6 +185,7 @@ static void blit_function(void *, void *, void *)
 			size_filter_ui = L3_RESOLUTION_Y - offset - 4;
 		}
 		filter_apply_all(0, offset, L3_RESOLUTION_X, size_filter_ui, static_engine_filters, static_engine_filters_count, NULL);
+		filter_apply_all(0, offset, L3_RESOLUTION_X, size_filter_ui, engine_filters, engine_filters_count, NULL);
 		ENGINE_BLIT_FUNCTION(&(L3_video_buffer[offset * L3_RESOLUTION_X]), 0, offset, L3_RESOLUTION_X, size);
 #if	CONFIG_LOG_PERFORMANCE
 		end_time = timing_counter_get();
@@ -894,6 +898,7 @@ int	engine_cleanscene(void)
 	static_engine_filters = NULL;
 	static_engine_filters_count = 0;
 	engine_dynamic_objects_count = 0;
+	engine_no_filters();
 	for (int i = 0; i < ENGINE_MAX_PARTICLES; i++) {
 		engine_particles[i].life  = 0;
 	}
@@ -982,6 +987,27 @@ void engine_statics_enabled(bool yes)
 
 void engine_set_process_fps(uint32_t fps) {
 	engine_target_process_fps = (uint64_t)fps;
+}
+
+void engine_append_filter(Filter_f filter)
+{
+	if (engine_filters_count < ENGINE_MAX_FILTERS)
+	{
+		engine_filters[engine_filters_count] = filter;
+		engine_filters_count++;
+	}
+}
+
+void engine_pop_filter(void)
+{
+	if (engine_filters_count > 0) {
+		engine_filters_count--;
+	}
+}
+
+void engine_no_filters(void)
+{
+	engine_filters_count = 0;
 }
 
 #ifdef CONFIG_BLIT_THREAD

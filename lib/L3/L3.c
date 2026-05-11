@@ -35,6 +35,8 @@ _L3_TriangleToSort L3_sortArray[L3_MAX_TRIANGES_DRAWN];
 uint16_t L3_sortArrayLength;
 #endif
 
+static L3_Vec4 normallight_vector = {0,2*L3_F/4,2*L3_F/4,L3_F};
+
 /* Data ------------------------------------------------------------------------------------------*/
 
 #if DT_HAS_CHOSEN(zephyr_dtcm)
@@ -2669,7 +2671,6 @@ uint32_t L3_draw(L3_Camera camera, const L3_Object **objects, L3_Index objectCou
 	L3_Vec4 transformed_world[6]; // transformed triangle coords, for 2 triangles
 #endif
 	L3_Vec4 transformed_light;
-	static const L3_Vec4 down = {0,2*L3_F/4,2*L3_F/4,L3_F};
 	int draw;
 
 	const L3_Object *object;
@@ -2736,7 +2737,7 @@ uint32_t L3_draw(L3_Camera camera, const L3_Object **objects, L3_Index objectCou
 
 			L3_mat4Transpose(matWorldToObjectRot);
 
-			transformed_light = down;
+			transformed_light = normallight_vector;
 
 			L3_vec3Xmat4(&transformed_light, matWorldToObjectRot);
 
@@ -3139,4 +3140,9 @@ L3_PERFORMANCE_FUNCTION
 int zephyr_model(const L3_Object *object)
 {
 	return 0;
+}
+
+void L3_normallight_vector(const L3_Vec4 vec)
+{
+	normallight_vector = vec;
 }

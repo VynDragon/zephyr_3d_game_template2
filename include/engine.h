@@ -26,6 +26,7 @@ int ENGINE_BLIT_FUNCTION(L3_COLORTYPE *buffer, uint16_t x, uint16_t y, uint16_t 
 #define ENGINE_MAX_COLLIDERS	 0xFF
 #define ENGINE_MAX_DOBJECTS		0xF
 #define ENGINE_MAX_PARTICLES	0x100
+#define ENGINE_MAX_FILTERS		16
 
 /* do product to determine if object is behind camera limit */
 #define ENGINE_REAR_OBJECT_CUTOFF 8 * L3_F
@@ -221,6 +222,14 @@ int	engine_initscene(Engine_Scene *scene);
 int	engine_switchscene(Engine_Scene *scene);
 /* Set processing FPS */
 void engine_set_process_fps(uint32_t fps);
+
+/* Add filter */
+void engine_append_filter(Filter_f filter);
+/* Remove last added filter */
+void engine_pop_filter(void);
+/* Remove all filters */
+void engine_no_filters(void);
+
 
 /* sets const renderlist, can be from XIP */
 void engine_set_statics(const Engine_Object *objects, uint32_t count);
