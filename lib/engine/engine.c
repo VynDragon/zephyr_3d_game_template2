@@ -151,7 +151,6 @@ static void blit_function(void *, void *, void *)
 #endif
 	uint16_t offset = 0;
 	uint16_t size = L3_RESOLUTION_Y;
-	uint16_t size_filter_ui;
 	uint16_t missed_seq = L3_RESOLUTION_Y;
 
 	while (1) {
@@ -180,12 +179,6 @@ static void blit_function(void *, void *, void *)
 		if (offset + size > L3_RESOLUTION_Y) {
 			size = L3_RESOLUTION_Y - offset;
 		}
-		size_filter_ui = size;
-		if (offset + size_filter_ui > L3_RESOLUTION_Y - 4) {
-			size_filter_ui = L3_RESOLUTION_Y - offset - 4;
-		}
-		filter_apply_all(0, offset, L3_RESOLUTION_X, size_filter_ui, static_engine_filters, static_engine_filters_count, NULL);
-		filter_apply_all(0, offset, L3_RESOLUTION_X, size_filter_ui, engine_filters, engine_filters_count, NULL);
 		ENGINE_BLIT_FUNCTION(&(L3_video_buffer[offset * L3_RESOLUTION_X]), 0, offset, L3_RESOLUTION_X, size);
 #if	CONFIG_LOG_PERFORMANCE
 		end_time = timing_counter_get();
@@ -233,6 +226,8 @@ static void render_function(void *, void *, void *)
 		engine_render_hook_pre();
 		engine_drawnTriangles = L3_draw(engine_camera, engine_global_objects, engine_objectCount);
 		E_drawParticles(engine_camera);
+		filter_apply_all(0, 0, L3_RESOLUTION_X, L3_RESOLUTION_Y, static_engine_filters, static_engine_filters_count, NULL);
+		filter_apply_all(0, 0, L3_RESOLUTION_X, L3_RESOLUTION_Y, engine_filters, engine_filters_count, NULL);
 		engine_render_UI();
 		engine_render_hook_post();
 		k_mutex_unlock(&engine_render_lock);
@@ -871,6 +866,11 @@ Engine_Scene *engine_getscene(void)
 
 int	engine_cleanscene(void)
 {
+	if (engine_current_scene != NULL) {
+		if (engine_current_scene->dif != NULL) {
+			(*engine_current_scene->inf)(engine_current_scene);
+		}
+	}
 	engine_current_scene = NULL;
 
 	engine_camera.transform.translation.x = 0;
@@ -917,7 +917,7 @@ int	engine_initscene(Engine_Scene *scene)
 		static_engine_filters_count = scene->filters_count;
 		static_engine_filters = scene->filters;
 	}
-	(*scene->inf)(scene->data);
+	(*scene->inf)(scene);
 	engine_current_scene = scene;
 	return 0;
 }

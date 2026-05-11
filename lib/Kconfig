@@ -26,3 +26,15 @@ config BLIT_THREAD_STACK
 config BLIT_THREAD
 	bool "Blit in separate thread"
 	default y
+
+if ENGINE
+
+config TRANSPARENT_UI
+	bool "UI is transparent"
+	default y
+
+config DEFAULT_UI
+	bool "Default UI elements"
+	default y
+
+endif

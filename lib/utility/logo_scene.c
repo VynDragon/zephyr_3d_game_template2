@@ -4,7 +4,7 @@
 #include "models/Zephyr_Logo_model_1.h"
 #include "models/Zephyr_Logo_model_2.h"
 
-static void logo_scene_init(void *data);
+static void logo_scene_init(Engine_Scene *scene);
 static void logo_scene_pf(Engine_Scene *self);
 
 Engine_Scene logo_scene = {
@@ -18,7 +18,7 @@ Engine_Scene logo_scene = {
 static Engine_Object *logo_1;
 static Engine_Object *logo_2;
 
-static void logo_scene_init(void *data)
+static void logo_scene_init(Engine_Scene *scene)
 {
 	/* 'player' object */
 	Engine_Object tmp = {0};

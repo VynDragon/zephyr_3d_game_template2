@@ -328,7 +328,7 @@ Animation camera_animation = ANIMATION_INIT(
 	false
 );
 
-void scene_init(void *data)
+void scene_init(Engine_Scene *self)
 {
 	Engine_Object tmp = {0};
 	L3_transform3DSet(0 * L3_F,1.5*L3_F,-20*L3_F,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));
@@ -453,7 +453,7 @@ int main()
 	scene.pf = scene_pf;
 	scene.statics = map;
 	scene.statics_count = sizeof(map) / sizeof(*map);
-	scene.filters_count = 1,
+	scene.filters_count = ARRAY_SIZE(default_scene_filters),
 	scene.filters = default_scene_filters,
 	scene.skybox = &skybox;
 
@@ -462,7 +462,7 @@ int main()
 
 	bench_passed = lv_label_create(lv_screen_active());
 	lv_label_set_text_fmt(bench_passed, "");
-	lv_obj_align(bench_passed, LV_ALIGN_TOP_LEFT, CONFIG_RESOLUTION_X - 4*4, 0);
+	lv_obj_align(bench_passed, LV_ALIGN_TOP_LEFT, CONFIG_RESOLUTION_X - 4*4, L3_RESOLUTION_Y - 4);
 
 	engine_switchscene(&scene);
 	engine_statics_enabled(true);

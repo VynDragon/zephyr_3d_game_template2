@@ -3,7 +3,7 @@
 #include "default_scene.h"
 #include "filters.h"
 
-static void default_scene_init(void *data);
+static void default_scene_init(Engine_Scene *scene);
 static void default_scene_pf(Engine_Scene *self);
 
 static struct Default_scene_data default_scene_data = {0};
@@ -24,9 +24,9 @@ Engine_Scene default_scene = {
 
 static L3_Vec4 player_colpoint[2] = {{.x = 0, .y = 0, .z = 0, .w = L3_F }, {.x = 0, .y = L3_F, .z = 0, .w = L3_F }};
 
-static void default_scene_init(void *data)
+static void default_scene_init(Engine_Scene *scene)
 {
-	struct Default_scene_data *scene_data = (struct Default_scene_data*)data;
+	struct Default_scene_data *scene_data = (struct Default_scene_data*)scene->data;
 	/* 'player' object */
 	Engine_Object tmp = {0};
 	L3_transform3DSet(0 * L3_F,0,0*L3_F,0,0,0,L3_F,L3_F,L3_F,&(tmp.visual.transform));

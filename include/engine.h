@@ -49,7 +49,9 @@ typedef void (*Engine_Scene_pf)(Engine_Scene *self);
 typedef void (*Engine_pf)(void);
 
 /* function to initialize a scene (spawn dynamic objects etc) */
-typedef void (*Engine_Scene_inf)(void *data);
+typedef void (*Engine_Scene_inf)(Engine_Scene *data);
+/* function to deinitialize a scene, may be absent */
+typedef void (*Engine_Scene_dif)(Engine_Scene *data);
 
 /* function given each pixel in buffer every frame, z stuffs might be nil,
  * function allowed to browse pixels before and after the one it was given
@@ -172,6 +174,7 @@ typedef struct Engine_Scene_s {
 	const Engine_Object	*statics;
 	size_t				statics_count;
 	Engine_Scene_inf	inf;
+	Engine_Scene_dif	dif;
 	const Filter_f		*filters;
 	size_t				filters_count;
 	L3_Skybox			*skybox;

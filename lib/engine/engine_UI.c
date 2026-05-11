@@ -23,9 +23,11 @@ static lv_display_t *lvgl_display;
 
 static lv_style_t engine_default_transparency;
 
+#ifdef CONFIG_DEFAULT_UI
 static lv_obj_t *engine_trianglecount;
 static lv_obj_t *engine_FPS;
 static lv_obj_t *render_FPS;
+#endif
 static timing_t engine_FPS_last_time;
 static uint32_t engine_FPS_total_time_avg = 0;
 
@@ -44,7 +46,13 @@ void engine_UI_lvgl_flush_cb(lv_display_t *display, const lv_area_t *area, uint8
 	uint16_t h = area->y2 - area->y1;
 
 	for (uint16_t i = 0; i <= h; i++) {
+#ifdef CONFIG_TRANSPARENT_UI
+		for (uint16_t j = 0; j < w; j++) {
+			start[j] = min(start[j] + px_map[j], 0xff);
+		}
+#else
 		memcpy(start, px_map, w * sizeof(L3_COLORTYPE));
+#endif
 		/* Need to clear the buffer ourself for some reason? */
 		memset(px_map, 0, w * sizeof(L3_COLORTYPE));
 		px_map = &(px_map[w]);
@@ -76,19 +84,23 @@ int init_engine_UI(void)
 	lv_obj_set_style_bg_opa(lv_layer_bottom(), LV_OPA_TRANSP, LV_PART_MAIN);
 	lv_obj_set_style_text_color(lv_screen_active(), lv_color_hex(0xffffff), LV_PART_MAIN);
 	lv_obj_set_style_text_font(lv_screen_active(), &four_pixel_font, LV_PART_MAIN);
-	engine_UI_set_area(0, L3_RESOLUTION_Y - 3, L3_RESOLUTION_X, 4);
+
+#ifdef CONFIG_DEFAULT_UI
+	engine_UI_set_area(0,0, CONFIG_RESOLUTION_X, CONFIG_RESOLUTION_Y);
 
 	engine_trianglecount = lv_label_create(lv_screen_active());
 	lv_label_set_text_fmt(engine_trianglecount, "Tris: %d", engine_drawnTriangles);
-	lv_obj_align(engine_trianglecount, LV_ALIGN_TOP_LEFT, 0, 0);
+	lv_obj_align(engine_trianglecount, LV_ALIGN_TOP_LEFT, 0, L3_RESOLUTION_Y - 4);
 
 	engine_FPS = lv_label_create(lv_screen_active());
 	lv_label_set_text_fmt(engine_FPS, "FPS: %d", 0);
-	lv_obj_align(engine_FPS, LV_ALIGN_TOP_LEFT, 48, 0);
+	lv_obj_align(engine_FPS, LV_ALIGN_TOP_LEFT, 48, L3_RESOLUTION_Y - 4);
 
 	render_FPS = lv_label_create(lv_screen_active());
 	lv_label_set_text_fmt(render_FPS, "RFPS: %d", 0);
-	lv_obj_align(render_FPS, LV_ALIGN_TOP_LEFT, 76, 0);
+	lv_obj_align(render_FPS, LV_ALIGN_TOP_LEFT, 76, L3_RESOLUTION_Y - 4);
+
+#endif
 
 	engine_FPS_last_time = timing_counter_get();
 
@@ -103,12 +115,14 @@ int engine_render_UI(void)
 
 	engine_FPS_total_time_avg = (engine_FPS_total_time_avg * 4 + total_time_us) / 5;
 
+#ifdef CONFIG_DEFAULT_UI
 	lv_label_set_text_fmt(engine_trianglecount, "Tris: %d", engine_drawnTriangles);
 	lv_label_set_text_fmt(engine_FPS, "FPS: %d", 1000000 / (engine_FPS_total_time_avg != 0 ? engine_FPS_total_time_avg : 1));
 #if defined(CONFIG_FPU)
 	lv_label_set_text_fmt(render_FPS, "RFPS: %0.1f", (double)engine_rFPS);
 #else
 	lv_label_set_text_fmt(render_FPS, "RFPS: %d", (int)engine_rFPS);
+#endif
 #endif
 	lv_obj_invalidate(lv_screen_active());
 	lv_timer_handler();
