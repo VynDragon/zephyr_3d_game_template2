@@ -17,24 +17,22 @@ void utility_animation_process(Animation *animation)
 		int64_t difference = k_uptime_get() - animation->last_tick;
 		animation->last_tick = k_uptime_get();
 		animation->error += difference;
-		if (animation->error > FRAME_TO_MS(animation->framerate)) {
+		while (animation->error > FRAME_TO_MS(animation->framerate)) {
 			animation->error -= FRAME_TO_MS(animation->framerate);
-		} else
-			return;
-		animation->frame_counter += 1;
-		if (animation->frame_counter >= animation->len)
-		{
-			if (!animation->loop) {
-				animation->finished = true;
-				return;
-			} else {
-				animation->frame_counter = 0;
+			animation->frame_counter += 1;
+			if (animation->frame_counter >= animation->len)
+			{
+				if (!animation->loop) {
+					animation->finished = true;
+					return;
+				} else {
+					animation->frame_counter = 0;
+				}
 			}
-			return;
+			for (int i = 0; i < animation->animated; i++) {
+				animation->pf[i](animation->objects[i], animation->objects_data[i], animation->frame_counter);
+			}
 		}
-	}
-	for (int i = 0; i < animation->animated; i++) {
-		animation->pf[i](animation->objects[i], animation->objects_data[i], animation->frame_counter);
 	}
 }
 

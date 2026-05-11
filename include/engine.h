@@ -219,7 +219,8 @@ int	engine_cleanscene(void);
 int	engine_initscene(Engine_Scene *scene);
 /* Blank engine scene then load scene as the engine scene */
 int	engine_switchscene(Engine_Scene *scene);
-
+/* Set processing FPS */
+void engine_set_process_fps(uint32_t fps);
 
 /* sets const renderlist, can be from XIP */
 void engine_set_statics(const Engine_Object *objects, uint32_t count);

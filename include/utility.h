@@ -21,9 +21,9 @@ typedef struct Animation_s {
 
 #define ANIMATION_INIT(_objects, _objects_data, _pf, _animated, _framerate, _len, _loop) \
 {												\
-	.objects = _objects,						\
-	.objects_data = _objects_data,				\
-	.pf = _pf,									\
+	.objects = (_objects),						\
+	.objects_data = (_objects_data),			\
+	.pf = (_pf),								\
 	.animated = _animated,						\
 	.last_tick = 0,								\
 	.started = false,							\

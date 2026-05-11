@@ -51,6 +51,8 @@ static Engine_Scene	*engine_current_scene = NULL;
 uint32_t engine_drawnTriangles = 0;
 float engine_rFPS = 0;
 
+static uint64_t		engine_target_process_fps = CONFIG_TARGET_PROCESS_FPS;
+
 /* ------------------------------------------------------------------------------------------- */
 
 
@@ -924,14 +926,14 @@ int	engine_switchscene(Engine_Scene *scene)
 
 static void process_function(void *, void *, void *)
 {
-	k_timepoint_t timing = L3_FPS_TIMEPOINT(CONFIG_TARGET_PROCESS_FPS);
+	k_timepoint_t timing = L3_FPS_TIMEPOINT(engine_target_process_fps);
 
 	while (1) {
 #if	CONFIG_LOG_PERFORMANCE
 	timing_t start_time, end_time;
 	uint32_t total_time_us;
 #endif
-		timing = L3_FPS_TIMEPOINT(CONFIG_TARGET_PROCESS_FPS);
+		timing = L3_FPS_TIMEPOINT(engine_target_process_fps);
 #if	CONFIG_LOG_PERFORMANCE
 		start_time = timing_counter_get();
 #endif
@@ -976,6 +978,10 @@ void engine_set_statics(const Engine_Object *objects, uint32_t count)
 void engine_statics_enabled(bool yes)
 {
 	static_engine_objects_enabled = yes;
+}
+
+void engine_set_process_fps(uint32_t fps) {
+	engine_target_process_fps = (uint64_t)fps;
 }
 
 #ifdef CONFIG_BLIT_THREAD
