@@ -42,6 +42,8 @@ file_out.write("};\n")
 file_out.write("static const L3_Billboard " +  data_bb_name + " = {\n")
 file_out.write(".texture = &" + data_texture_name + ",\n")
 file_out.write(".scale = " + str(args.scale) + ",\n")
+file_out.write(".transparency.transparency = 0xff,\n")
+file_out.write(".transparency.transparency_threshold = 0,\n")
 file_out.write("};\n")
 
 file_out.write("static const L3_Object " +  data_name + " = {\n")
