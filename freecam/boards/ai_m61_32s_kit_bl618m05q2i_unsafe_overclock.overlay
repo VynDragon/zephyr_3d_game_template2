@@ -151,3 +151,31 @@
 		};
 	};
 };
+
+&clk_aupll {
+	/* Increased PLL top output frequency to 640MHz */
+	top-frequency = <DT_FREQ_M(640)>;
+};
+
+// &reg_soc {
+// 	/* SoC LDO at 1.25v to handle 640MHz FCLK*/
+// 	regulator-init-microvolt = <1350000>;
+// };
+//
+// &flash0 {
+// 	/delete-property/ rx-clock-invert;
+// };
+//
+// &clk_flash {
+// 	clocks = <&clk_bclk>;
+// 	read-delay = <1>;
+// 	divider = <1>;
+// };
+//
+// &clk_bclk {
+// 	divider = <7>;
+// };
+
+&clk_wifipll {
+	top-frequency = <BL61X_WIFIPLL_TOP_FREQ>;
+};

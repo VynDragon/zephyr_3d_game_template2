@@ -6,6 +6,12 @@
 
 #include <stdint.h>
 
+/** How many fractions a spatial unit is split into, i.e. this is the fixed
+point scaling. This is NOT SUPPOSED TO BE REDEFINED, so rather don't do it
+(otherwise things may overflow etc.). */
+#define L3_FRACTIONS_PER_UNIT 512
+#define L3_F L3_FRACTIONS_PER_UNIT
+
 #define L3_RESOLUTION_X CONFIG_RESOLUTION_X
 #define L3_RESOLUTION_Y CONFIG_RESOLUTION_Y
 
@@ -23,7 +29,6 @@
 #define L3_COLORTYPE uint8_t
 #define L3_COLORTYPE_LIGHT_THRES 0xC0
 
-
 #pragma GCC push_options
 #pragma GCC optimize ("O0")
 /* fucking idiot gcc */
@@ -35,7 +40,8 @@ static k_timepoint_t inline L3_FPS_TIMEPOINT(uint64_t fps)
 #pragma GCC pop_options
 
 
-#define L3_MAX_OBJECTS 0x2FF
+#define L3_MAX_OBJECTS	0x2FF
+#define L3_MAX_LIGHTS	0x10
 
 #define L3_VISIBLE_INVISIBLE		0
 
@@ -57,6 +63,10 @@ static k_timepoint_t inline L3_FPS_TIMEPOINT(uint64_t fps)
 #define L3_VISIBLE_DISTANCELIGHT			BIT(14)
 #define L3_VISIBLE_NORMALDIFF				BIT(13)
 #define L3_VISIBLE_THRESLIGHT				BIT(12)
+#define L3_VISIBLE_LIGHTED_TRIANGLE			BIT(11)
+#define L3_VISIBLE_LIGHTED_PIXEL			BIT(10)
+
+#define L3_VISIBLE_LIGHTED					(L3_VISIBLE_LIGHTED_TRIANGLE | L3_VISIBLE_LIGHTED_PIXEL)
 
 #define L3_VISIBLE_MODEL_WIREFRAME_ANY	(L3_VISIBLE_MODEL_WIREFRAME_DEPTH | L3_VISIBLE_MODEL_WIREFRAME)
 
@@ -64,7 +74,7 @@ static k_timepoint_t inline L3_FPS_TIMEPOINT(uint64_t fps)
 #define L3_VISIBLE_MODEL_WIREFRAME_COLOR	(32)
 
 #if 1
-	#define L3_PERFORMANCE_FUNCTION	__attribute__((optimize(3))) __attribute__((hot))
+	#define L3_PERFORMANCE_FUNCTION	__attribute__((optimize("Ofast"))) __attribute__((hot))
 #else
 	#define L3_PERFORMANCE_FUNCTION
 #endif
@@ -153,25 +163,6 @@ be resterized over an already rasterized pixel (within a frame) will be
 discarded. This is mostly for front-to-back sorted drawing. */
 #define L3_STENCIL_BUFFER 0
 
-/** Defines how to sort triangles before drawing a frame. This can be used to
-solve visibility in case z-buffer is not used, to prevent overwriting already
-rasterized pixels, implement transparency etc. Note that for simplicity and
-performance a relatively simple sorting is used which doesn't work completely
-correctly, so mistakes can occur (even the best sorting wouldn't be able to
-solve e.g. intersecting triangles). Note that sorting requires a bit of extra
-memory -- an array of the triangles to sort -- the size of this array limits
-the maximum number of triangles that can be drawn in a single frame
-(L3_MAX_TRIANGES_DRAWN). Possible values:
-
-0: Don't sort triangles. This is fastest and doesn't use extra memory.
-1: Sort triangles from back to front. This can in most cases solve visibility
-	without requiring almost any extra memory compared to z-buffer.
-2: Sort triangles from front to back. This can be faster than back to front
-	because we prevent computing pixels that will be overwritten by nearer
-	ones, but we need a 1b stencil buffer for this (enable L3_STENCIL_BUFFER),
-	so a bit more memory is needed. */
-#define L3_SORT 0
-
 /** Distance of the near clipping plane. Points in front or EXATLY ON this
 plane are considered outside the frustum. This must be >= 0. */
 #if L3_RESOLUTION_X > 256
@@ -209,10 +200,6 @@ Smaller is nicer but slower. */
 #define L3_INVERTED_Z_OFFSET		(1 << 12)
 #define L3_INVERTED_Z_BOTTOM_SHIFT	5
 
-/** Maximum number of triangles that can be drawn in sorted modes. This
-affects the size of the cache used for triangle sorting. */
-#define L3_MAX_TRIANGES_DRAWN 128
-
 /** Affects the L3_computeModelNormals function. See its description for
 details. */
 #define L3_NORMAL_COMPUTE_MAXIMUM_AVERAGE 6
@@ -222,7 +209,7 @@ likely be a tiny bit faster, but artifacts can occur for bigger tris, while
 higher values can fix this -- in theory all higher values will have the same
 speed (it is a shift value), but it mustn't be too high to prevent
 overflow. */
-#define L3_FAST_LERP_QUALITY 10
+#define L3_FAST_LERP_QUALITY 8
 
 /** Units of measurement in 3D space. There is L3_FRACTIONS_PER_UNIT in one
 spatial unit. By dividing the unit into fractions we effectively achieve a
@@ -236,12 +223,6 @@ typedef
 	int32_t
 #endif
 	L3_Unit;
-
-/** How many fractions a spatial unit is split into, i.e. this is the fixed
-point scaling. This is NOT SUPPOSED TO BE REDEFINED, so rather don't do it
-(otherwise things may overflow etc.). */
-#define L3_FRACTIONS_PER_UNIT 512
-#define L3_F L3_FRACTIONS_PER_UNIT
 
 typedef
 #if L3_USE_WIDER_TYPES
@@ -598,6 +579,37 @@ typedef struct
 	};
 } L3_Object;
 
+typedef struct {
+	/* 0 is center */
+	L3_Vec4			pos[4];
+	L3_Vec4			dir[4];
+	L3_Unit			dot[4];
+	const L3_Object	*light;
+} L3_Pixel_Light;
+
+typedef struct
+{
+	const L3_Object *object;
+	L3_Index triangleIndex; ///< Triangle index within the model.
+	L3_ScreenCoord triangleSize[2]; /**< Rasterized triangle width and height,
+									can be used e.g. for MIP mapping. */
+	L3_Pixel_Light	lights[L3_MAX_LIGHTS];
+	L3_Index		light_cnt;
+	L3_Vec4			triangleNormal;
+	L3_Mat4 		matWorld;
+	L3_Mat4 		matWorldToObject;
+	L3_Vec4			trianglePoints_object[3];
+	L3_Vec4			triangleMiddle_object;
+	union {
+		struct {
+			L3_Vec4			main[3];
+			L3_Vec4			sub[3];
+		};
+		L3_Vec4			all[6];
+	} trianglePoints_screen;
+	L3_Vec4			trianglePoints_world[3];
+} L3_TriangleInfo;
+
 typedef struct
 {
 	L3_ScreenCoord x;          ///< Screen X coordinate.
@@ -613,35 +625,29 @@ typedef struct
 															for the price of some performance). The sum of
 															the three coordinates will always be exactly
 															L3_FRACTIONS_PER_UNIT. */
-	L3_Index objectIndex;    ///< Object index within the scene.
-	L3_Index triangleIndex; ///< Triangle index within the model.
-	uint32_t triangleID;     /**< Unique ID of the triangle withing the whole
-															scene. This can be used e.g. by a cache to
-															quickly find out if a triangle has changed. */
 	L3_Unit depth;         ///< Depth (only if depth is turned on).
 	L3_Unit previousZ;     /**< Z-buffer value (not necessarily world depth in
 															L3_Units!) that was in the z-buffer on the
 															pixels position before this pixel was
 															rasterized. This can be used to set the value
 															back, e.g. for transparency. */
-	L3_ScreenCoord triangleSize[2]; /**< Rasterized triangle width and height,
-															can be used e.g. for MIP mapping. */
+	const L3_TriangleInfo	*triangle;
 } L3_PixelInfo;         /**< Used to pass the info about a rasterized pixel
 															(fragment) to the user-defined drawing func. */
 
-static inline void L3_pixelInfoInit(L3_PixelInfo *p)
-{
-	p->x = 0;
-	p->y = 0;
-	p->barycentric[0] = L3_F;
-	p->barycentric[1] = 0;
-	p->barycentric[2] = 0;
-	p->objectIndex = 0;
-	p->triangleIndex = 0;
-	p->triangleID = 0;
-	p->depth = 0;
-	p->previousZ = 0;
-}
+// static inline void L3_pixelInfoInit(L3_PixelInfo *p)
+// {
+// 	p->x = 0;
+// 	p->y = 0;
+// 	p->barycentric[0] = L3_F;
+// 	p->barycentric[1] = 0;
+// 	p->barycentric[2] = 0;
+// 	p->objectIndex = 0;
+// 	p->triangleIndex = 0;
+// 	p->triangleID = 0;
+// 	p->depth = 0;
+// 	p->previousZ = 0;
+// }
 
 // general helper functions
 static inline L3_Unit L3_abs(L3_Unit value)
@@ -804,12 +810,7 @@ static inline L3_Unit L3_interpolateBarycentric(
 	Screen Space space (pixels). If perspective correction is enabled, each
 	vertex has to have a depth (Z position in camera space) specified in the Z
 	component. */
-void L3_drawTriangle(
-	L3_Vec4 point0,
-	L3_Vec4 point1,
-	L3_Vec4 point2,
-	L3_Index objectIndex,
-	L3_Index triangleIndex);
+void L3_drawTriangle(L3_TriangleInfo *triangleInfos, bool subtriangle);
 
 /** This should be called before rendering each frame. The function clears
 	buffers and does potentially other things needed for the frame. */
@@ -902,11 +903,9 @@ m/2,  m/2,  m/2,\
 	#error model processing function (L3_MODEL_FUNCTION) not specified!
 #endif
 void L3_PIXEL_FUNCTION(L3_PixelInfo *pixel); // forward decl
-int L3_TRIANGLE_FUNCTION_SCREEN(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
-								const L3_Object *object, L3_Index triangleIndex, L3_Vec4 lightDir);
+int L3_TRIANGLE_FUNCTION_SCREEN(L3_TriangleInfo *triangleInfos, L3_Vec4 normalLightDir);
 #if defined(L3_TRIANGLE_FUNCTION_WORLD_EN) && L3_TRIANGLE_FUNCTION_WORLD_EN
-int L3_TRIANGLE_FUNCTION_WORLD(L3_Vec4 point0, L3_Vec4 point1, L3_Vec4 point2,
-							   const L3_Object *object, L3_Index triangleIndex, L3_Vec4 lightDir);
+int L3_TRIANGLE_FUNCTION_WORLD(L3_TriangleInfo *triangleInfos, L3_Vec4 normalLightDir);
 #endif
 int L3_BILLBOARD_FUNCTION(L3_Vec4 point, const L3_Object *billboard, const L3_Camera *camera);
 int L3_BILLBOARD_3D_FUNCTION(L3_Vec4 point, const L3_Object *billboard, const L3_Camera *camera, L3_Mat4 matFinal);
@@ -973,7 +972,9 @@ extern L3_COLORTYPE L3_video_buffer[L3_RESOLUTION_X * L3_RESOLUTION_Y];
 #if L3_Z_BUFFER
 extern L3_ZBUFTYPE L3_zBuffer[L3_MAX_PIXELS];
 #endif
-extern const L3_Object *engine_global_objects[L3_MAX_OBJECTS];
-extern L3_Index engine_objectCount;
-extern L3_Camera engine_camera;
+extern const L3_Object	*engine_global_objects[L3_MAX_OBJECTS];
+extern L3_Index			engine_objectCount;
+extern L3_Camera		engine_camera;
+extern const L3_Object	*engine_global_lights[L3_MAX_LIGHTS];
+extern L3_Index 		engine_lightCount;
 

@@ -345,6 +345,8 @@ static void build_render_list(void)
 {
 	const L3_Object **render_o = engine_global_objects;
 	size_t o_cnt = 0;
+	const L3_Object **render_l = engine_global_lights;
+	size_t l_cnt = 0;
 	L3_Vec4 forward = {0, 0, L3_F, L3_F};
 	L3_Mat4 transMat;
 	L3_Vec4 dir;
@@ -358,7 +360,13 @@ static void build_render_list(void)
 	L3_vec3Xmat4(&forward, transMat);
 
 	for (int i = 0; i < engine_objects_count; i++) {
-		if (engine_objects[i].visual_type >= ENGINE_VISUAL_MODEL) {
+		if (engine_objects[i].visual_type == ENGINE_VISUAL_LIGHT) {
+			if (l_cnt >= L3_MAX_LIGHTS) continue;
+			if (engine_objects[i].view_range <= L3_distanceManhattan(engine_objects[i].visual.transform.translation, engine_camera.transform.translation)) continue;
+			*render_l = &(engine_objects[i].visual);
+			render_l++;
+			l_cnt++;
+		} else if (engine_objects[i].visual_type >= ENGINE_VISUAL_MODEL) {
 			if (o_cnt >= L3_MAX_OBJECTS) break;
 			if (engine_objects[i].view_range <= L3_distanceManhattan(engine_objects[i].visual.transform.translation, engine_camera.transform.translation)) continue;
 			dir.x = engine_objects[i].visual.transform.translation.x - engine_camera.transform.translation.x;
@@ -374,7 +382,13 @@ static void build_render_list(void)
 
 	if (static_engine_objects_enabled) {
 		for (int i = 0; i < static_engine_objects_count; i++) {
-			if (static_engine_objects[i].visual_type >= ENGINE_VISUAL_MODEL) {
+			if (static_engine_objects[i].visual_type == ENGINE_VISUAL_LIGHT) {
+				if (l_cnt >= L3_MAX_LIGHTS) continue;
+				if (static_engine_objects[i].view_range <= L3_distanceManhattan(static_engine_objects[i].visual.transform.translation, engine_camera.transform.translation)) continue;
+				*render_l = &(static_engine_objects[i].visual);
+				render_l++;
+				l_cnt++;
+			} else if (static_engine_objects[i].visual_type >= ENGINE_VISUAL_MODEL) {
 				if (o_cnt >= L3_MAX_OBJECTS) break;
 				if (static_engine_objects[i].view_range <= L3_distanceManhattan(static_engine_objects[i].visual.transform.translation, engine_camera.transform.translation)) continue;
 				dir.x = static_engine_objects[i].visual.transform.translation.x - engine_camera.transform.translation.x;
@@ -392,6 +406,7 @@ static void build_render_list(void)
 	//LOG_INF("selected %d objects", o_cnt);
 #endif
 	engine_objectCount = o_cnt;
+	engine_lightCount = l_cnt;
 }
 
 static void run_all_object_process(void)
