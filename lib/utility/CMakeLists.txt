@@ -4,6 +4,7 @@ utility.c
 default_scene.c
 logo_scene.c
 filters.c
+blit.c
 )
 
 if (CONFIG_SOC_SERIES_RP2350)
