@@ -344,15 +344,9 @@ int blit_select_for_me(L3_COLORTYPE *buffer, uint16_t x, uint16_t y, uint16_t si
 	display_get_capabilities(display_device, &caps);
 
 	if (caps.current_pixel_format == PIXEL_FORMAT_L_8) {
-		if (caps.screen_info & SCREEN_INFO_MONO_VTILED) {
-			return -ENOTSUP;
-		}
 		return blit_display_L8(buffer, x, y, size_x, size_y);
 	}
 	if (caps.current_pixel_format == PIXEL_FORMAT_RGB_565 || caps.current_pixel_format == PIXEL_FORMAT_RGB_565X) {
-		if (caps.screen_info & SCREEN_INFO_MONO_VTILED) {
-			return -ENOTSUP;
-		}
 		return blit_display_RGB565(buffer, x, y, size_x, size_y);
 	}
 	if (caps.current_pixel_format == PIXEL_FORMAT_MONO10 || caps.current_pixel_format == PIXEL_FORMAT_MONO01) {
