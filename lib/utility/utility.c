@@ -4,7 +4,7 @@
 #include "engine.h"
 #include "utility.h"
 
-#define FRAME_TO_MS(n) 1000 / n
+#define FRAME_TO_MS(n) (CONFIG_TARGET_PROCESS_FPS * 1000) / (engine_target_process_fps * n)
 
 void utility_animation_process(Animation *animation)
 {

@@ -49,6 +49,10 @@ typedef struct ObjectProcess_FrameArray_Frame_s {
 	};
 } ObjectProcess_FrameArray_Frame;
 
+#define FRAMEARRAY_FRAME_ABSOLUTE	1
+#define FRAMEARRAY_FRAME_RELATIVE	2
+#define FRAMEARRAY_FRAME_BILLBOARD	4
+
 /* basic frame-based animation for when not procedural
  * it is possible to use multiple per object (multiple entries in the animation with each one type) */
 typedef struct ObjectProcess_FrameArray_s {

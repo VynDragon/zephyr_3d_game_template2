@@ -54,7 +54,7 @@ static Engine_Scene	*engine_current_scene = NULL;
 uint32_t engine_drawnTriangles = 0;
 float engine_rFPS = 0;
 
-static uint64_t		engine_target_process_fps = CONFIG_TARGET_PROCESS_FPS;
+uint64_t engine_target_process_fps = CONFIG_TARGET_PROCESS_FPS;
 
 /* ------------------------------------------------------------------------------------------- */
 

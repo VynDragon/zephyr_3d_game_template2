@@ -8,6 +8,13 @@ from PIL import Image
 
 MODEL_SCALE = 512
 MUL_UV = 1
+# For legacy
+DO_FLIP_Z = True
+
+
+Z_MUL = 1.0
+if DO_FLIP_Z:
+	Z_MUL = -1.0
 
 class FACE:
 	def __init__(self, vertice_indexes: tuple, uv: tuple, normals: tuple, material_index: int):
@@ -87,7 +94,7 @@ def generate_model_header_textured(name, model_path, textures, out_path):
 	for vertex in obj.vertices:
 		x = int(vertex[0] * MODEL_SCALE)
 		y = int(vertex[1] * MODEL_SCALE)
-		z = int(vertex[2] * MODEL_SCALE)
+		z = Z_MUL * int(vertex[2] * MODEL_SCALE)
 		file_out.write(str(x) + "," + str(y) + "," + str(z) + ",\n")
 	file_out.write("};\n")
 
@@ -134,7 +141,7 @@ def generate_model_header_textured(name, model_path, textures, out_path):
 	else:
 		file_out.write("static const L3_Unit " +  data_normals_name + "[] = {\n")
 		for face in obj.faces:
-			file_out.write(str(face.normals[0][0]) + " * L3_F," + str(face.normals[0][1]) + " * L3_F," + str(face.normals[0][2]) + " * L3_F,\n")
+			file_out.write(str(face.normals[0][0]) + " * L3_F, " + str(face.normals[0][1]) + " * L3_F, " + str(Z_MUL * face.normals[0][2]) + " * L3_F,\n")
 		file_out.write("};\n")
 
 	file_out.write("static const L3_Model3D " +  data_model_name + " = {\n")
@@ -253,7 +260,7 @@ def generate_object_header(name, model_name, output_path, textured = False, col_
 		file_out.write(".transform.rotation.y = 0,\n")
 		file_out.write(".transform.rotation.z = 0,\n")
 		file_out.write(".transform.rotation.w = L3_F,\n")
-		file_out.write(".config.backfaceCulling = 1,\n")
+		file_out.write(".config.backfaceCulling = 2,\n")
 		if textured:
 			file_out.write(".config.visible = L3_VISIBLE_MODEL_TEXTURED | L3_VISIBLE_NORMALDIFF,\n")
 		else:
