@@ -53,19 +53,23 @@ int blit_display_MONO_vtiled(L3_COLORTYPE *buffer, uint16_t x, uint16_t y, uint1
 	buf_desc.height = 8;
 	buf_desc.pitch = size_x;
 
+#define THRES 4
+
 	for (int j = 0; j < size_y; j+= 8) {
 		for (int i = 0; i < size_x; i++) {
-			buf[i] = buffer[i + (j + 0) * size_x] > 128 ? buf[i] | 1<<0 : buf[i] & ~(1<<0);
-			buf[i] = buffer[i + (j + 1) * size_x] > 128 ? buf[i] | 1<<1 : buf[i] & ~(1<<1);
-			buf[i] = buffer[i + (j + 2) * size_x] > 128 ? buf[i] | 1<<2 : buf[i] & ~(1<<2);
-			buf[i] = buffer[i + (j + 3) * size_x] > 128 ? buf[i] | 1<<3 : buf[i] & ~(1<<3);
-			buf[i] = buffer[i + (j + 4) * size_x] > 128 ? buf[i] | 1<<4 : buf[i] & ~(1<<4);
-			buf[i] = buffer[i + (j + 5) * size_x] > 128 ? buf[i] | 1<<5 : buf[i] & ~(1<<5);
-			buf[i] = buffer[i + (j + 6) * size_x] > 128 ? buf[i] | 1<<6 : buf[i] & ~(1<<6);
-			buf[i] = buffer[i + (j + 7) * size_x] > 128 ? buf[i] | 1<<7 : buf[i] & ~(1<<7);
+			buf[i] = buffer[i + (j + 0) * size_x] > THRES ? buf[i] | 1<<0 : buf[i] & ~(1<<0);
+			buf[i] = buffer[i + (j + 1) * size_x] > THRES ? buf[i] | 1<<1 : buf[i] & ~(1<<1);
+			buf[i] = buffer[i + (j + 2) * size_x] > THRES ? buf[i] | 1<<2 : buf[i] & ~(1<<2);
+			buf[i] = buffer[i + (j + 3) * size_x] > THRES ? buf[i] | 1<<3 : buf[i] & ~(1<<3);
+			buf[i] = buffer[i + (j + 4) * size_x] > THRES ? buf[i] | 1<<4 : buf[i] & ~(1<<4);
+			buf[i] = buffer[i + (j + 5) * size_x] > THRES ? buf[i] | 1<<5 : buf[i] & ~(1<<5);
+			buf[i] = buffer[i + (j + 6) * size_x] > THRES ? buf[i] | 1<<6 : buf[i] & ~(1<<6);
+			buf[i] = buffer[i + (j + 7) * size_x] > THRES ? buf[i] | 1<<7 : buf[i] & ~(1<<7);
 		}
 		display_write(display_device, x, y+j, &buf_desc, buf);
 	}
+
+#undef THRES
 
 	return 0;
 }
@@ -88,10 +92,10 @@ int blit_display_MONO_vtiled_dither(L3_COLORTYPE *buffer, uint16_t x, uint16_t y
 #define err_buf(_xoff, _yoff) \
 	error += buffer[i + (j + _yoff) * size_x + _xoff];		\
 	if (error > 0xff) {											\
-		buf[i + (_yoff/8) * size_x + _xoff] |= 1 << _yoff;		\
+		buf[i + _xoff] |= 1 << _yoff;		\
 		error -= 0xff;										\
 	} else {													\
-		buf[i + (_yoff/8) * size_x + _xoff] &= ~(1 << _yoff);		\
+		buf[i + _xoff] &= ~(1 << _yoff);		\
 	}
 
 	for (int j = 0; j < size_y; j+= 8) {
@@ -131,10 +135,10 @@ int blit_display_MONO_vtiled_dither_2(L3_COLORTYPE *buffer, uint16_t x, uint16_t
 #define err_buf(_xoff, _yoff) \
 	error += buffer[i + (j + _yoff)/2 * size_x + (_xoff/2)];		\
 	if (error > 0xff) {											\
-		buf[i * 2 + (_yoff/8) * size_x*2 + (_xoff/2)] |= 1 << (_yoff);		\
+		buf[i * 2 + (_yoff/8) * size_x*2 + _xoff] |= 1 << (_yoff);		\
 		error -= 0xff;										\
 	} else {													\
-		buf[i * 2 + (_yoff/8) * size_x*2 + (_xoff/2)] &= ~(1 << (_yoff));		\
+		buf[i * 2 + (_yoff/8) * size_x*2 + _xoff] &= ~(1 << (_yoff));		\
 	}
 
 #define err_buf_2(_xoff)		\
@@ -145,8 +149,7 @@ int blit_display_MONO_vtiled_dither_2(L3_COLORTYPE *buffer, uint16_t x, uint16_t
 	err_buf(_xoff,4)	\
 	err_buf(_xoff,5)	\
 	err_buf(_xoff,6)	\
-	err_buf(_xoff,7)	\
-	err_buf(_xoff,8)
+	err_buf(_xoff,7)
 
 	for (int j = 0; j < size_y * 2; j+= 8) {
 		for (int i = 0; i < size_x; i++) {
