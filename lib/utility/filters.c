@@ -1,4 +1,5 @@
 #include <zephyr/kernel.h>
+#include <zephyr/sys/minmax.h>
 #include "engine.h"
 
 void filter_apply(uint16_t x, uint16_t y, uint16_t size_x, uint16_t size_y, Filter_f filter, void *data)

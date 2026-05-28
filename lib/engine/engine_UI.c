@@ -5,6 +5,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <zephyr/drivers/display.h>
+#include <zephyr/sys/minmax.h>
 #include <stdlib.h>
 #include <math.h>
 

@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <zephyr/kernel.h>
+#include <zephyr/sys/minmax.h>
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(L3);
 

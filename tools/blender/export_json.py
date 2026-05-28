@@ -13,9 +13,9 @@ def write_json(context, filepath):
 	for obj in bpy.data.objects:
 		if obj.type == 'MESH' and obj.hide_viewport == False:
 			obj_json_transform= {
-				"translation": {"x": obj.location.x * MUL, "y": obj.location.y * MUL, "z": obj.location.z * MUL, "w": MUL},
-				"rotation": {"x": obj.rotation_euler.x / (2 * pi) * MUL, "y": obj.rotation_euler.y / (2 * pi) * MUL, "z": obj.rotation_euler.z / (2 * pi) * MUL, "w": MUL},
-				"scale": {"x": obj.scale.x * MUL, "y": obj.scale.y * MUL, "z": obj.scale.z * MUL, "w": 0},
+				"translation": {"x": obj.location.x * MUL, "y": obj.location.z * MUL, "z": obj.location.y * MUL, "w": MUL},
+				"rotation": {"x": obj.rotation_euler.x / (2 * pi) * MUL, "y": obj.rotation_euler.z / (2 * pi) * MUL, "z": obj.rotation_euler.y / (2 * pi) * MUL, "w": MUL},
+				"scale": {"x": obj.scale.x * MUL, "y": obj.scale.z * MUL, "z": obj.scale.y * MUL, "w": 0},
 				}
 			obj_json = {
 					"visual_type": obj["visual_type"],
