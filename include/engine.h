@@ -248,5 +248,6 @@ extern float engine_rFPS;
 extern uint64_t engine_target_process_fps;
 
 E_Particle *engine_create_particle(L3_Transform3D transform, Engine_Particle_pf process, const L3_Billboard *billboard, uint32_t lifespan);
-
+/* Run one tick of particles */
+void engine_preload_particles(void);
 

@@ -442,6 +442,11 @@ static void run_particles(void)
 	}
 }
 
+void engine_preload_particles(void)
+{
+	run_particles();
+}
+
 static void build_collider_list(void)
 {
 	E_Collider_pair *colliders = engine_colliders;
