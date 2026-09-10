@@ -15,7 +15,7 @@ point scaling. This is NOT SUPPOSED TO BE REDEFINED, so rather don't do it
 #define L3_RESOLUTION_X CONFIG_RESOLUTION_X
 #define L3_RESOLUTION_Y CONFIG_RESOLUTION_Y
 
-#define L3_PIXEL_FUNCTION			zephyr_putpixel
+#define L3_PIXEL_FUNCTION		zephyr_putpixel
 
 #undef L3_TRIANGLE_FUNCTION_WORLD_EN
 #if defined(L3_TRIANGLE_FUNCTION_WORLD_EN) && L3_TRIANGLE_FUNCTION_WORLD_EN
@@ -24,7 +24,7 @@ point scaling. This is NOT SUPPOSED TO BE REDEFINED, so rather don't do it
 #define L3_TRIANGLE_FUNCTION_SCREEN	zephyr_drawtriangle_screen
 #define L3_BILLBOARD_FUNCTION		zephyr_drawbillboard
 #define L3_BILLBOARD_3D_FUNCTION	zephyr_drawbillboard_3D
-#define L3_MODEL_FUNCTION			zephyr_model
+#define L3_MODEL_FUNCTION		zephyr_model
 
 #define L3_COLORTYPE uint8_t
 #define L3_COLORTYPE_LIGHT_THRES 0xC0
@@ -43,32 +43,32 @@ static k_timepoint_t inline L3_FPS_TIMEPOINT(uint64_t fps)
 #define L3_MAX_OBJECTS	0x2FF
 #define L3_MAX_LIGHTS	0x10
 
-#define L3_VISIBLE_INVISIBLE		0
+#define L3_VISIBLE_INVISIBLE			0
 
-#define L3_VISIBLE_MODEL_TEXTURED			BIT(1)
-#define L3_VISIBLE_MODEL_WIREFRAME			BIT(2)
-#define L3_VISIBLE_MODEL_SOLID				BIT(3)
+#define L3_VISIBLE_MODEL_TEXTURED		BIT(1)
+#define L3_VISIBLE_MODEL_WIREFRAME		BIT(2)
+#define L3_VISIBLE_MODEL_SOLID			BIT(3)
 #define L3_VISIBLE_MODEL_WIREFRAME_DEPTH	BIT(4)
 
 /* Check Z on each pixel instead of only center */
-#define L3_VISIBLE_BILLBOARD_ZSLOW			BIT(1)
-#define L3_VISIBLE_BILLBOARD_3D				BIT(2)
+#define L3_VISIBLE_BILLBOARD_ZSLOW		BIT(1)
+#define L3_VISIBLE_BILLBOARD_3D			BIT(2)
 /* Pull billboard toward camera by ratio related to y and x from center to compensate for billboardiness */
 #define L3_VISIBLE_BILLBOARD_FRONTIFY		BIT(3)
 
-#define L3_VISIBLE_MODEL					0 /* Bit 0 unset */
-#define L3_VISIBLE_BILLBOARD				BIT(0)
+#define L3_VISIBLE_MODEL			0 /* Bit 0 unset */
+#define L3_VISIBLE_BILLBOARD			BIT(0)
 
-#define L3_VISIBLE_NORMALLIGHT				BIT(15)
-#define L3_VISIBLE_DISTANCELIGHT			BIT(14)
-#define L3_VISIBLE_NORMALDIFF				BIT(13)
-#define L3_VISIBLE_THRESLIGHT				BIT(12)
-#define L3_VISIBLE_LIGHTED_TRIANGLE			BIT(11)
-#define L3_VISIBLE_LIGHTED_PIXEL			BIT(10)
+#define L3_VISIBLE_NORMALLIGHT			BIT(15)
+#define L3_VISIBLE_DISTANCELIGHT		BIT(14)
+#define L3_VISIBLE_NORMALDIFF			BIT(13)
+#define L3_VISIBLE_THRESLIGHT			BIT(12)
+#define L3_VISIBLE_LIGHTED_TRIANGLE		BIT(11)
+#define L3_VISIBLE_LIGHTED_PIXEL		BIT(10)
 
-#define L3_VISIBLE_LIGHTED					(L3_VISIBLE_LIGHTED_TRIANGLE | L3_VISIBLE_LIGHTED_PIXEL)
+#define L3_VISIBLE_LIGHTED			(L3_VISIBLE_LIGHTED_TRIANGLE | L3_VISIBLE_LIGHTED_PIXEL)
 
-#define L3_VISIBLE_MODEL_WIREFRAME_ANY	(L3_VISIBLE_MODEL_WIREFRAME_DEPTH | L3_VISIBLE_MODEL_WIREFRAME)
+#define L3_VISIBLE_MODEL_WIREFRAME_ANY		(L3_VISIBLE_MODEL_WIREFRAME_DEPTH | L3_VISIBLE_MODEL_WIREFRAME)
 
 /* Wireframe colorshift */
 #define L3_VISIBLE_MODEL_WIREFRAME_COLOR	(32)
@@ -196,7 +196,7 @@ Smaller is nicer but slower. */
 
 /** For L3_Z_BUFFER == 3 this sets the z-buffer adaption ratios. */
 #define L3_INVERTED_Z_TOP_MUL		(1 << 7)
-#define L3_INVERTED_Z_TOP			(0xFF * L3_INVERTED_Z_TOP_MUL)
+#define L3_INVERTED_Z_TOP		(0xFF * L3_INVERTED_Z_TOP_MUL)
 #define L3_INVERTED_Z_OFFSET		(1 << 12)
 #define L3_INVERTED_Z_BOTTOM_SHIFT	5
 
@@ -366,10 +366,10 @@ static inline int8_t L3_triangleWinding(
 typedef struct
 {
 	L3_Vec4 translation;
-	L3_Vec4 rotation; /**< Euler angles. Rortation is applied in this order:
-													1. z = by z (roll) CW looking along z+
-													2. x = by x (pitch) CW looking along x+
-													3. y = by y (yaw) CW looking along y+ */
+	L3_Vec4 rotation; /**<	Euler angles. Rortation is applied in this order:
+				1. z = by z (roll) CW looking along z+
+				2. x = by x (pitch) CW looking along x+
+				3. y = by y (yaw) CW looking along y+ */
 	L3_Vec4 scale;
 } L3_Transform3D;
 
@@ -489,9 +489,9 @@ typedef struct
 
 typedef struct
 {
-	L3_Unit focalLength;       /**< Defines the field of view (FOV). 0 sets an
-																	orthographics projection (scale is controlled
-																	with camera's scale in its transform). */
+	L3_Unit focalLength; /**<	Defines the field of view (FOV). 0 sets an
+					orthographics projection (scale is controlled
+					with camera's scale in its transform). */
 	L3_Transform3D transform;
 } L3_Camera;
 
@@ -499,12 +499,11 @@ void L3_cameraInit(L3_Camera *camera);
 
 typedef struct
 {
-	uint8_t backfaceCulling;    /**< What backface culling to use. Possible
-																	values:
-																	- 0 none
-																	- 1 clock-wise
-																	- 2 counter clock-wise */
-	uint16_t visible;             /**< Can be used to easily hide the model. */
+	uint8_t backfaceCulling; /**<	What backface culling to use. Possible values:
+					- 0 none
+					- 1 clock-wise
+					- 2 counter clock-wise */
+	uint16_t visible; /**< Can be used to easily hide the model. */
 } L3_DrawConfig;
 
 void L3_drawConfigInit(L3_DrawConfig *config);
@@ -531,7 +530,7 @@ typedef struct
 typedef struct
 {
 	const L3_Texture	*texture;
-	L3_Unit				scale;
+	L3_Unit			scale;
 	L3_Transparency		transparency;
 } L3_Billboard;
 
@@ -545,11 +544,11 @@ typedef struct
 	 * [y_0_xz_0, y_1_xz_0, y_2_xz_0, y_3_xz_0, y_0_xz_1, y_1_xz_1, y_2_xz_1 ...]
 	 * first no xz angle, then +xz_offset, then -xz_offset, then +2xz_offset, then -2xz_offset, etc
 	 */
-	L3_Index			texture_cnt;
-	L3_Unit				y_cnt;
-	L3_Unit				xz_cnt;
+	L3_Index		texture_cnt;
+	L3_Unit			y_cnt;
+	L3_Unit			xz_cnt;
 
-	L3_Unit				scale;
+	L3_Unit			scale;
 	L3_Transparency		transparency;
 } L3_Billboard_3D;
 
@@ -557,14 +556,14 @@ typedef struct
 typedef union
 {
 	struct {
-			const L3_Texture	*front; /* 0 */
-			const L3_Texture	*back; /* 1 */
-			const L3_Texture	*left; /* 2 */
-			const L3_Texture	*right; /* 3 */
-			const L3_Texture	*top; /* 4 */
-			const L3_Texture	*bottom; /* 5 */
+		const L3_Texture	*front; /* 0 */
+		const L3_Texture	*back; /* 1 */
+		const L3_Texture	*left; /* 2 */
+		const L3_Texture	*right; /* 3 */
+		const L3_Texture	*top; /* 4 */
+		const L3_Texture	*bottom; /* 5 */
 	} faces;
-	const L3_Texture	*textures[6];
+	const L3_Texture		*textures[6];
 } L3_Skybox;
 
 typedef struct
@@ -573,17 +572,17 @@ typedef struct
 	L3_DrawConfig	config;
 	L3_COLORTYPE	solid_color;
 	union {
-		const L3_Model3D		*model;
-		const L3_Billboard		*billboard;
+		const L3_Model3D	*model;
+		const L3_Billboard	*billboard;
 		const L3_Billboard_3D	*billboard_3D;
 	};
 } L3_Object;
 
 typedef struct {
 	/* 0 is center */
-	L3_Vec4			pos[4];
-	L3_Vec4			dir[4];
-	L3_Unit			dot[4];
+	L3_Vec4		pos[4];
+	L3_Vec4		dir[4];
+	L3_Unit		dot[4];
 	const L3_Object	*light;
 } L3_Pixel_Light;
 
@@ -591,9 +590,10 @@ typedef struct
 {
 	const L3_Object *object;
 	L3_Index triangleIndex; ///< Triangle index within the model.
-	L3_ScreenCoord triangleSize[2]; /**< Rasterized triangle width and height,
-									can be used e.g. for MIP mapping. */
+	L3_ScreenCoord triangleSize[2]; /**< Rasterized triangle width and height, can be used e.g. for MIP mapping. */
+	#ifdef CONFIG_L3_LIGHTS
 	L3_Pixel_Light	lights[L3_MAX_LIGHTS];
+	#endif
 	L3_Index		light_cnt;
 	L3_Vec4			triangleNormal;
 	L3_Mat4 		matWorld;
@@ -602,8 +602,8 @@ typedef struct
 	L3_Vec4			triangleMiddle_object;
 	union {
 		struct {
-			L3_Vec4			main[3];
-			L3_Vec4			sub[3];
+			L3_Vec4		main[3];
+			L3_Vec4		sub[3];
 		};
 		L3_Vec4			all[6];
 	} trianglePoints_screen;
@@ -615,25 +615,24 @@ typedef struct
 	L3_ScreenCoord x;          ///< Screen X coordinate.
 	L3_ScreenCoord y;          ///< Screen Y coordinate.
 
-	L3_Unit barycentric[3]; /**< Barycentric coords correspond to the three
-															vertices. These serve to locate the pixel on a
-															triangle and interpolate values between its
-															three points. Each one goes from 0 to
-															L3_FRACTIONS_PER_UNIT (including), but due to
-															rounding error may fall outside this range (you
-															can use L3_correctBarycentricCoords to fix this
-															for the price of some performance). The sum of
-															the three coordinates will always be exactly
-															L3_FRACTIONS_PER_UNIT. */
+	L3_Unit barycentric[3]; /**<	Barycentric coords correspond to the three
+					vertices. These serve to locate the pixel on a
+					triangle and interpolate values between its
+					three points. Each one goes from 0 to
+					L3_FRACTIONS_PER_UNIT (including), but due to
+					rounding error may fall outside this range (you
+					can use L3_correctBarycentricCoords to fix this
+					for the price of some performance). The sum of
+					the three coordinates will always be exactly
+					L3_FRACTIONS_PER_UNIT. */
 	L3_Unit depth;         ///< Depth (only if depth is turned on).
-	L3_Unit previousZ;     /**< Z-buffer value (not necessarily world depth in
-															L3_Units!) that was in the z-buffer on the
-															pixels position before this pixel was
-															rasterized. This can be used to set the value
-															back, e.g. for transparency. */
+	L3_Unit previousZ; /**<	Z-buffer value (not necessarily world depth in
+				L3_Units!) that was in the z-buffer on the
+				pixels position before this pixel was
+				rasterized. This can be used to set the value
+				back, e.g. for transparency. */
 	const L3_TriangleInfo	*triangle;
-} L3_PixelInfo;         /**< Used to pass the info about a rasterized pixel
-															(fragment) to the user-defined drawing func. */
+} L3_PixelInfo; /**< Used to pass the info about a rasterized pixel (fragment) to the user-defined drawing func. */
 
 // static inline void L3_pixelInfoInit(L3_PixelInfo *p)
 // {
@@ -973,8 +972,9 @@ extern L3_COLORTYPE L3_video_buffer[L3_RESOLUTION_X * L3_RESOLUTION_Y];
 extern L3_ZBUFTYPE L3_zBuffer[L3_MAX_PIXELS];
 #endif
 extern const L3_Object	*engine_global_objects[L3_MAX_OBJECTS];
-extern L3_Index			engine_objectCount;
-extern L3_Camera		engine_camera;
+extern L3_Index		engine_objectCount;
+extern L3_Camera	engine_camera;
+#ifdef CONFIG_L3_LIGHTS
 extern const L3_Object	*engine_global_lights[L3_MAX_LIGHTS];
-extern L3_Index 		engine_lightCount;
-
+extern L3_Index 	engine_lightCount;
+#endif

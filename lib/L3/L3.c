@@ -68,8 +68,10 @@ L3_RENDER_BUFFER L3_ZBUFTYPE L3_zBuffer[L3_MAX_PIXELS];
 const L3_Object	*engine_global_objects[L3_MAX_OBJECTS];
 L3_Index		engine_objectCount = 0;
 L3_Camera		engine_camera = {0};
-const L3_Object	*engine_global_lights[L3_MAX_LIGHTS];
+#ifdef CONFIG_L3_LIGHTS
+const L3_Object		*engine_global_lights[L3_MAX_LIGHTS];
 L3_Index		engine_lightCount = 0;
+#endif
 
 /* the following serves to communicate info about if the triangle has been split
 	and how the barycentrics should be remapped. */
@@ -2831,6 +2833,7 @@ uint32_t L3_draw(L3_Camera camera, const L3_Object **objects, L3_Index objectCou
 #else
 				draw = 1;
 #endif
+				#ifdef CONFIG_L3_LIGHTS
 				triangleInfos.light_cnt = 0;
 				/* Calculate light vectors dot product in object space, relative to triangle position */
 				if((triangleInfos.object->config.visible & L3_VISIBLE_LIGHTED) && triangleInfos.object->model->triangleNormals != 0) {
@@ -2877,6 +2880,7 @@ uint32_t L3_draw(L3_Camera camera, const L3_Object **objects, L3_Index objectCou
 						}
 					}
 				}
+				#endif
 
 				if (draw) {
 					/* per-Triangle hook without world vertexes */
@@ -3066,6 +3070,7 @@ int zephyr_drawtriangle_screen(L3_TriangleInfo *triangleInfos, L3_Vec4 normalLig
 #undef point1
 #undef point2
 
+	#ifdef CONFIG_L3_LIGHTS
 	if ((triangleInfos->object->config.visible & L3_VISIBLE_LIGHTED) && triangleInfos->light_cnt > 0) {
 		L3_Unit lastpower[4] = {-0x3FFFFFFF, -0x3FFFFFFF, -0x3FFFFFFF, -0x3FFFFFFF};
 		L3_Unit d;
@@ -3103,6 +3108,7 @@ int zephyr_drawtriangle_screen(L3_TriangleInfo *triangleInfos, L3_Vec4 normalLig
 		}
 		has_light = true;
 	}
+	#endif
 
 	return 1;
 }

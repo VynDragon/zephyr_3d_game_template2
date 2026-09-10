@@ -20,14 +20,14 @@ int ENGINE_BLIT_FUNCTION(L3_COLORTYPE *buffer, uint16_t x, uint16_t y, uint16_t 
 
 #define ENGINE_VISUAL_UNUSED	0
 #define ENGINE_VISUAL_NOTHING	1
-#define ENGINE_VISUAL_MODEL		2
+#define ENGINE_VISUAL_MODEL	2
 #define ENGINE_VISUAL_BILLBOARD	3
-#define ENGINE_VISUAL_LIGHT		4
+#define ENGINE_VISUAL_LIGHT	4
 
 #define ENGINE_MAX_COLLIDERS	 0xFF
-#define ENGINE_MAX_DOBJECTS		0xF
+#define ENGINE_MAX_DOBJECTS	0xF
 #define ENGINE_MAX_PARTICLES	0x100
-#define ENGINE_MAX_FILTERS		16
+#define ENGINE_MAX_FILTERS	16
 
 /* do product to determine if object is behind camera limit */
 #define ENGINE_REAR_OBJECT_CUTOFF 8 * L3_F
@@ -61,14 +61,14 @@ typedef void (*Engine_Scene_dif)(Engine_Scene *data);
 typedef struct Filterable_Pixel_s Filterable_Pixel;
 typedef void (*Filter_f)(Filterable_Pixel *p, void *data);
 typedef struct Filterable_Pixel_s {
-	uint16_t		x;
-	uint16_t		y;
+	uint16_t	x;
+	uint16_t	y;
 	L3_COLORTYPE	*vpx;
-	L3_ZBUFTYPE		*zpx;
+	L3_ZBUFTYPE	*zpx;
 	L3_COLORTYPE	*vbuf;
-	L3_ZBUFTYPE		*zbuf;
-	uint16_t		size_x;
-	uint16_t		size_y;
+	L3_ZBUFTYPE	*zbuf;
+	uint16_t	size_x;
+	uint16_t	size_y;
 } Filterable_Pixel;
 
 void filter_apply(uint16_t x, uint16_t y, uint16_t size_x, uint16_t size_y, Filter_f filter, void *data);
@@ -99,18 +99,18 @@ typedef struct E_C_Capsule_s {
 typedef struct E_C_AxisPlane_s {
 	L3_Vec4	offset;
 	/* axis size define direction */
-	L3_Vec4 size;
+	L3_Vec4	size;
 	L3_Unit	bouncyness;
 	/* determine if we need to be >= than its limit for it to affect */
-	bool traverseable;
+	bool	traverseable;
 } E_C_AxisPlane;
 
 typedef struct E_C_Terrain_s {
 	const L3_Vec4	*points;
-	size_t			points_cnt;
-	L3_Unit			bouncyness;
+	size_t		points_cnt;
+	L3_Unit		bouncyness;
 	/* determine if we need to be >= than its limit for it to affect */
-	bool traverseable;
+	bool		traverseable;
 } E_C_Terrain;
 
 #define ENGINE_COLLIDER_NOTHING	0
@@ -124,11 +124,11 @@ typedef struct E_C_Terrain_s {
 
 typedef struct E_Collider_s {
 	union {
-		E_C_Cuboid		cube;
-		E_C_Sphere		sphere;
-		E_C_Capsule		capsule;
+		E_C_Cuboid	cube;
+		E_C_Sphere	sphere;
+		E_C_Capsule	capsule;
 		E_C_AxisPlane	axisplane;
-		E_C_Terrain		terrain;
+		E_C_Terrain	terrain;
 	};
 	uint8_t			type;
 } E_Collider;
@@ -139,22 +139,22 @@ typedef struct Engine_Physics_s {
 	L3_Transform3D	speeds;
 	L3_Transform3D	last_transform;
 	/* points to check collisions against, if 0, use transform */
-	L3_Vec4	*pointOffsets;
-	uint8_t pointOffsetsCount;
+	L3_Vec4		*pointOffsets;
+	uint8_t		pointOffsetsCount;
 } Engine_Physics;
 
 typedef struct Engine_Collisions_s {
 	/* Collider table */
 	const E_Collider	*colliders;
-	uint8_t				colliderCount;
+	uint8_t			colliderCount;
 } Engine_Collisions;
 
 typedef struct Engine_Object_s {
-	L3_Object				visual;
-	uint8_t					visual_type;
-	L3_Unit					view_range;
-	Engine_Object_pf		process;
-	void 					*data;
+	L3_Object		visual;
+	uint8_t			visual_type;
+	L3_Unit			view_range;
+	Engine_Object_pf	process;
+	void			*data;
 	const Engine_Collisions	*collisions;
 } Engine_Object;
 
@@ -167,19 +167,19 @@ typedef struct E_Particle_s {
 	L3_Transform3D		transform;
 	const L3_Billboard	*billboard;
 	Engine_Particle_pf	process;
-	uint32_t			life;
+	uint32_t		life;
 } E_Particle;
 
 typedef struct Engine_Scene_s {
 	Engine_Scene_pf		pf;
 	const Engine_Object	*statics;
-	size_t				statics_count;
+	size_t			statics_count;
 	Engine_Scene_inf	inf;
 	Engine_Scene_dif	dif;
 	const Filter_f		*filters;
-	size_t				filters_count;
-	L3_Skybox			*skybox;
-	void				*data;
+	size_t			filters_count;
+	L3_Skybox		*skybox;
+	void			*data;
 } Engine_Scene;
 
 int init_engine(Engine_pf pf);

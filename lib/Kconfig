@@ -38,3 +38,11 @@ config DEFAULT_UI
 	default y
 
 endif
+
+if L3
+
+config L3_LIGHTS
+	bool "Light support"
+	default n
+
+endif

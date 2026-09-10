@@ -43,39 +43,6 @@ bool animate = true;
 
 static const struct device *display_device = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
 
-int blit_display_L8(L3_COLORTYPE *buffer, uint16_t x, uint16_t y, uint16_t size_x, uint16_t size_y)
-{
-	struct display_buffer_descriptor buf_desc;
-	buf_desc.buf_size = size_x * size_y;
-	buf_desc.width = size_x;
-	buf_desc.height = size_y;
-	buf_desc.pitch = size_x;
-
-	display_write(display_device, x, y, &buf_desc, buffer);
-
-	return 0;
-}
-
-int blit_display_L8_2to1_1(L3_COLORTYPE *buffer, uint16_t x, uint16_t y, uint16_t size_x, uint16_t size_y)
-{
-	struct display_buffer_descriptor buf_desc;
-	uint8_t buf[L3_RESOLUTION_X * 2] = {0};
-	buf_desc.buf_size = size_x * 2;
-	buf_desc.width = size_x * 2;
-	buf_desc.height = 1;
-	buf_desc.pitch = size_x * 2;
-
-	for (int j = 0; j < size_y; j++) {
-		for (int i = 0; i < size_x; i++) {
-			buf[i * 2] = buffer[i + j * size_x];
-			buf[i * 2 + 1] = buffer[i + j * size_x];
-		}
-		display_write(display_device, x, j, &buf_desc, buf);
-	}
-
-	return 0;
-}
-
 int blit_display_MONO(L3_COLORTYPE *buffer, uint16_t x, uint16_t y, uint16_t size_x, uint16_t size_y)
 {
 	struct display_buffer_descriptor buf_desc;
@@ -200,7 +167,7 @@ int blit_display_MONO_dither(L3_COLORTYPE *buffer, uint16_t x, uint16_t y, uint1
 
 int blit_display(L3_COLORTYPE *buffer, uint16_t x, uint16_t y, uint16_t size_x, uint16_t size_y)
 {
-	return blit_display_L8(buffer, x, y, size_x, size_y);
+	return blit_select_for_me(buffer, x, y, size_x, size_y);
 }
 
 typedef struct {
