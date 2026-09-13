@@ -592,7 +592,7 @@ typedef struct
 	L3_Index triangleIndex; ///< Triangle index within the model.
 	L3_ScreenCoord triangleSize[2]; /**< Rasterized triangle width and height, can be used e.g. for MIP mapping. */
 	#ifdef CONFIG_L3_LIGHTS
-	L3_Pixel_Light	lights[L3_MAX_LIGHTS];
+	L3_Pixel_Light		lights[L3_MAX_LIGHTS];
 	#endif
 	L3_Index		light_cnt;
 	L3_Vec4			triangleNormal;

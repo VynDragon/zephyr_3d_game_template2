@@ -3145,7 +3145,8 @@ void zephyr_drawbillboard_draw(const L3_Vec4 point, const L3_Transform3D *transf
 		const int m = (float)(i - startx) / scale_x;
 		for (int j = MAX(0, starty); j < endy; j++) {
 			if (frontify) {
-				z = point.z + abs(i - point.x) - abs(j - point.y) * 3;
+				//z = point.z + abs(i - point.x) - abs(j - point.y) * 3;
+				z = point.z * 5 / 10;
 				z = L3_zBufferFormat(z < 0 ? 0 : z);
 			}
 			if (zslow ? !L3_zTest_raw(i, j, z) : false)
@@ -3176,7 +3177,7 @@ int zephyr_drawbillboard_3D(const L3_Vec4 point, const L3_Object *billboard, con
 	const int focal = camera->focalLength != 0 ? camera->focalLength : 1;
 	const L3_Unit y_off = L3_F / billboard->billboard_3D->y_cnt;
 	const L3_Unit xz_off = L3_F / billboard->billboard_3D->xz_cnt;
-	L3_Vec4 forward = { 0, 0, L3_F, L3_F };
+	L3_Vec4 forward = { 362, 0, 362, L3_F };
 	L3_Vec4 up = { 0, L3_F, 0, L3_F };
 	L3_Vec4 center = { 0, 0, 0, L3_F };
 
@@ -3192,7 +3193,7 @@ int zephyr_drawbillboard_3D(const L3_Vec4 point, const L3_Object *billboard, con
 	up.z = up.z - center.z;
 
 	int ycnt = forward.x <= 0 ? forward.z / 4 + 128 : 512 - (forward.z / 4 + 128);
-	int xzcnt = -(up.x + up.z <= 0 ? up.y / 4 + 128 : 512 - (up.y / 4 + 128)) + 256;
+	int xzcnt = -(up.x + up.z <= 0 ? up.y / 4 + 128 : 512 - (up.y / 4 + 128)) + 280;
 	xzcnt = xzcnt < 0 ? abs(xzcnt) * 2 + xz_off: xzcnt * 2;
 
 	size_t index_xz = ((xzcnt / xz_off) % billboard->billboard_3D->xz_cnt) * billboard->billboard_3D->y_cnt;
